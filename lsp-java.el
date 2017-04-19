@@ -1,7 +1,7 @@
 ;;; lsp-java.el --- Java support for lsp-mode
 
 ;; Version: 1.0
-;; Package-Requires: ((lsp-mode "2.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "2.0"))
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -29,7 +29,7 @@ The slash is expected at the end."
   :risky t
   :type 'directory )
 
-(defun lsp--java-locate-server-jar ()
+(defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
 
 The entry point of the language server is in `lsp-java-server-install-dir'/plugins/org.eclipse.equinox.launcher_`version'.jar."
@@ -40,7 +40,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
         (message (format "Found more than one java language server entry points: %s" server-jar-filenames))
         (car server-jar-filenames)))))
 
-(defun lsp--java-locate-server-config ()
+(defun lsp-java--locate-server-config ()
   "returns the server config based on OS"
   (let ( (config (cond
                   ((string-equal system-type "windows-nt") ; Microsoft Windows
@@ -52,10 +52,10 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (message (format "using config for %s" config))
     (expand-file-name config lsp-java-server-install-dir)))
 
-(defun lsp--java-ls-command ()
-  (let ((server-jar (lsp--java-locate-server-jar))
-        (server-config (lsp--java-locate-server-config))
-        (root-dir (lsp--java-get-root)))
+(defun lsp-java--ls-command ()
+  (let ((server-jar (lsp-java--locate-server-jar))
+        (server-config (lsp-java--locate-server-config))
+        (root-dir (lsp-java--get-root)))
     `( "java"
        "-Declipse.application=org.eclipse.jdt.ls.core.id1"
        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044"
@@ -72,15 +72,15 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
        "-data"
        ,root-dir)))
 
-(defun lsp--java-get-root ()
+(defun lsp-java--get-root ()
   "TODO: use projectile directory"
   (let ((dir default-directory))
     (if (string= dir "/")
         (user-error (concat "Couldn't find java root, using:" dir))
       dir)))
 
-(lsp-define-client 'java-mode "java" 'stdio #'lsp--java-get-root
-  :command (lsp--java-ls-command)
+(lsp-define-client 'java-mode "java" 'stdio #'lsp-java--get-root
+  :command (lsp-java--ls-command)
   :name "Java Language Server")
 
 (provide 'lsp-java)
