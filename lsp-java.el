@@ -79,9 +79,9 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
         (user-error (concat "Couldn't find java root, using:" dir))
       dir)))
 
-(lsp-define-client 'java-mode "java" 'stdio #'lsp-java--get-root
-  :command (lsp-java--ls-command)
-  :name "Java Language Server")
+(lsp-define-stdio-client 'java-mode "java" 'stdio #'lsp-java--get-root
+			 "Java Language Server"
+			 (lsp-java--ls-command))
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
