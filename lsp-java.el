@@ -81,7 +81,9 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
 
 (lsp-define-stdio-client 'java-mode "java" 'stdio #'lsp-java--get-root
 			 "Java Language Server"
-			 (lsp-java--ls-command))
+			 (lsp-java--ls-command)
+			 :ignore-regexps '("^SLF4J: "
+					   "^Listening for transport dt_socket at address: "))
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
