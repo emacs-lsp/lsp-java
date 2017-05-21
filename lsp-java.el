@@ -79,7 +79,9 @@ The current directory is assumed to be the java project’s root otherwise."
   (cond
    ((and (featurep 'projectile) (projectile-project-p)) (projectile-project-root))
    ((vc-backend default-directory) (expand-file-name (vc-root-dir)))
-   (t default-directory)))
+   (t (let ((project-types '("pom.xml" "build.gradle" ".project")))
+	(or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
+	    default-directory)))))
 
 (lsp-define-stdio-client 'java-mode "java" 'stdio #'lsp-java--get-root
 			 "Java Language Server"
