@@ -73,11 +73,15 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
        ,root-dir)))
 
 (defun lsp-java--get-root ()
-  "TODO: use projectile directory"
-  (let ((dir default-directory))
-    (if (string= dir "/")
-        (user-error (concat "Couldn't find java root, using:" dir))
-      dir)))
+  "Retrieves the root directory of the java project root if available.
+
+The current directory is assumed to be the java project’s root otherwise."
+  (cond
+   ((and (featurep 'projectile) (projectile-project-p)) (projectile-project-root))
+   ((vc-backend default-directory) (expand-file-name (vc-root-dir)))
+   (t (let ((project-types '("pom.xml" "build.gradle" ".project")))
+	(or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
+	    default-directory)))))
 
 (lsp-define-stdio-client 'java-mode "java" 'stdio #'lsp-java--get-root
 			 "Java Language Server"
