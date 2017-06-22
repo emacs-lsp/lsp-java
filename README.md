@@ -11,10 +11,10 @@ Clone this repository `https://github.com/emacs-lsp/lsp-mode` to a suitable path
 (require 'lsp-mode)
 (global-lsp-mode t)
 ```
-to your .emacs.
+to your `.emacs`.
 
 It needs the eclipse jdt server in `~/.emacs.d/eclipse.jdt.ls/server/`
 
-Download latest `jdt-language-server-XXX.tar.gz` from http://download.eclipse.org/jdtls/snapshots/ to  `~/.emacs.d/eclipse.jdt.ls/server/`
+Download either [latest](http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz) or [a specific version](http://download.eclipse.org/jdtls/snapshots/?d) of Eclipse JDT Language Server distribution to `~/.emacs.d/eclipse.jdt.ls/server/`
 
 If you choose to have the server installed in a different directory, set `lsp-java-server-install-dir`
