@@ -9,7 +9,7 @@ Clone this repository `https://github.com/emacs-lsp/lsp-mode` to a suitable path
 (add-to-list 'load-path "<path to lsp-mode>")
 (require 'lsp-java)
 (require 'lsp-mode)
-(add-hook 'java-mode-hook #'lsp-mode)
+(add-hook 'java-mode-hook #'lsp-java-enable)
 ```
 to your `.emacs`.
 
