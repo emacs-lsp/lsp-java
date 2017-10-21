@@ -1,7 +1,7 @@
 ;;; lsp-java.el --- Java support for lsp-mode
 
 ;; Version: 1.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "2.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0"))
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
