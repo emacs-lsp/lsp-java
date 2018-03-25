@@ -52,6 +52,13 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (message (format "using config for %s" config))
     (expand-file-name config lsp-java-server-install-dir)))
 
+(defun lsp-java-organize-imports ()
+  "Organize java imports."
+  (interactive)
+  (lsp--send-execute-command
+   "java.edit.organizeImports"
+   (list (lsp--path-to-uri buffer-file-name))))
+
 (defun lsp-java--ls-command ()
   (let ((server-jar (lsp-java--locate-server-jar))
         (server-config (lsp-java--locate-server-config))
