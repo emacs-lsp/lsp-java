@@ -29,19 +29,80 @@ The slash is expected at the end."
   :risky t
   :type 'directory )
 
+(defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
+  "LSP java workspace directory."
+  :group 'lsp-java-mode
+  :risky t
+  :type 'directory)
+
+(defcustom lsp-java--workspace-folders ()
+  "LSP java workspace folders."
+  :group 'lsp-java-mode
+  :risky t)
+
+;; TODO create customization for each of the settings
+(defun lsp-java--settings ()
+  "JDT settings."
+  '((java
+     (jdt
+      (ls
+       (vmargs . "-noverify -Xmx1G -XX:+UseG1GC -XX:+UseStringDeduplication")))
+     (errors
+      (incompleteClasspath
+       (severity . "warning")))
+     (configuration
+      (updateBuildConfiguration . "interactive")
+      (maven))
+     (trace
+      (server . "off"))
+     (import
+      (gradle
+       (enabled . t))
+      (maven
+       (enabled . t))
+      (exclusions . ["**/node_modules/**"
+                     "**/.metadata/**"
+                     "**/archetype-resources/**"
+                     "**/META-INF/maven/**"]))
+     (referencesCodeLens
+      (enabled . t))
+     (signatureHelp
+      (enabled . t))
+     (implementationsCodeLens
+      (enabled . t))
+     (format
+      (enabled . t))
+     (saveActions
+      (organizeImports . :json-false))
+     (contentProvider)
+     (autobuild
+      (enabled . t))
+     (completion
+      (favoriteStaticMembers .
+                             ["org.junit.Assert.*"
+                              "org.junit.Assume.*"
+                              "org.junit.jupiter.api.Assertions.*"
+                              "org.junit.jupiter.api.Assumptions.*"
+                              "org.junit.jupiter.api.DynamicContainer.*"
+                              "org.junit.jupiter.api.DynamicTest.*"])
+      (importOrder . ["java" "javax" "com" "org"]))
+     (test
+      (report
+       (position . "sideView"))))))
+
 (defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
 
 The entry point of the language server is in `lsp-java-server-install-dir'/plugins/org.eclipse.equinox.launcher_`version'.jar."
   (ignore-errors
     (let* ((plugindir (expand-file-name "plugins" lsp-java-server-install-dir))
-            (server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*")))
+           (server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*")))
       (if (not (= (length server-jar-filenames) 1))
-        (message (format "Found more than one java language server entry points: %s" server-jar-filenames))
+          (message (format "Found more than one java language server entry points: %s" server-jar-filenames))
         (car server-jar-filenames)))))
 
 (defun lsp-java--locate-server-config ()
-  "returns the server config based on OS"
+  "Return the server config based on OS."
   (let ( (config (cond
                   ((string-equal system-type "windows-nt") ; Microsoft Windows
                    "config_win")
@@ -52,7 +113,14 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (message (format "using config for %s" config))
     (expand-file-name config lsp-java-server-install-dir)))
 
+(defun lsp-java--get-workspace-dir ()
+  "Gets the workspace directory. Directory will be created if it doesn't exists."
+  (unless (file-directory-p lsp-java-workspace-dir)
+    (make-directory lsp-java-workspace-dir))
+  lsp-java-workspace-dir)
+
 (defun lsp-java--ls-command ()
+  "LS startup command."
   (let ((server-jar (lsp-java--locate-server-jar))
         (server-config (lsp-java--locate-server-config))
         (root-dir (lsp-java--get-root)))
@@ -70,7 +138,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
        "-configuration"
        ,server-config
        "-data"
-       ,root-dir)))
+       ,(lsp-java--get-workspace-dir))))
 
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
@@ -83,10 +151,35 @@ The current directory is assumed to be the java project’s root otherwise."
 	(or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
 	    default-directory)))))
 
-(lsp-define-stdio-client lsp-java "java" #'lsp-java--get-root  (lsp-java--ls-command)
-			 :ignore-regexps
-			 '("^SLF4J: "
-			   "^Listening for transport dt_socket at address: "))
+(defun lsp-java--language-status-callback (workspace params)
+  "Callback for client initialized."
+  (setq-local lsp-status (concat "::" (gethash "type" params)))
+  (message "%s[%s]" (gethash "message" params) (gethash "type" params)))
+
+(defun lsp-java--client-initialized (client)
+  "Callback for client initialized."
+  (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback))
+
+(lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
+                         (lsp-java--ls-command)
+                         :ignore-regexps
+                         '("^SLF4J: "
+                           "^Listening for transport dt_socket at address: ")
+                         :extra-init-params (list :workspaceFolders (mapcar
+                                                                     'lsp--path-to-uri
+                                                                     lsp-java--workspace-folders)
+                                                  :settings (lsp-java--settings))
+                         :initialize 'lsp-java--client-initialized)
+
+(defun lsp-java--after-start (&rest args)
+ "Runs after `lsp-java-enable' to configure workspace folders."
+  ;; TODO temporary explicitly initialize lsp--workspaces with the workspace folders
+  ;; until lsp-mode provides facilities for managing folders
+ (mapcar (lambda (root)
+           (puthash root lsp--cur-workspace lsp--workspaces))
+         lsp-java--workspace-folders))
+
+(add-function :after (symbol-function 'lsp-java-enable) #'lsp-java--after-start)
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here

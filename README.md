@@ -10,6 +10,11 @@ Clone this repository `https://github.com/emacs-lsp/lsp-mode` to a suitable path
 (require 'lsp-java)
 (require 'lsp-mode)
 (add-hook 'java-mode-hook #'lsp-java-enable)
+
+;; set the projects that are going to be imported into the workspace.
+(setq lsp-java--workspace-folders (list "/path/to/project1"
+                                        "/path/to/project2"
+                                        ...))
 ```
 to your `.emacs`.
 
