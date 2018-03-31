@@ -164,9 +164,14 @@ The current directory is assumed to be the java project’s root otherwise."
   (setq-local lsp-status (concat "::" (gethash "type" params)))
   (message "%s[%s]" (gethash "message" params) (gethash "type" params)))
 
+(defun lsp-java--apply-workspace-edit (action)
+  "Callback for java/applyWorkspaceEdit."
+  (lsp--apply-workspace-edit (car (gethash "arguments" action))))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
-  (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback))
+  (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
+  (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit))
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
