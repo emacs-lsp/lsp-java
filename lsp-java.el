@@ -35,8 +35,14 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
+(defcustom lsp-java-workspace-cache-dir (expand-file-name (locate-user-emacs-file "workspace/.cache/"))
+  "LSP java workspace cache directory."
+  :group 'lsp-java-mode
+  :risky t
+  :type 'directory)
+
 (defcustom lsp-java--workspace-folders ()
-  "LSP java workspace folders."
+  "LSP java workspace folders storing files downloaded from JDT."
   :group 'lsp-java-mode
   :risky t)
 
@@ -113,17 +119,17 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (message (format "using config for %s" config))
     (expand-file-name config lsp-java-server-install-dir)))
 
-(defun lsp-java--get-workspace-dir ()
-  "Gets the workspace directory. Directory will be created if it doesn't exists."
-  (unless (file-directory-p lsp-java-workspace-dir)
-    (make-directory lsp-java-workspace-dir))
-  lsp-java-workspace-dir)
+(defun lsp-java--ensure-dir (path)
+  "Ensure that directory exists."
+  (unless (file-directory-p path)
+    (make-directory path)))
 
 (defun lsp-java--ls-command ()
   "LS startup command."
   (let ((server-jar (lsp-java--locate-server-jar))
         (server-config (lsp-java--locate-server-config))
         (root-dir (lsp-java--get-root)))
+    (lsp-java--ensure-dir lsp-java-workspace-dir)
     `( "java"
        "-Declipse.application=org.eclipse.jdt.ls.core.id1"
        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044"
@@ -138,13 +144,15 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
        "-configuration"
        ,server-config
        "-data"
-       ,(lsp-java--get-workspace-dir))))
+       ,lsp-java-workspace-dir)))
 
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
 
 The current directory is assumed to be the java project’s root otherwise."
   (cond
+   ;; the cache directory root
+   ((string= default-directory lsp-java-workspace-cache-dir) default-directory)
    ((and (featurep 'projectile) (projectile-project-p)) (projectile-project-root))
    ((vc-backend default-directory) (expand-file-name (vc-root-dir)))
    (t (let ((project-types '("pom.xml" "build.gradle" ".project")))
@@ -157,8 +165,38 @@ The current directory is assumed to be the java project’s root otherwise."
   (message "%s[%s]" (gethash "message" params) (gethash "type" params)))
 
 (defun lsp-java--client-initialized (client)
-  "Callback for client initialized."
+  "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback))
+
+(defun lsp-java--get-filename (url)
+  "Get the name of the buffer calculating it based on URL."
+  (let ((regexp "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?"))
+    (save-match-data
+      (string-match regexp url)
+      (format "%s.java"
+              (replace-regexp-in-string "/" "." (match-string 2 url) t t)))))
+
+(defun lsp-java--get-metadata-location (file-location)
+  "Given a FILE-LOCATION return the file containing the metadata for the file."
+  (format "%s.%s.metadata"
+          (file-name-directory file-location)
+          (file-name-base file-location)))
+
+(defun lsp-java--resolve-uri (uri)
+  "Load a file corresponding to URI executing request to the jdt server."
+  (let* ((buffer-name (lsp-java--get-filename uri))
+         (file-location (concat lsp-java-workspace-cache-dir buffer-name)))
+    (unless (file-readable-p file-location)
+      (lsp-java--ensure-dir lsp-java-workspace-cache-dir)
+      (let ((content (lsp-send-request (lsp-make-request
+                                        "java/classFileContents"
+                                        (list :uri uri)))))
+        (with-temp-file file-location
+          (insert content))
+        ; store uri
+        (with-temp-file (lsp-java--get-metadata-location file-location)
+          (insert uri))))
+    file-location))
 
 (lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
                          (lsp-java--ls-command)
@@ -171,15 +209,30 @@ The current directory is assumed to be the java project’s root otherwise."
                                                   :settings (lsp-java--settings))
                          :initialize 'lsp-java--client-initialized)
 
-(defun lsp-java--after-start (&rest args)
- "Runs after `lsp-java-enable' to configure workspace folders."
+(defun lsp-java--after-start (&rest _args)
+ "Run after `lsp-java-enable' to configure workspace folders."
   ;; TODO temporary explicitly initialize lsp--workspaces with the workspace folders
   ;; until lsp-mode provides facilities for managing folders
- (mapcar (lambda (root)
+ (mapc (lambda (root)
            (puthash root lsp--cur-workspace lsp--workspaces))
-         lsp-java--workspace-folders))
+       lsp-java--workspace-folders)
+ (puthash lsp-java-workspace-cache-dir lsp--cur-workspace lsp--workspaces))
+
+(defun lsp-java--before-start (&rest _args)
+  "Initialize lsp java variables."
+  (let ((metadata-file-name (lsp-java--get-metadata-location buffer-file-name)))
+    (setq-local lsp-buffer-uri
+                (when (file-exists-p metadata-file-name)
+                  (with-temp-buffer (insert-file-contents metadata-file-name)
+                    (buffer-string)))))
+
+  ;; disable editing in case file coming from a jar has been opened.
+  (when lsp-buffer-uri (read-only-mode 1)))
 
 (add-function :after (symbol-function 'lsp-java-enable) #'lsp-java--after-start)
+(add-function :before (symbol-function 'lsp-java-enable) #'lsp-java--before-start)
+
+(lsp-register-uri-handler "jdt" 'lsp-java--resolve-uri)
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
