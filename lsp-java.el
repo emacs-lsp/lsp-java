@@ -171,7 +171,8 @@ The current directory is assumed to be the java project’s root otherwise."
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
-  (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit))
+  (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
+  (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri))
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
@@ -236,8 +237,6 @@ The current directory is assumed to be the java project’s root otherwise."
 
 (add-function :after (symbol-function 'lsp-java-enable) #'lsp-java--after-start)
 (add-function :before (symbol-function 'lsp-java-enable) #'lsp-java--before-start)
-
-(lsp-register-uri-handler "jdt" 'lsp-java--resolve-uri)
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
