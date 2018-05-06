@@ -27,7 +27,7 @@
 The slash is expected at the end."
   :group 'lsp-mode
   :risky t
-  :type 'directory )
+  :type 'directory)
 
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
@@ -72,6 +72,8 @@ The slash is expected at the end."
                      "**/META-INF/maven/**"]))
      (referencesCodeLens
       (enabled . t))
+     (progressReports
+      (enabled . t))
      (signatureHelp
       (enabled . t))
      (implementationsCodeLens
@@ -91,10 +93,7 @@ The slash is expected at the end."
                               "org.junit.jupiter.api.Assumptions.*"
                               "org.junit.jupiter.api.DynamicContainer.*"
                               "org.junit.jupiter.api.DynamicTest.*"])
-      (importOrder . ["java" "javax" "com" "org"]))
-     (test
-      (report
-       (position . "sideView"))))))
+      (importOrder . ["java" "javax" "com" "org"])))))
 
 (defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
@@ -119,8 +118,15 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (message (format "using config for %s" config))
     (expand-file-name config lsp-java-server-install-dir)))
 
+(defun lsp-java-organize-imports ()
+  "Organize java imports."
+  (interactive)
+  (lsp--send-execute-command
+   "java.edit.organizeImports"
+   (list (lsp--path-to-uri buffer-file-name))))
+
 (defun lsp-java--ensure-dir (path)
-  "Ensure that directory exists."
+  "Ensure that directory PATH exists."
   (unless (file-directory-p path)
     (make-directory path)))
 
@@ -161,16 +167,46 @@ The current directory is assumed to be the java project’s root otherwise."
 
 (defun lsp-java--language-status-callback (workspace params)
   "Callback for client initialized."
-  (setq-local lsp-status (concat "::" (gethash "type" params)))
-  (message "%s[%s]" (gethash "message" params) (gethash "type" params)))
+  (let ((status (gethash "type" params))
+        (current-status (lsp-workspace-get-metadata "status" workspace)))
+    ;; process the status message only if there is no status or if the status is
+    ;; starting (workaround for bug https://github.com/eclipse/eclipse.jdt.ls/issues/651)
+    (when (not (and (or (string= current-status "Error" )
+                        (string= current-status "Started" ))
+                    (string= "Starting" status)))
+      (lsp-workspace-status (concat "::" status) workspace)
+      (lsp-workspace-set-metadata "status" status workspace)
+      (message "%s[%s]" (gethash "message" params) (gethash "type" params)))))
 
 (defun lsp-java--apply-workspace-edit (action)
   "Callback for java/applyWorkspaceEdit."
   (lsp--apply-workspace-edit (car (gethash "arguments" action))))
 
+(defun lsp-java--actionable-notification-callback (workspace params)
+  "Handler for actionable notifications."
+  (let ((notifications (or (lsp-workspace-get-metadata
+                            "actionable-notifications"
+                            workspace)
+                           (make-hash-table :test #'equal))))
+    (puthash (gethash "message" params) params notifications)
+    (lsp-workspace-set-metadata "actionable-notifications"
+                                notifications
+                                workspace)
+    (lsp-workspace-status
+     (concat "::"
+             (propertize
+              (concat (lsp-workspace-get-metadata "status" workspace) "[!]")
+              'face 'warning)))))
+
+(defun lsp-java--progress-report (_workspace params)
+  "Progress report handling."
+  (message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" "")))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
+  (lsp-client-on-notification client "language/actionableNotification" 'lsp-java--actionable-notification-callback)
+  (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri))
 
@@ -199,10 +235,26 @@ The current directory is assumed to be the java project’s root otherwise."
                                         (list :uri uri)))))
         (with-temp-file file-location
           (insert content))
-        ; store uri
+                                        ; store uri
         (with-temp-file (lsp-java--get-metadata-location file-location)
           (insert uri))))
     file-location))
+
+(defun lsp-java-actionable-notifications ()
+  "Lists current actionable notifications."
+  (interactive)
+  (when-let ((notifications (lsp-workspace-get-metadata "actionable-notifications"))
+             (selected-notification (completing-read
+                                     "Select notification to fix:"
+                                     notifications
+                                     nil
+                                     t))
+             (commands (gethash "commands"
+                                (gethash selected-notification notifications))))
+    (lsp-execute-code-action (lsp--select-action commands))
+    (remhash selected-notification notifications)
+    (when (= (hash-table-count notifications) 0)
+      (lsp-workspace-status (concat "::" (lsp-workspace-get-metadata "status"))))))
 
 (lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
                          (lsp-java--ls-command)
@@ -212,17 +264,18 @@ The current directory is assumed to be the java project’s root otherwise."
                          :extra-init-params (list :workspaceFolders (mapcar
                                                                      'lsp--path-to-uri
                                                                      lsp-java--workspace-folders)
-                                                  :settings (lsp-java--settings))
+                                                  :settings (lsp-java--settings)
+                                                  :extendedClientCapabilities (list :progressReportProvider t))
                          :initialize 'lsp-java--client-initialized)
 
 (defun lsp-java--after-start (&rest _args)
- "Run after `lsp-java-enable' to configure workspace folders."
+  "Run after `lsp-java-enable' to configure workspace folders."
   ;; TODO temporary explicitly initialize lsp--workspaces with the workspace folders
   ;; until lsp-mode provides facilities for managing folders
- (mapc (lambda (root)
-           (puthash root lsp--cur-workspace lsp--workspaces))
-       lsp-java--workspace-folders)
- (puthash lsp-java-workspace-cache-dir lsp--cur-workspace lsp--workspaces))
+  (mapc (lambda (root)
+          (puthash root lsp--cur-workspace lsp--workspaces))
+        lsp-java--workspace-folders)
+  (puthash lsp-java-workspace-cache-dir lsp--cur-workspace lsp--workspaces))
 
 (defun lsp-java--before-start (&rest _args)
   "Initialize lsp java variables."

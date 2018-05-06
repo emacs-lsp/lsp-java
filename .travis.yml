@@ -1,0 +1,36 @@
+language: emacs-lisp
+sudo: required
+dist: trusty
+cache:
+  - directories:
+      - "$HOME/emacs/"
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: EMACS_VERSION=snapshot
+env:
+  - EMACS_VERSION=25.1
+  - EMACS_VERSION=25.2
+  - EMACS_VERSION=25.3
+  - EMACS_VERSION=snapshot
+before_install:
+  - export PATH="$HOME/bin:$PATH"
+  - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
+  - make -f emacs-travis.mk install_emacs
+  - make -f emacs-travis.mk install_cask
+install:
+  - cask install
+script:
+  - cask build
+  - mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
+  - wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
+  - tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
+  - cask exec ecukes --timeout 30
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/3c80316cc2101deff8ce
+    on_success: change
+    on_failure: always
+    on_start: never
