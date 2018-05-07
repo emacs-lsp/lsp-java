@@ -18,58 +18,138 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Code:
 (require 'cc-mode)
 (require 'lsp-mode)
+
+;;;###autoload
+(defgroup lsp-java nil
+  "JDT emacs frontend."
+  :prefix "lsp-java-"
+  :group 'applications
+  :link '(url-link :tag "GitHub" "https://github.com/emacs-lisp/lsp-java"))
 
 ;;;###autoload
 (defcustom lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
   "Install directory for eclipse.jdt.ls-server.
 The slash is expected at the end."
-  :group 'lsp-mode
+  :group 'lsp-java
   :risky t
   :type 'directory)
 
+;;;###autoload
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
-  :group 'lsp-java-mode
+  :group 'lsp-java
   :risky t
   :type 'directory)
 
+;;;###autoload
 (defcustom lsp-java-workspace-cache-dir (expand-file-name (locate-user-emacs-file "workspace/.cache/"))
   "LSP java workspace cache directory."
-  :group 'lsp-java-mode
+  :group 'lsp-java
   :risky t
   :type 'directory)
 
+;;;###autoload
 (defcustom lsp-java--workspace-folders ()
   "LSP java workspace folders storing files downloaded from JDT."
-  :group 'lsp-java-mode
-  :risky t)
+  :group 'lsp-java
+  :risky t
+  :type '(repeat directory))
 
-;; TODO create customization for each of the settings
+;;;###autoload
+(defcustom lsp-java-vmargs "-noverify -Xmx1G -XX:+UseG1GC -XX:+UseStringDeduplication"
+  "Specifies extra VM arguments used to launch the Java Language Server.
+
+Eg. use `-noverify -Xmx1G -XX:+UseG1GC
+-XX:+UseStringDeduplication` to bypass class
+verification,increase the heap size to 1GB and enable String
+deduplication with the G1 Garbage collector"
+  :group 'lsp-java
+  :risky t
+  :type 'string)
+
+;;;###autoload
+(defcustom lsp-java-incomplete-classpath 'warning
+  "Specifies the severity of the message when the classpath is incomplete for a Java file."
+  :group 'lsp-java
+  :type '(choice (const ignore)
+                 (const info)
+                 (const warning)
+                 (const error)))
+
+;;;###autoload
+(defcustom lsp-java-update-build-configuration 'automatic
+  "Specifies how modifications on build files update the Java classpath/configuration."
+  :group 'lsp-java
+  :type '(choice
+          (const disabled)
+          (const interactive)
+          (const automatic)))
+
+;;;###autoload
+(defcustom lsp-java-import-exclusions '("**/node_modules/**"
+                                        "**/.metadata/**"
+                                        "**/archetype-resources/**"
+                                        "**/META-INF/maven/**")
+  "Configure glob patterns for excluding folders."
+  :group 'lsp-java
+  :type '(repeat string))
+
+;;;###autoload
+(defcustom lsp-java-favorite-static-members
+  '("org.junit.Assert.*"
+    "org.junit.Assume.*"
+    "org.junit.jupiter.api.Assertions.*"
+    "org.junit.jupiter.api.Assumptions.*"
+    "org.junit.jupiter.api.DynamicContainer.*"
+    "org.junit.jupiter.api.DynamicTest.*")
+  "Defines a list of static members or types with static members.
+
+ Content assist will propose those static members even if the
+ import is missing."
+  :group 'lsp-java
+  :type '(repeat string))
+
+;;;###autoload
+(defcustom lsp-java-import-order
+  '("java" "javax" "com" "org")
+  "Defines the sorting order of import statements.
+
+A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import is always added to the most specific group."
+  :group 'lsp-java
+  :type '(repeat string))
+
+;;;###autoload
+(defcustom lsp-java-trace-server 'off
+  "Traces the communication between VS Code and the Java language server."
+  :group 'lsp-java
+  :type '(choise
+          (const off)
+          (const messages)
+          (const verbose)))
+
 (defun lsp-java--settings ()
   "JDT settings."
   '((java
      (jdt
       (ls
-       (vmargs . "-noverify -Xmx1G -XX:+UseG1GC -XX:+UseStringDeduplication")))
+       (vmargs . ,lsp-java-vmargs)))
      (errors
       (incompleteClasspath
-       (severity . "warning")))
+       (severity . ,lsp-java-incomplete-classpath)))
      (configuration
-      (updateBuildConfiguration . "interactive")
+      (updateBuildConfiguration . lsp-java-update-build-configuration)
       (maven))
      (trace
-      (server . "off"))
+      (server . ,lsp-java-trace-server))
      (import
       (gradle
        (enabled . t))
       (maven
        (enabled . t))
-      (exclusions . ["**/node_modules/**"
-                     "**/.metadata/**"
-                     "**/archetype-resources/**"
-                     "**/META-INF/maven/**"]))
+      (exclusions . ,lsp-java-import-exclusions))
      (referencesCodeLens
       (enabled . t))
      (progressReports
@@ -81,19 +161,13 @@ The slash is expected at the end."
      (format
       (enabled . t))
      (saveActions
-      (organizeImports . :json-false))
+      (organizeImports . t))
      (contentProvider)
      (autobuild
       (enabled . t))
      (completion
-      (favoriteStaticMembers .
-                             ["org.junit.Assert.*"
-                              "org.junit.Assume.*"
-                              "org.junit.jupiter.api.Assertions.*"
-                              "org.junit.jupiter.api.Assumptions.*"
-                              "org.junit.jupiter.api.DynamicContainer.*"
-                              "org.junit.jupiter.api.DynamicTest.*"])
-      (importOrder . ["java" "javax" "com" "org"])))))
+      (favoriteStaticMembers . ,lsp-java-favorite-static-members)
+      (importOrder . ,lsp-java-import-order)))))
 
 (defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
@@ -108,13 +182,13 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
 
 (defun lsp-java--locate-server-config ()
   "Return the server config based on OS."
-  (let ( (config (cond
-                  ((string-equal system-type "windows-nt") ; Microsoft Windows
-                   "config_win")
-                  ((string-equal system-type "darwin") ; Mac OS X
-                   "config_mac")
-                  ((string-equal system-type "gnu/linux") ; linux
-                   "config_linux"))))
+  (let ((config (cond
+                 ((string-equal system-type "windows-nt") ; Microsoft Windows
+                  "config_win")
+                 ((string-equal system-type "darwin") ; Mac OS X
+                  "config_mac")
+                 ((string-equal system-type "gnu/linux") ; linux
+                  "config_linux"))))
     (message (format "using config for %s" config))
     (expand-file-name config lsp-java-server-install-dir)))
 
@@ -283,7 +357,7 @@ The current directory is assumed to be the java project’s root otherwise."
     (setq-local lsp-buffer-uri
                 (when (file-exists-p metadata-file-name)
                   (with-temp-buffer (insert-file-contents metadata-file-name)
-                    (buffer-string)))))
+                                    (buffer-string)))))
 
   ;; disable editing in case file coming from a jar has been opened.
   (when lsp-buffer-uri (read-only-mode 1)))

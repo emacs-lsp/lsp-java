@@ -94,7 +94,6 @@
 
 (And "^I start lsp-java$"
   (lambda ()
-    (setq lsp-print-io t)
     (lsp-java-enable)))
 
 (Then "^The server status must become \"\\([^\"]+\\)\"$"
