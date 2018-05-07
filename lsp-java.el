@@ -175,7 +175,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
 The entry point of the language server is in `lsp-java-server-install-dir'/plugins/org.eclipse.equinox.launcher_`version'.jar."
   (ignore-errors
     (let* ((plugindir (expand-file-name "plugins" lsp-java-server-install-dir))
-           (server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*")))
+           (server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*.jar$")))
       (if (not (= (length server-jar-filenames) 1))
           (message (format "Found more than one java language server entry points: %s" server-jar-filenames))
         (car server-jar-filenames)))))
