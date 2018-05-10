@@ -207,6 +207,19 @@ FULL specify whether full or incremental build will be performed."
   (lsp-send-notification
    (lsp-make-request "java/buildWorkspace" (if full t :json-false))))
 
+(defun lsp-java-update-project-configuration ()
+  "Update project configuration."
+  (interactive)
+  (let ((file-name (file-name-nondirectory (buffer-file-name))))
+    (if-let ((lsp--cur-workspace (or lsp--cur-workspace
+                                     (gethash (lsp-java--get-root) lsp--workspaces))))
+        (if (or (string= file-name "pom.xml") (string-match file-name ".*\.gradle"))
+            (lsp-send-notification
+             (lsp-make-request "java/projectConfigurationUpdate"
+                               (list :uri (lsp--buffer-uri))))
+          (error "Update configuration could be called only from build file(pom.xml or gradle build file)"))
+      (error "Unable to find workspace"))))
+
 (defun lsp-java--ensure-dir (path)
   "Ensure that directory PATH exists."
   (unless (file-directory-p path)
@@ -244,8 +257,8 @@ The current directory is assumed to be the java project’s root otherwise."
    ((and (featurep 'projectile) (projectile-project-p)) (projectile-project-root))
    ((vc-backend default-directory) (expand-file-name (vc-root-dir)))
    (t (let ((project-types '("pom.xml" "build.gradle" ".project")))
-	(or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
-	    default-directory)))))
+        (or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
+            default-directory)))))
 
 (defun lsp-java--language-status-callback (workspace params)
   "Callback for client initialized."
