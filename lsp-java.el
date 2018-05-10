@@ -199,6 +199,14 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
    "java.edit.organizeImports"
    (list (lsp--path-to-uri buffer-file-name))))
 
+(defun lsp-java-build-project (&optional full)
+  "Perform project build action.
+
+FULL specify whether full or incremental build will be performed."
+  (interactive "P" )
+  (lsp-send-notification
+   (lsp-make-request "java/buildWorkspace" (if full t :json-false))))
+
 (defun lsp-java--ensure-dir (path)
   "Ensure that directory PATH exists."
   (unless (file-directory-p path)
