@@ -232,18 +232,18 @@ FULL specify whether full or incremental build will be performed."
         (root-dir (lsp-java--get-root)))
     (lsp-java--ensure-dir lsp-java-workspace-dir)
     `("java"
-     "-Declipse.application=org.eclipse.jdt.ls.core.id1"
-     "-Dosgi.bundles.defaultStartLevel=4"
-     "-Declipse.product=org.eclipse.jdt.ls.core.product"
-     "-Dlog.protocol=true"
-     "-Dlog.level=ALL"
-     ,@lsp-java-vmargs
-     "-jar"
-     ,server-jar
-     "-configuration"
-     ,server-config
-     "-data"
-     ,lsp-java-workspace-dir)))
+      "-Declipse.application=org.eclipse.jdt.ls.core.id1"
+      "-Dosgi.bundles.defaultStartLevel=4"
+      "-Declipse.product=org.eclipse.jdt.ls.core.product"
+      "-Dlog.protocol=true"
+      "-Dlog.level=ALL"
+      ,@lsp-java-vmargs
+      "-jar"
+      ,server-jar
+      "-configuration"
+      ,server-config
+      "-data"
+      ,lsp-java-workspace-dir)))
 
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
@@ -295,13 +295,24 @@ The current directory is assumed to be the java project’s root otherwise."
   "Progress report handling."
   (message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" "")))
 
+(defun lsp-java--render-string (str)
+  (condition-case nil
+      (with-temp-buffer
+        (delay-mode-hooks (java-mode))
+        (insert str)
+        (font-lock-ensure)
+        (buffer-string))
+    (error str)))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
   (lsp-client-on-notification client "language/actionableNotification" 'lsp-java--actionable-notification-callback)
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
-  (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri))
+  (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
+
+  (lsp-provide-marked-string-renderer client "java" 'lsp-java--render-string))
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
