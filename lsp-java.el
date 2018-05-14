@@ -123,16 +123,22 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
 
 ;;;###autoload
 (defcustom lsp-java-trace-server 'off
-  "Traces the communication between VS Code and the Java language server."
+  "Traces the communication between Emacs and the Java language server."
   :group 'lsp-java
   :type '(choise
           (const off)
           (const messages)
           (const verbose)))
 
+;;;###autoload
+(defcustom lsp-java-enable-file-watch t
+  "Defines whether the client will monitor the files for changes."
+  :group 'lsp-java
+  :type 'boolean)
+
 (defun lsp-java--settings ()
   "JDT settings."
-  '((java
+  `((java
      (jdt
       (ls
        (vmargs . ,(string-join lsp-java-vmargs " "))))
@@ -140,7 +146,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
       (incompleteClasspath
        (severity . ,lsp-java-incomplete-classpath)))
      (configuration
-      (updateBuildConfiguration . lsp-java-update-build-configuration)
+      (updateBuildConfiguration . ,lsp-java-update-build-configuration)
       (maven))
      (trace
       (server . ,lsp-java-trace-server))
@@ -379,7 +385,21 @@ The current directory is assumed to be the java project’s root otherwise."
   (mapc (lambda (root)
           (puthash root lsp--cur-workspace lsp--workspaces))
         lsp-java--workspace-folders)
-  (puthash lsp-java-workspace-cache-dir lsp--cur-workspace lsp--workspaces))
+  (puthash lsp-java-workspace-cache-dir lsp--cur-workspace lsp--workspaces)
+
+  (when lsp-java-enable-file-watch
+    (with-demoted-errors
+        "Failed to register watches with following message: %S "
+      (lsp-workspace-register-watch
+       (mapcar (lambda (folder)
+                 (list folder
+                       '("**/*.java"
+                         "**/pom.xml"
+                         "**/*.gradle"
+                         "**/.project"
+                         "**/.classpath"
+                         "**/settings/*.prefs")))
+               lsp-java--workspace-folders)))))
 
 (defun lsp-java--before-start (&rest _args)
   "Initialize lsp java variables."
