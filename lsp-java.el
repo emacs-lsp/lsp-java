@@ -131,7 +131,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
           (const verbose)))
 
 ;;;###autoload
-(defcustom lsp-java-enable-file-watch t
+(defcustom lsp-java-enable-file-watch nil
   "Defines whether the client will monitor the files for changes."
   :group 'lsp-java
   :type 'boolean)
