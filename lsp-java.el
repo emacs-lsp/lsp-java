@@ -375,7 +375,8 @@ The current directory is assumed to be the java project’s root otherwise."
                                                                      'lsp--path-to-uri
                                                                      lsp-java--workspace-folders)
                                                   :settings (lsp-java--settings)
-                                                  :extendedClientCapabilities (list :progressReportProvider t))
+                                                  :extendedClientCapabilities (list :progressReportProvider t
+                                                                                    :classFileContentsSupport t))
                          :initialize 'lsp-java--client-initialized)
 
 (defun lsp-java--after-start (&rest _args)
