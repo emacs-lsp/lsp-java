@@ -172,6 +172,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
      (autobuild
       (enabled . t))
      (completion
+      (snippetSupport . t)
       (favoriteStaticMembers . ,lsp-java-favorite-static-members)
       (importOrder . ,lsp-java-import-order)))))
 
