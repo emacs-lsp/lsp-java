@@ -136,6 +136,24 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
+;;;###autoload
+(defcustom lsp-java-format-settings-url nil
+  "Specifies the file path to the formatter xml url."
+  :group 'lsp-java
+  :type 'string)
+
+;;;###autoload
+(defcustom lsp-java-format-settings-profile nil
+  "Specifies the formatter profile name."
+  :group 'lsp-java
+  :type 'string)
+
+;;;###autoload
+(defcustom lsp-java-format-comments-enabled nil
+  "Preference key used to include the comments during the formatting."
+  :group 'lsp-java
+  :type 'boolean)
+
 (defun lsp-java--settings ()
   "JDT settings."
   `((java
@@ -165,7 +183,12 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
      (implementationsCodeLens
       (enabled . t))
      (format
-      (enabled . t))
+      (enabled . t)
+      (settings
+       (profile . ,lsp-java-format-settings-profile)
+       (url . ,lsp-java-format-settings-url))
+      (comments
+       (enabled . ,lsp-java-format-comments-enabled)))
      (saveActions
       (organizeImports . t))
      (contentProvider)
@@ -317,7 +340,6 @@ The current directory is assumed to be the java project’s root otherwise."
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
-
   (lsp-provide-marked-string-renderer client "java" 'lsp-java--render-string))
 
 (defun lsp-java--get-filename (url)
@@ -379,6 +401,15 @@ The current directory is assumed to be the java project’s root otherwise."
                                                                                     :classFileContentsSupport t))
                          :initialize 'lsp-java--client-initialized)
 
+(defun lsp-java-update-user-settings ()
+  "Update user settings.
+
+The method could be called after changing configuration
+property (e. g. `lsp-java-organize-imports') to update the
+server."
+  (interactive)
+  (lsp--set-configuration (lsp-java--settings)))
+
 (defun lsp-java--after-start (&rest _args)
   "Run after `lsp-java-enable' to configure workspace folders."
   ;; TODO temporary explicitly initialize lsp--workspaces with the workspace folders
@@ -400,7 +431,8 @@ The current directory is assumed to be the java project’s root otherwise."
                          "**/.project"
                          "**/.classpath"
                          "**/settings/*.prefs")))
-               lsp-java--workspace-folders)))))
+               lsp-java--workspace-folders))))
+  (lsp-java-update-user-settings))
 
 (defun lsp-java--before-start (&rest _args)
   "Initialize lsp java variables."

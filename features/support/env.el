@@ -6,7 +6,8 @@
        (project-directory
         (file-name-directory
          (directory-file-name features-directory))))
-  (setq lsp-java-root-path project-directory))
+  (defvar lsp-java-root-path project-directory)
+  (defvar lsp-java-test-root (f-join temporary-file-directory "tests")))
 
 (defvar lsp-java-support-path
   (f-dirname load-file-name))
@@ -28,16 +29,20 @@
   (require 'lsp-java))
 
 (Setup
- ;; Before anything has run
- )
+ (setq lsp-java-workspace-dir (f-join lsp-java-test-root "workspace"))
+ (setq lsp-java-workspace-cache-dir (f-join lsp-java-test-root "workspace-cache")))
 
 (Before
- ;; Before each scenario is run
- )
+ (when (file-exists-p lsp-java-test-root)
+   (delete-directory lsp-java-test-root t)))
 
 (After
- ;; After each scenario is run
- )
+ (mapc 'kill-buffer
+       (seq-filter
+        (lambda (b)
+          (with-current-buffer b
+            (equal 'java-mode major-mode)))
+        (buffer-list))))
 
 (Teardown
  ;; After when everything has been run

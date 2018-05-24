@@ -22,6 +22,7 @@
 
 (require 'f)
 (require 's)
+(require 'lsp-java)
 
 (defun lsp-java-steps-async-wait (pred callback)
   "Call CALLBACK when PRED becomes true."
@@ -40,7 +41,7 @@
 
 (Given "^I have maven project \"\\([^\"]+\\)\" in \"\\([^\"]+\\)\"$"
   (lambda (project-name dir-name)
-    (setq default-directory lsp-java-root-path)
+    (setq default-directory lsp-java-test-root)
 
     ;; delete old directory
     (when (file-exists-p dir-name)
@@ -48,11 +49,7 @@
 
     ;; create directory structure
     (mkdir (expand-file-name
-            (f-join lsp-java-root-path dir-name project-name "src" "main" "java" "temp")) t)
-
-    (mkdir (expand-file-name project-name (expand-file-name "src")) t)
-
-    (message lsp-java-root-path)
+            (f-join   dir-name project-name "src" "main" "java" "temp")) t)
 
     ;; add pom.xml
     (with-temp-file (expand-file-name "pom.xml" (f-join dir-name project-name))
@@ -71,26 +68,17 @@
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 </project>"))))
 
 (And "^I have a java file \"\\([^\"]+\\)\"$"
   (lambda (file-name)
-    (setq default-directory lsp-java-root-path)
+    (setq default-directory lsp-java-test-root)
     (find-file file-name)
     (save-buffer)))
 
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
   (lambda (project dir-name)
-    (add-to-list 'lsp-java--workspace-folders (f-join lsp-java-root-path dir-name project))))
+    (add-to-list 'lsp-java--workspace-folders (f-join lsp-java-test-root dir-name project))))
 
 (And "^I start lsp-java$"
   (lambda ()
@@ -107,6 +95,11 @@
            nil)))
      callback)))
 
+(And "^I use formatter profile \"\\([^\"]+\\)\" from \"\\([^\"]+\\)\"$"
+  (lambda (formatter-name formatter-file)
+    (setq lsp-java-format-settings-url (lsp--path-to-uri
+                                        (f-join lsp-java-root-path "features/fixtures" formatter-file)))
+    (setq lsp-java-format-settings-profile formatter-name)))
 
 (And "^There must be \"\\([^\"]+\\)\" actionable notification$"
   (lambda (count callback)
@@ -115,6 +108,10 @@
        (= (string-to-number count)
           (hash-table-count (lsp-workspace-get-metadata "actionable-notifications"))))
      callback)))
+
+(When "^I indent buffer$"
+  (lambda ()
+    (indent-region (point-min) (point-marker))))
 
 (provide 'lsp-java-steps)
 ;;; lsp-java-steps.el ends here
