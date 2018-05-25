@@ -37,6 +37,11 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
+(defcustom lsp-java-java-path "java"
+  "Path of the java executable."
+  :group 'lsp-java
+  :type 'string)
+
 ;;;###autoload
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
@@ -260,7 +265,7 @@ FULL specify whether full or incremental build will be performed."
         (server-config (lsp-java--locate-server-config))
         (root-dir (lsp-java--get-root)))
     (lsp-java--ensure-dir lsp-java-workspace-dir)
-    `("java"
+    `(,lsp-java-java-path
       "-Declipse.application=org.eclipse.jdt.ls.core.id1"
       "-Dosgi.bundles.defaultStartLevel=4"
       "-Declipse.product=org.eclipse.jdt.ls.core.product"
