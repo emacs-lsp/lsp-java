@@ -25,14 +25,15 @@
   (require 'espuds)
   (require 'ert)
   (require 'lsp-java)
-  (require 'lsp-mode)
-  (require 'lsp-java))
+  (require 'lsp-mode))
 
-(Setup
- (setq lsp-java-workspace-dir (f-join lsp-java-test-root "workspace"))
- (setq lsp-java-workspace-cache-dir (f-join lsp-java-test-root "workspace-cache")))
+(Setup)
 
 (Before
+ (require 'lsp-java)
+ (setq lsp-java-workspace-dir (f-join lsp-java-test-root "workspace")
+       lsp-java-workspace-cache-dir (f-join lsp-java-test-root "workspace-cache")
+       lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/"))
  (when (file-exists-p lsp-java-test-root)
    (delete-directory lsp-java-test-root t)))
 

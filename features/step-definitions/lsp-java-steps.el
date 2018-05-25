@@ -113,5 +113,11 @@
   (lambda ()
     (indent-region (point-min) (point-marker))))
 
+(When "^I invoke \"\\([^\"]+\\)\" I should see error message \"\\([^\"]+\\)\"$"
+  (lambda (command message)
+    (condition-case err
+        (funcall (intern command))
+      (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
+
 (provide 'lsp-java-steps)
 ;;; lsp-java-steps.el ends here
