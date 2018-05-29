@@ -133,7 +133,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
 (defcustom lsp-java-trace-server 'off
   "Traces the communication between Emacs and the Java language server."
   :group 'lsp-java
-  :type '(choise
+  :type '(choice
           (const off)
           (const messages)
           (const verbose)))
