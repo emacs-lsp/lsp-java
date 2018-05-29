@@ -168,6 +168,16 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
+;;;###autoload
+(defcustom lsp-java-organize-imports 't
+  "Specifies whether or not organize imports is enabled as a save action."
+  :group 'lsp-java
+  :type 'boolean)
+
+(defun lsp-java-json-bool (param)
+  "Return a param for setting parsable by json.el for booleans"
+  (if param 't :json-false))
+
 (defun lsp-java--settings ()
   "JDT settings."
   `((java
@@ -197,14 +207,14 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
      (implementationsCodeLens
       (enabled . t))
      (format
-      (enabled . ,lsp-java-format-enabled)
+      (enabled . ,(lsp-java-json-bool lsp-java-format-enabled))
       (settings
        (profile . ,lsp-java-format-settings-profile)
        (url . ,lsp-java-format-settings-url))
       (comments
-       (enabled . ,lsp-java-format-comments-enabled)))
+       (enabled . ,(lsp-java-json-bool lsp-java-format-comments-enabled))))
      (saveActions
-      (organizeImports . t))
+      (organizeImports . ,(lsp-java-json-bool lsp-java-format-enabled)))
      (contentProvider)
      (autobuild
       (enabled . t))
