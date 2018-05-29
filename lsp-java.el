@@ -145,6 +145,12 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :type 'boolean)
 
 ;;;###autoload
+(defcustom lsp-java-format-enabled 't
+  "Specifies whether or not formatting is enabled on the language server."
+  :group 'lsp-java
+  :type 'boolean)
+
+;;;###autoload
 (defcustom lsp-java-format-settings-url nil
   "Specifies the file path to the formatter xml url."
   :group 'lsp-java
@@ -191,7 +197,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
      (implementationsCodeLens
       (enabled . t))
      (format
-      (enabled . t)
+      (enabled . ,lsp-java-format-enabled)
       (settings
        (profile . ,lsp-java-format-settings-profile)
        (url . ,lsp-java-format-settings-url))
