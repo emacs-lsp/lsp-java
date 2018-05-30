@@ -145,7 +145,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :type 'boolean)
 
 ;;;###autoload
-(defcustom lsp-java-format-enabled 't
+(defcustom lsp-java-format-enabled t
   "Specifies whether or not formatting is enabled on the language server."
   :group 'lsp-java
   :type 'boolean)
@@ -174,7 +174,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
-(defun lsp-java-json-bool (param)
+(defun lsp-java--json-bool (param)
   "Return a param for setting parsable by json.el for booleans"
   (if param 't :json-false))
 
