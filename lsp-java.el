@@ -207,14 +207,14 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
      (implementationsCodeLens
       (enabled . t))
      (format
-      (enabled . ,(lsp-java-json-bool lsp-java-format-enabled))
+      (enabled . ,(lsp-java--json-bool lsp-java-format-enabled))
       (settings
        (profile . ,lsp-java-format-settings-profile)
        (url . ,lsp-java-format-settings-url))
       (comments
-       (enabled . ,(lsp-java-json-bool lsp-java-format-comments-enabled))))
+       (enabled . ,(lsp-java--json-bool lsp-java-format-comments-enabled))))
      (saveActions
-      (organizeImports . ,(lsp-java-json-bool lsp-java-format-enabled)))
+      (organizeImports . ,(lsp-java--json-bool lsp-java-format-enabled)))
      (contentProvider)
      (autobuild
       (enabled . t))
