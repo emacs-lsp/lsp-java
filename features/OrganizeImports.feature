@@ -29,3 +29,67 @@ Feature: Organize imports
       ArrayList<String> al = new ArrayList<>();
     }
     """
+
+Feature: Organize imports save action
+  @Imports
+  Scenario: Organize imports
+    Given I have maven project "m" in "tmp"
+    And I add project "m" folder "tmp" to the list of workspace folders
+    And I have a java file "tmp/m/src/main/java/temp/App.java"
+    And I clear the buffer
+    And I insert:
+    """
+    package temp;
+
+    import java.util.HashMap;
+
+    class App {
+      ArrayList<String> al = new ArrayList<>();
+    }
+    """
+    And I start lsp-java
+    And The server status must become "LSP::Started"
+    And I call "save-buffer"
+    Then I should see:
+    """
+    package temp;
+
+    import java.util.ArrayList;
+
+    class App {
+      ArrayList<String> al = new ArrayList<>();
+    }
+    """
+
+Feature: Disable organize imports save action
+  @Imports
+  Scenario: Organize imports
+    Given I have maven project "m" in "tmp"
+    And I add project "m" folder "tmp" to the list of workspace folders
+    And I have a java file "tmp/m/src/main/java/temp/App.java"
+    And I set lsp-java-save-action-organize-imports to nil
+    And I clear the buffer
+    And I insert:
+    """
+    package temp;
+
+    import java.util.HashMap;
+
+    class App {
+      ArrayList<String> al = new ArrayList<>();
+    }
+    """
+    And I start lsp-java
+    And The server status must become "LSP::Started"
+    And I call "save-buffer"
+    Then I should see:
+    """
+    package temp;
+
+    import java.util.HashMap;
+
+    class App {
+      ArrayList<String> al = new ArrayList<>();
+    }
+    """
+    And I set lsp-java-save-action-organize-imports to 't

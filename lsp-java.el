@@ -169,6 +169,12 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :type 'boolean)
 
 ;;;###autoload
+(defcustom  lsp-java-save-action-organize-imports t
+  "Organize imports on save."
+  :group 'lsp-java
+  :type 'boolean)
+
+;;;###autoload
 (defcustom lsp-java-organize-imports 't
   "Specifies whether or not organize imports is enabled as a save action."
   :group 'lsp-java
@@ -214,7 +220,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
       (comments
        (enabled . ,(lsp-java--json-bool lsp-java-format-comments-enabled))))
      (saveActions
-      (organizeImports . ,(lsp-java--json-bool lsp-java-format-enabled)))
+      (organizeImports . ,(lsp-java--json-bool lsp-java-save-action-organize-imports)))
      (contentProvider)
      (autobuild
       (enabled . t))
