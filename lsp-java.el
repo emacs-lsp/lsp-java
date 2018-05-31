@@ -175,14 +175,20 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :type 'boolean)
 
 ;;;###autoload
-(defcustom lsp-java-organize-imports 't
+(defcustom lsp-java-organize-imports t
   "Specifies whether or not organize imports is enabled as a save action."
   :group 'lsp-java
   :type 'boolean)
 
+;;;###autoload
+(defcustom lsp-java-bundles nil
+  "List of bundles that will be loaded in the JDT server."
+  :group 'lsp-java
+  :type 'list)
+
 (defun lsp-java--json-bool (param)
-  "Return a param for setting parsable by json.el for booleans"
-  (if param 't :json-false))
+  "Return a PARAM for setting parsable by json.el for booleans."
+  (if param t :json-false))
 
 (defun lsp-java--settings ()
   "JDT settings."
@@ -443,7 +449,8 @@ PARAMS progress report notification data."
                                                                      lsp-java--workspace-folders)
                                                   :settings (lsp-java--settings)
                                                   :extendedClientCapabilities (list :progressReportProvider t
-                                                                                    :classFileContentsSupport t))
+                                                                                    :classFileContentsSupport t)
+                                                  :bundles lsp-java-bundles)
                          :initialize 'lsp-java--client-initialized)
 
 (defun lsp-java-update-user-settings ()
