@@ -33,7 +33,8 @@
  (require 'lsp-java)
  (setq lsp-java-workspace-dir (f-join lsp-java-test-root "workspace")
        lsp-java-workspace-cache-dir (f-join lsp-java-test-root "workspace-cache")
-       lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/"))
+       lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
+       lsp-response-timeout 30)
  (when (file-exists-p lsp-java-test-root)
    (delete-directory lsp-java-test-root t)))
 
