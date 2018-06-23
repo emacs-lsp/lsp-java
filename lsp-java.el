@@ -483,6 +483,61 @@ PARAMS progress report notification data."
     (when (= (hash-table-count notifications) 0)
       (lsp-workspace-status (concat "::" (lsp-workspace-get-metadata "status"))))))
 
+(defun lsp-java-execute-matching-action (regexp &optional not-found-message)
+  "Executes the code action which title matches the REGEXP. "
+  (let ((actions (cl-remove-if-not
+                  (lambda (item) (string-match regexp (gethash "title" item)))
+                  (lsp-get-or-calculate-code-actions))))
+    (case (length actions)
+      (0 (error (or not-found-message "Unable to find action")))
+      (1 (lsp-execute-code-action (car actions)))
+      (t (lsp-execute-code-action (lsp--select-action actions))))))
+
+(defun lsp-java-extract-to-local-variable (arg)
+  "Extract local variable refactoring.
+The prefix ARG and `cider-prompt-for-symbol' decide whether to
+extract all or only the current occurrence."
+  (interactive "P")
+  (lsp-java-execute-matching-action
+   (if arg
+       "Extract to local variable$"
+     "Extract to local variable (replace all occurrences)")))
+
+(defun lsp-java-extract-to-constant ()
+  "Extract constant refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Extract to constant"))
+
+(defun lsp-java-add-unimplmented-methods ()
+  "Extract constant refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Add unimplemented methods"))
+
+(defun lsp-java-create-parameter ()
+  "Create parameter refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Create parameter '"))
+
+(defun lsp-java-create-field ()
+  "Create field refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Create field '"))
+
+(defun lsp-java-create-local ()
+  "Create local refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Create local variable"))
+
+(defun lsp-java-extract-method ()
+  "Extract method refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Extract to method"))
+
+(defun lsp-java-add-import ()
+  "Add missing import."
+  (interactive)
+  (lsp-java-execute-matching-action "Import '.*'"))
+
 (lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
                          (lsp-java--ls-command)
                          :ignore-regexps
