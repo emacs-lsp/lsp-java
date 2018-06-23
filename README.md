@@ -51,11 +51,13 @@ If you choose to have the server installed in a different directory, set `lsp-ja
 * [company-lsp](https://github.com/tigersoldier/company-lsp) : LSP company backend.
 ## FAQ
 * LSP Java is showing to many debug messages, how to stop that?
+
 Add the following configuration.
 ```emacs-lisp
 (setq lsp-inhibit-message t)
 ```
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) does not display all of the actions on the current point(e. g "Extract constant")?
+
 LSP UI by default sends current line bounds for action region which breaks forces JDT server to return only "Extract method action."
 ```emacs-lisp
 (setq lsp-ui-sideline-update-mode 'point)
