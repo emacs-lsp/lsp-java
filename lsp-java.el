@@ -23,6 +23,8 @@
 ;;; Code:
 (require 'cc-mode)
 (require 'lsp-mode)
+(require 'markdown-mode)
+(require 'lsp-methods)
 
 ;;;###autoload
 (defgroup lsp-java nil
@@ -408,6 +410,22 @@ PARAMS progress report notification data."
         (buffer-string))
     (error str)))
 
+(defun lsp-java--render-markup (string)
+  "Render STRING as markup."
+  (string-trim-right
+   (with-temp-buffer
+     (insert string)
+     (delay-mode-hooks
+       (make-local-variable 'markdown-code-lang-modes)
+       (add-to-list 'markdown-code-lang-modes (cons "java" 'java-mode))
+       (setq-local markdown-fontify-code-blocks-natively t)
+       (setq-local markdown-fontify-code-block-default-mode "java")
+       (setq-local markdown-hide-markup t)
+
+       (let ((inhibit-message t)) (gfm-view-mode))
+       (ignore-errors (font-lock-ensure)))
+     (buffer-string))))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
@@ -415,7 +433,9 @@ PARAMS progress report notification data."
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
-  (lsp-provide-marked-string-renderer client "java" 'lsp-java--render-string))
+
+  (lsp-provide-marked-string-renderer client "java" #'lsp-java--render-string)
+  (lsp-provide-default-marked-string-renderer client #'lsp-java--render-markup))
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
