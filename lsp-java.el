@@ -280,7 +280,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
                  ((string-equal system-type "gnu/linux") ; linux
                   "config_linux"))))
     (let ((inhibit-message t))
-     (message (format "using config for %s" config)))
+      (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
 
 (defun lsp-java-organize-imports ()
@@ -363,7 +363,8 @@ PARAMS the parameters for language status notifications."
                     (string= "Starting" status)))
       (lsp-workspace-status (concat "::" status) workspace)
       (lsp-workspace-set-metadata "status" status workspace)
-      (message "%s[%s]" (gethash "message" params) (gethash "type" params)))))
+      (let ((inhibit-message lsp-inhibit-message))
+        (message "%s[%s]" (gethash "message" params) (gethash "type" params))))))
 
 (defun lsp-java--apply-workspace-edit (action)
   "Callback for java/applyWorkspaceEdit.
@@ -394,7 +395,8 @@ PARAMS the parameters for actionable notifications."
   "Progress report handling.
 
 PARAMS progress report notification data."
-  (message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" "")))
+  (let ((inhibit-message lsp-inhibit-message))
+    (message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" ""))))
 
 (defun lsp-java--render-string (str)
   "Render STR with `java-mode' syntax highlight."
