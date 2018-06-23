@@ -508,7 +508,7 @@ extract all or only the current occurrence."
   (interactive)
   (lsp-java-execute-matching-action "Extract to constant"))
 
-(defun lsp-java-add-unimplmented-methods ()
+(defun lsp-java-add-unimplemented-methods ()
   "Extract constant refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Add unimplemented methods"))
