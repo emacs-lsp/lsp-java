@@ -42,7 +42,17 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 ### Install [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
 Download either [latest](http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz) or [a specific version](http://download.eclipse.org/jdtls/snapshots/?d) of Eclipse JDT Language Server distribution to `~/.emacs.d/eclipse.jdt.ls/server/`
 
-If you choose to have the server installed in a different directory, set `lsp-java-server-install-dir`
+If you choose to have the server installed in a different directory, set `lsp-java-server-install-dir`.
+
+On Linux/MacOS you could install/update [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) via running the following commands:
+
+```bash
+rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
+mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
+wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
+tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
+```
+
 ## Supported commands
 ### LSP Mode commands
   | Command name                | Description                                                  |
