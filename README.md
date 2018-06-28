@@ -18,6 +18,20 @@ LSP java mode supports the following JDT Features:
 * Limited Gradle support
 
 ## Installation
+### Install [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
+Download either [latest](http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz) or [a specific version](http://download.eclipse.org/jdtls/snapshots/?d) of Eclipse JDT Language Server distribution to `~/.emacs.d/eclipse.jdt.ls/server/`
+
+If you choose to have the server installed in a different directory, set `lsp-java-server-install-dir`.
+
+On Linux/MacOS you could install/update [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) via running the following commands:
+
+```bash
+rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
+mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
+wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
+tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
+```
+
 ### Install LSP Java
 The recommended way to install LSP Java is via `package.el` - the built-in package
 manager in Emacs.
@@ -38,21 +52,56 @@ Then add the following lines to your `.emacs` and open a file from the any of th
                                         "/path/to/project2"
                                         ...))
 ```
+#### Quick start
+Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp and [lsp-ui](https://github.com/emacs-lsp/lsp-ui)). Make sure you have replaced the XXX placeholder with the list of the projects you want to import.
+```elisp
+(require 'cc-mode)
 
-### Install [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
-Download either [latest](http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz) or [a specific version](http://download.eclipse.org/jdtls/snapshots/?d) of Eclipse JDT Language Server distribution to `~/.emacs.d/eclipse.jdt.ls/server/`
+(condition-case nil
+    (require 'use-package)
+  (file-error
+   (require 'package)
+   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+   (package-initialize)
+   (package-refresh-contents)
+   (package-install 'use-package)
+   (require 'use-package)))
 
-If you choose to have the server installed in a different directory, set `lsp-java-server-install-dir`.
+(use-package lsp-mode
+  :ensure t
+  :init (setq lsp-inhibit-message t
+              lsp-eldoc-render-all nil
+              lsp-highlight-symbol-at-point nil))
 
-On Linux/MacOS you could install/update [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) via running the following commands:
+(use-package company-lsp
+  :after  company
+  :ensure t
+  :config
+  (add-hook 'java-mode-hook (lambda () (push 'company-lsp company-backends)))
+  (setq company-lsp-enable-snippet t
+        company-lsp-cache-candidates t)
+  (push 'java-mode company-global-modes))
 
-```bash
-rm -rf ~/.emacs.d/eclipse.jdt.ls/server/
-mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
-wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
-tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
+(use-package lsp-ui
+  :ensure t
+  :config
+  (setq lsp-ui-sideline-enable t
+        lsp-ui-sideline-show-symbol t
+        lsp-ui-sideline-show-hover t
+        lsp-ui-sideline-show-code-actions t
+        lsp-ui-sideline-update-mode 'point))
+
+(use-package lsp-java
+  :ensure t
+  :requires (lsp-ui-flycheck lsp-ui-sideline)
+  :config
+  (add-hook 'java-mode-hook  'lsp-java-enable)
+  (add-hook 'java-mode-hook  'flycheck-mode)
+  (add-hook 'java-mode-hook  'company-mode)
+  (add-hook 'java-mode-hook  (lambda () (lsp-ui-flycheck-enable t)))
+  (add-hook 'java-mode-hook  'lsp-ui-sideline-mode)
+  (setq lsp-java--workspace-folders (list (error "XXX Specify your projects here"))))
 ```
-
 ## Supported commands
 ### LSP Mode commands
   | Command name                | Description                                                  |
