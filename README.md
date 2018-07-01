@@ -53,7 +53,7 @@ Then add the following lines to your `.emacs` and open a file from the any of th
                                         ...))
 ```
 #### Quick start
-Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp and [lsp-ui](https://github.com/emacs-lsp/lsp-ui)). Make sure you have replaced the XXX placeholder with the list of the projects you want to import.
+Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui). Make sure you have replaced the XXX placeholder with the list of the projects you want to import.
 ```elisp
 (require 'cc-mode)
 
