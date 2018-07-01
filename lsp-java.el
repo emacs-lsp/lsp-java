@@ -210,6 +210,11 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
+(defcustom lsp-java-completion-guess-arguments nil
+  "When set to true, method arguments are guessed when a method is selected from as list of code assist proposals."
+  :group 'lsp-java
+  :type 'boolean)
+
 (defun lsp-java--json-bool (param)
   "Return a PARAM for setting parsable by json.el for booleans."
   (or param :json-false))
@@ -256,7 +261,8 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
       (enabled . ,(lsp-java--json-bool lsp-java-auto-build)))
      (completion
       (favoriteStaticMembers . ,lsp-java-favorite-static-members)
-      (importOrder . ,lsp-java-import-order)))))
+      (importOrder . ,lsp-java-import-order)
+      (guessMethodArguments . ,lsp-java-completion-guess-arguments)))))
 
 (defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
