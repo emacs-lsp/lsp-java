@@ -200,16 +200,19 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
+;;;###autoload
 (defcustom lsp-java-auto-build t
   "Enable/disable the 'auto build'."
   :group 'lsp-java
   :type 'boolean)
 
+;;;###autoload
 (defcustom lsp-java-progress-report t
   "[Experimental] Enable/disable progress reports from background processes on the server."
   :group 'lsp-java
   :type 'boolean)
 
+;;;###autoload
 (defcustom lsp-java-completion-guess-arguments nil
   "When set to true, method arguments are guessed when a method is selected from as list of code assist proposals."
   :group 'lsp-java
@@ -291,6 +294,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
       (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
 
+;;;###autoload
 (defun lsp-java-organize-imports ()
   "Organize java imports."
   (interactive)
@@ -298,6 +302,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
    "java.edit.organizeImports"
    (list (lsp--path-to-uri buffer-file-name))))
 
+;;;###autoload
 (defun lsp-java-build-project (&optional full)
   "Perform project build action.
 
@@ -306,6 +311,7 @@ FULL specify whether full or incremental build will be performed."
   (lsp-send-notification
    (lsp-make-request "java/buildWorkspace" (if full t :json-false))))
 
+;;;###autoload
 (defun lsp-java-update-project-configuration ()
   "Update project configuration."
   (interactive)
@@ -473,6 +479,7 @@ PARAMS progress report notification data."
           (insert uri))))
     file-location))
 
+;;;###autoload
 (defun lsp-java-actionable-notifications ()
   "Lists current actionable notifications."
   (interactive)
@@ -489,8 +496,10 @@ PARAMS progress report notification data."
     (when (= (hash-table-count notifications) 0)
       (lsp-workspace-status (concat "::" (lsp-workspace-get-metadata "status"))))))
 
+;;;###autoload
 (defun lsp-java-execute-matching-action (regexp &optional not-found-message)
-  "Executes the code action which title matches the REGEXP. "
+  "Execute the code action which title match the REGEXP.
+NOT-FOUND-MESSAGE will be used if there is no matching action."
   (let ((actions (cl-remove-if-not
                   (lambda (item) (string-match regexp (gethash "title" item)))
                   (lsp-get-or-calculate-code-actions))))
@@ -499,6 +508,7 @@ PARAMS progress report notification data."
       (1 (lsp-execute-code-action (car actions)))
       (t (lsp-execute-code-action (lsp--select-action actions))))))
 
+;;;###autoload
 (defun lsp-java-extract-to-local-variable (arg)
   "Extract local variable refactoring.
 The prefix ARG and `cider-prompt-for-symbol' decide whether to
@@ -509,36 +519,43 @@ extract all or only the current occurrence."
        "Extract to local variable$"
      "Extract to local variable (replace all occurrences)")))
 
+;;;###autoload
 (defun lsp-java-extract-to-constant ()
   "Extract constant refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Extract to constant"))
 
+;;;###autoload
 (defun lsp-java-add-unimplemented-methods ()
   "Extract constant refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Add unimplemented methods"))
 
+;;;###autoload
 (defun lsp-java-create-parameter ()
   "Create parameter refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Create parameter '"))
 
+;;;###autoload
 (defun lsp-java-create-field ()
   "Create field refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Create field '"))
 
+;;;###autoload
 (defun lsp-java-create-local ()
   "Create local refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Create local variable"))
 
+;;;###autoload
 (defun lsp-java-extract-method ()
   "Extract method refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Extract to method"))
 
+;;;###autoload
 (defun lsp-java-add-import ()
   "Add missing import."
   (interactive)
