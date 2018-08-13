@@ -16,6 +16,8 @@ LSP java mode supports the following JDT Features:
 * Code formatting
 * Maven pom.xml project support
 * Limited Gradle support
+* Visual debugger via [dap-mode](https://github.com/yyoncho/dap-mode/)
+* Test runner [dap-mode](https://github.com/yyoncho/dap-mode/)
 
 ## Installation
 ### Install [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
@@ -109,6 +111,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   | lsp-execute-code-action     | Execute code action.                                         |
   | lsp-rename                  | Rename symbol at point                                       |
   | lsp-describe-thing-at-point | Display help for the thing at point.                         |
+  | lsp-goto-type-definition    | Go to type definition                                        |
   | lsp-workspace-restart       | Restart project                                              |
   | lsp-format-buffer           | Format current buffer                                        |
   | lsp-symbol-highlight        | Highlight all relevant references to the symbol under point. |

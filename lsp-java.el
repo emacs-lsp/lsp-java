@@ -26,14 +26,12 @@
 (require 'markdown-mode)
 (require 'lsp-methods)
 
-;;;###autoload
 (defgroup lsp-java nil
   "JDT emacs frontend."
   :prefix "lsp-java-"
   :group 'applications
   :link '(url-link :tag "GitHub" "https://github.com/emacs-lisp/lsp-java"))
 
-;;;###autoload
 (defcustom lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
   "Install directory for eclipse.jdt.ls-server.
 The slash is expected at the end."
@@ -41,34 +39,29 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
-;;;###autoload
 (defcustom lsp-java-java-path "java"
   "Path of the java executable."
   :group 'lsp-java
   :type 'string)
 
-;;;###autoload
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
   :group 'lsp-java
   :risky t
   :type 'directory)
 
-;;;###autoload
 (defcustom lsp-java-workspace-cache-dir (expand-file-name (locate-user-emacs-file "workspace/.cache/"))
   "LSP java workspace cache directory."
   :group 'lsp-java
   :risky t
   :type 'directory)
 
-;;;###autoload
 (defcustom lsp-java--workspace-folders ()
   "LSP java workspace folders storing files downloaded from JDT."
   :group 'lsp-java
   :risky t
   :type '(repeat directory))
 
-;;;###autoload
 (defcustom lsp-java-vmargs '("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication")
   "Specifies extra VM arguments used to launch the Java Language Server.
 
@@ -80,7 +73,6 @@ deduplication with the G1 Garbage collector"
   :risky t
   :type '(repeat string))
 
-;;;###autoload
 (defcustom lsp-java-incomplete-classpath 'warning
   "Specifies the severity of the message when the classpath is incomplete for a Java file."
   :group 'lsp-java
@@ -89,7 +81,6 @@ deduplication with the G1 Garbage collector"
                  (const warning)
                  (const error)))
 
-;;;###autoload
 (defcustom lsp-java-update-build-configuration 'automatic
   "Specifies how modifications on build files update the Java classpath/configuration."
   :group 'lsp-java
@@ -98,7 +89,6 @@ deduplication with the G1 Garbage collector"
           (const interactive)
           (const automatic)))
 
-;;;###autoload
 (defcustom lsp-java-import-exclusions '("**/node_modules/**"
                                         "**/.metadata/**"
                                         "**/archetype-resources/**"
@@ -107,7 +97,6 @@ deduplication with the G1 Garbage collector"
   :group 'lsp-java
   :type '(repeat string))
 
-;;;###autoload
 (defcustom lsp-java-favorite-static-members
   '("org.junit.Assert.*"
     "org.junit.Assume.*"
@@ -122,7 +111,6 @@ deduplication with the G1 Garbage collector"
   :group 'lsp-java
   :type '(repeat string))
 
-;;;###autoload
 (defcustom lsp-java-import-order
   '("java" "javax" "com" "org")
   "Defines the sorting order of import statements.
@@ -131,7 +119,6 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type '(repeat string))
 
-;;;###autoload
 (defcustom lsp-java-trace-server 'off
   "Traces the communication between Emacs and the Java language server."
   :group 'lsp-java
@@ -140,79 +127,66 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
           (const messages)
           (const verbose)))
 
-;;;###autoload
 (defcustom lsp-java-enable-file-watch nil
   "Defines whether the client will monitor the files for changes."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-format-enabled t
   "Specifies whether or not formatting is enabled on the language server."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-format-settings-url nil
   "Specifies the file path to the formatter xml url."
   :group 'lsp-java
   :type 'string)
 
-;;;###autoload
 (defcustom lsp-java-format-settings-profile nil
   "Specifies the formatter profile name."
   :group 'lsp-java
   :type 'string)
 
-;;;###autoload
 (defcustom lsp-java-format-comments-enabled nil
   "Preference key used to include the comments during the formatting."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom  lsp-java-save-action-organize-imports t
   "Organize imports on save."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-organize-imports t
   "Specifies whether or not organize imports is enabled as a save action."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-bundles nil
   "List of bundles that will be loaded in the JDT server."
   :group 'lsp-java
   :type 'list)
 
-;;;###autoload
 (defcustom lsp-java-import-gradle-enabled t
   "Enable/disable the Gradle importer."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-import-maven-enabled t
   "Enable/disable the Maven importer."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-auto-build t
   "Enable/disable the 'auto build'."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-progress-report t
   "[Experimental] Enable/disable progress reports from background processes on the server."
   :group 'lsp-java
   :type 'boolean)
 
-;;;###autoload
 (defcustom lsp-java-completion-guess-arguments nil
   "When set to true, method arguments are guessed when a method is selected from as list of code assist proposals."
   :group 'lsp-java
@@ -294,7 +268,6 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
       (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
 
-;;;###autoload
 (defun lsp-java-organize-imports ()
   "Organize java imports."
   (interactive)
@@ -302,7 +275,6 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
    "java.edit.organizeImports"
    (list (lsp--path-to-uri buffer-file-name))))
 
-;;;###autoload
 (defun lsp-java-build-project (&optional full)
   "Perform project build action.
 
@@ -311,7 +283,6 @@ FULL specify whether full or incremental build will be performed."
   (lsp-send-notification
    (lsp-make-request "java/buildWorkspace" (if full t :json-false))))
 
-;;;###autoload
 (defun lsp-java-update-project-configuration ()
   "Update project configuration."
   (interactive)
@@ -479,7 +450,6 @@ PARAMS progress report notification data."
           (insert uri))))
     file-location))
 
-;;;###autoload
 (defun lsp-java-actionable-notifications ()
   "Lists current actionable notifications."
   (interactive)
@@ -496,7 +466,6 @@ PARAMS progress report notification data."
     (when (= (hash-table-count notifications) 0)
       (lsp-workspace-status (concat "::" (lsp-workspace-get-metadata "status"))))))
 
-;;;###autoload
 (defun lsp-java-execute-matching-action (regexp &optional not-found-message)
   "Execute the code action which title match the REGEXP.
 NOT-FOUND-MESSAGE will be used if there is no matching action."
@@ -508,7 +477,6 @@ NOT-FOUND-MESSAGE will be used if there is no matching action."
       (1 (lsp-execute-code-action (car actions)))
       (t (lsp-execute-code-action (lsp--select-action actions))))))
 
-;;;###autoload
 (defun lsp-java-extract-to-local-variable (arg)
   "Extract local variable refactoring.
 The prefix ARG and `cider-prompt-for-symbol' decide whether to
@@ -519,48 +487,42 @@ extract all or only the current occurrence."
        "Extract to local variable$"
      "Extract to local variable (replace all occurrences)")))
 
-;;;###autoload
 (defun lsp-java-extract-to-constant ()
   "Extract constant refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Extract to constant"))
 
-;;;###autoload
 (defun lsp-java-add-unimplemented-methods ()
   "Extract constant refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Add unimplemented methods"))
 
-;;;###autoload
 (defun lsp-java-create-parameter ()
   "Create parameter refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Create parameter '"))
 
-;;;###autoload
 (defun lsp-java-create-field ()
   "Create field refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Create field '"))
 
-;;;###autoload
 (defun lsp-java-create-local ()
   "Create local refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Create local variable"))
 
-;;;###autoload
 (defun lsp-java-extract-method ()
   "Extract method refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Extract to method"))
 
-;;;###autoload
 (defun lsp-java-add-import ()
   "Add missing import."
   (interactive)
   (lsp-java-execute-matching-action "Import '.*'"))
 
+;;;###autoload
 (lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
                          (lsp-java--ls-command)
                          :ignore-regexps
