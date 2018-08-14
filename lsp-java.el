@@ -522,7 +522,6 @@ extract all or only the current occurrence."
   (interactive)
   (lsp-java-execute-matching-action "Import '.*'"))
 
-;;;###autoload
 (lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
                          (lsp-java--ls-command)
                          :ignore-regexps
