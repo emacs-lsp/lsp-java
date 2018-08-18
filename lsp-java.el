@@ -547,6 +547,10 @@ server."
 
 (defun lsp-java--after-start (&rest _args)
   "Run after `lsp-java-enable' to configure workspace folders."
+  ;; patch server capabilities since jdt server does not declare
+  ;; executeCommandProvider capability required by `lsp-mode'
+  (puthash "executeCommandProvider" t (lsp--server-capabilities))
+
   ;; TODO temporary explicitly initialize lsp--workspaces with the workspace folders
   ;; until lsp-mode provides facilities for managing folders
   (mapc (lambda (root)
