@@ -71,7 +71,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 
 (use-package lsp-mode
   :ensure t
-  :init (setq lsp-inhibit-message t
+  :init (setq lsp-inhibit-message nil ; you may set this to t to hide messages from message area
               lsp-eldoc-render-all nil
               lsp-highlight-symbol-at-point nil))
 
