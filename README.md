@@ -1,5 +1,6 @@
 [![MELPA](https://melpa.org/packages/lsp-java-badge.svg)](https://melpa.org/#/lsp-java)
 [![Build Status](https://travis-ci.com/emacs-lsp/lsp-java.svg?branch=master)](https://travis-ci.com/emacs-lsp/lsp-java)
+[![Spacemacs](https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg)](http://spacemacs.org)
 
 Java support for lsp-mode using the [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
 
@@ -16,8 +17,8 @@ LSP java mode supports the following JDT Features:
 * Code formatting
 * Maven pom.xml project support
 * Limited Gradle support
-* Visual debugger via [dap-mode](https://github.com/yyoncho/dap-mode/)
-* Test runner [dap-mode](https://github.com/yyoncho/dap-mode/)
+* Visual debugger - [dap-mode](https://github.com/yyoncho/dap-mode/)
+* Test runner - [dap-mode](https://github.com/yyoncho/dap-mode/)
 
 ## Installation
 ### Install [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
@@ -33,6 +34,9 @@ mkdir -p ~/.emacs.d/eclipse.jdt.ls/server/
 wget http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -O /tmp/jdt-latest.tar
 tar xf /tmp/jdt-latest.tar -C ~/.emacs.d/eclipse.jdt.ls/server/
 ```
+### Spacemacs
+[lsp-java](https://github.com/emacs-lsp/lsp-java) is included in spacemacs (for now only on the dev branch). If you are using the development version of
+spacemacs you can simply add `(java :variables java-backend 'lsp)` to `dotspacemacs-configuration-layers`.
 
 ### Install LSP Java
 The recommended way to install LSP Java is via `package.el` - the built-in package
@@ -112,6 +116,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   | lsp-rename                  | Rename symbol at point                                       |
   | lsp-describe-thing-at-point | Display help for the thing at point.                         |
   | lsp-goto-type-definition    | Go to type definition                                        |
+  | lsp-goto-implementation     | Go to implementation                                         |
   | lsp-workspace-restart       | Restart project                                              |
   | lsp-format-buffer           | Format current buffer                                        |
   | lsp-symbol-highlight        | Highlight all relevant references to the symbol under point. |
