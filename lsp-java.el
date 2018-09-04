@@ -571,7 +571,9 @@ server."
                          "**/.classpath"
                          "**/settings/*.prefs")))
                lsp-java--workspace-folders))))
-  (lsp-java-update-user-settings))
+  (unless (gethash "initialized" (lsp--workspace-metadata lsp--cur-workspace))
+    (lsp-java-update-user-settings)
+    (puthash "initialized" t (lsp--workspace-metadata lsp--cur-workspace))))
 
 (defun lsp-java--before-start (&rest _args)
   "Initialize lsp java variables."
