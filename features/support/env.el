@@ -27,7 +27,8 @@
   (require 'lsp-java)
   (require 'lsp-mode))
 
-(Setup)
+(Setup
+ (lsp-java-update-server))
 
 (Before
  (require 'lsp-java)

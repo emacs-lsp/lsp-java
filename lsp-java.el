@@ -192,6 +192,9 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
+
+(defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
+
 (defun lsp-java--json-bool (param)
   "Return a PARAM for setting parsable by json.el for booleans."
   (or param :json-false))
@@ -245,15 +248,15 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   "Return the jar file location of the language server.
 
 The entry point of the language server is in `lsp-java-server-install-dir'/plugins/org.eclipse.equinox.launcher_`version'.jar."
-  (condition-case err
-      (let* ((plugindir (expand-file-name "plugins" lsp-java-server-install-dir))
-             (server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*.jar$")))
-        (if (not (= (length server-jar-filenames) 1))
-            (error (format "Unable to find single point of entry %s" server-jar-filenames))
-          (car server-jar-filenames)))
-    (error
-     (error (format "Failed to find server installation with following message: %s"
-                    (error-message-string err))))))
+  (let ((plugindir (expand-file-name "plugins" lsp-java-server-install-dir)))
+    (unless (file-directory-p plugindir)
+      (if (yes-or-no-p "Server is not installed. Do you want to install it?")
+          (lsp-java--ensure-server)
+        (error "LSP Java cannot be started without JDT LS Server")))
+    (let ((server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*.jar$")))
+      (if (not (= (length server-jar-filenames) 1))
+          (error (format "Unable to find single point of entry %s" server-jar-filenames))
+        (car server-jar-filenames)))))
 
 (defun lsp-java--locate-server-config ()
   "Return the server config based on OS."
@@ -408,6 +411,56 @@ PARAMS progress report notification data."
        (let ((inhibit-message t)) (gfm-view-mode))
        (ignore-errors (font-lock-ensure)))
      (buffer-string))))
+
+(defun lsp-java--prepare-mvnw ()
+  "Download mvnw."
+  (let ((mvn-executable (if (string-equal system-type "windows-nt")
+                            "mvn.bat"
+                          "mvnw"))
+        (downloader ".mvn/wrapper/MavenWrapperDownloader.java")
+        (properties ".mvn/wrapper/maven-wrapper.properties"))
+    (mkdir ".mvn/wrapper/" t)
+    (url-copy-file (concat lsp-java--download-root mvn-executable)
+                   mvn-executable
+                   t)
+    (url-copy-file (concat lsp-java--download-root downloader) downloader t)
+    (url-copy-file (concat lsp-java--download-root properties) properties t)
+    (if (string= system-type "windows-nt")
+        mvn-executable
+      (concat "sh " mvn-executable))))
+
+(defun lsp-java--bundles-dir ()
+  "Get default bundles dir."
+  (concat (file-name-as-directory lsp-java-server-install-dir) "bundles"))
+
+(defun lsp-java--ensure-server ()
+  "Ensure that JDT server and the other configuration."
+  (let* ((default-directory (concat temporary-file-directory "lsp-java-install/")))
+    (when (file-directory-p default-directory)
+      (delete-directory default-directory t))
+    (mkdir default-directory t)
+    (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
+    (let ((full-command (format
+                         "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package"
+                         (or (lsp-java--prepare-mvnw) (executable-find "mvn"))
+                         (expand-file-name lsp-java-server-install-dir)
+                         (expand-file-name
+                          (if (boundp 'dap-java-test-runner)
+                              (file-name-directory dap-java-test-runner)
+                            (concat (file-name-directory lsp-java-server-install-dir) "test-runner")))
+                         (if (boundp 'dap-java-test-runner)
+                             (file-name-nondirectory (directory-file-name dap-java-test-runner))
+                           "junit-platform-console-standalone.jar")
+                         (expand-file-name (lsp-java--bundles-dir)))))
+      (message "Running %s" full-command)
+      (shell-command full-command))))
+
+(defun lsp-java-update-server ()
+  "Update LDT LS server."
+  (interactive)
+  (message "Server update started...")
+  (lsp-java--ensure-server)
+  (message "Server update finished..."))
 
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
