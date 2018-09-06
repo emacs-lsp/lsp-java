@@ -575,6 +575,12 @@ extract all or only the current occurrence."
   (interactive)
   (lsp-java-execute-matching-action "Import '.*'"))
 
+(defun lsp-java--bundles ()
+  "Get lsp java bundles."
+  (let ((bundles-dir (lsp-java--bundles-dir)))
+    (append lsp-java-bundles (when (file-directory-p bundles-dir)
+                               (directory-files bundles-dir t "\\.jar$")))))
+
 (lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
                          (lsp-java--ls-command)
                          :ignore-regexps
@@ -586,7 +592,7 @@ extract all or only the current occurrence."
                                                   :settings (lsp-java--settings)
                                                   :extendedClientCapabilities (list :progressReportProvider t
                                                                                     :classFileContentsSupport t)
-                                                  :bundles lsp-java-bundles)
+                                                  :bundles (lsp-java--bundles))
                          :initialize 'lsp-java--client-initialized)
 
 (defun lsp-java-update-user-settings ()
