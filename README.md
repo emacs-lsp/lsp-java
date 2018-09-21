@@ -46,7 +46,7 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 [lsp-java](https://github.com/emacs-lsp/lsp-java) will automatically detect when the server is missing and it will download [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) before the first startup. The server installation will be in `lsp-java-server-install-dir`. It will detect whether [dap-mode](https://github.com/yyoncho/dap-mode/) is present and it will download the required server side plugins/components. If you want to update the server you can run `lsp-java-update-server`. To run specific version of [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) use `lsp-java-server-install-dir`.
 
 #### Quick start
-Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui). Make sure you have replaced the XXX placeholder with the list of the projects you want to import.
+Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Make sure you have replaced the XXX placeholder with the list of the projects you want to import. Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`
 ```elisp
 (require 'cc-mode)
 
@@ -62,8 +62,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 
 (use-package lsp-mode
   :ensure t
-  :init (setq lsp-inhibit-message nil ; you may set this to t to hide messages from message area
-              lsp-eldoc-render-all nil
+  :init (setq lsp-eldoc-render-all nil
               lsp-highlight-symbol-at-point nil))
 
 (use-package company-lsp
@@ -71,18 +70,23 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   :ensure t
   :config
   (add-hook 'java-mode-hook (lambda () (push 'company-lsp company-backends)))
-  (setq company-lsp-enable-snippet t
-        company-lsp-cache-candidates t)
+  (setq company-lsp-cache-candidates t)
   (push 'java-mode company-global-modes))
 
 (use-package lsp-ui
   :ensure t
   :config
-  (setq lsp-ui-sideline-enable t
-        lsp-ui-sideline-show-symbol t
-        lsp-ui-sideline-show-hover t
-        lsp-ui-sideline-show-code-actions t
-        lsp-ui-sideline-update-mode 'point))
+  (setq lsp-ui-sideline-update-mode 'point))
+
+(use-package dap-mode
+  :ensure t
+  :after lsp-mode
+  :config
+  (dap-mode t)
+  (dap-ui-mode t))
+
+(use-package dap-java
+  :after 'lsp-java)
 
 (use-package lsp-java
   :ensure t
@@ -92,7 +96,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (add-hook 'java-mode-hook  'flycheck-mode)
   (add-hook 'java-mode-hook  'company-mode)
   (add-hook 'java-mode-hook  (lambda () (lsp-ui-flycheck-enable t)))
-  (add-hook 'java-mode-hook  'lsp-ui-sideline-mode)
+  (add-hook 'java-mode-hook  'lsp-ui-mode)
   (setq lsp-java--workspace-folders (list (error "XXX Specify your projects here"))))
 ```
 ## Supported commands
