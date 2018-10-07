@@ -73,6 +73,12 @@ deduplication with the G1 Garbage collector"
   :risky t
   :type '(repeat string))
 
+(defcustom lsp-java-9-args '("--add-modules=ALL-SYSTEM" "--add-opens java.base/java.util=ALL-UNNAMED" "--add-opens java.base/java.lang=ALL-UNNAMED")
+  "Specifies arguments specific to java 9 and later."
+  :group 'lsp-java
+  :risky t
+  :type '(repeat string))
+
 (defcustom lsp-java-incomplete-classpath 'warning
   "Specifies the severity of the message when the classpath is incomplete for a Java file."
   :group 'lsp-java
@@ -308,11 +314,25 @@ FULL specify whether full or incremental build will be performed."
   (unless (file-directory-p path)
     (make-directory path)))
 
+(defun lsp-java--get-java-version ()
+  "Retrieve the java version from shell command."
+  (let* ((java-version-output (shell-command-to-string (concat lsp-java-java-path " -version")))
+         (version-string (nth 2 (split-string java-version-output))))
+    (string-to-number (replace-regexp-in-string "\"" "" version-string))))
+
+(defun lsp-java--java-9-plus-p ()
+  "Check if java version is greater than or equal to 9."
+  (let ((java-version (lsp-java--get-java-version)))
+    (>= java-version 9)))
+
 (defun lsp-java--ls-command ()
   "LS startup command."
   (let ((server-jar (lsp-java--locate-server-jar))
         (server-config (lsp-java--locate-server-config))
-        (root-dir (lsp-java--get-root)))
+        (root-dir (lsp-java--get-root))
+        (java-9-args (if (lsp-java--java-9-plus-p)
+                         lsp-java-9-args
+                       '())))
     (lsp-java--ensure-dir lsp-java-workspace-dir)
     `(,lsp-java-java-path
       "-Declipse.application=org.eclipse.jdt.ls.core.id1"
@@ -326,7 +346,8 @@ FULL specify whether full or incremental build will be performed."
       "-configuration"
       ,server-config
       "-data"
-      ,lsp-java-workspace-dir)))
+      ,lsp-java-workspace-dir
+      ,@java-9-args)))
 
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
