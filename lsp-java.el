@@ -463,6 +463,8 @@ PARAMS progress report notification data."
   (let* ((default-directory (concat temporary-file-directory "lsp-java-install/")))
     (when (file-directory-p default-directory)
       (delete-directory default-directory t))
+    (when (file-directory-p lsp-java-server-install-dir)
+      (delete-directory lsp-java-server-install-dir t))
     (mkdir default-directory t)
     (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
     (let ((full-command (format
