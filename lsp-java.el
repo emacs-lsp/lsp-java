@@ -302,7 +302,7 @@ FULL specify whether full or incremental build will be performed."
   (let ((file-name (file-name-nondirectory (buffer-file-name))))
     (if-let ((lsp--cur-workspace (or lsp--cur-workspace
                                      (gethash (lsp-java--get-root) lsp--workspaces))))
-        (if (or (string= file-name "pom.xml") (string-match file-name ".*\.gradle"))
+        (if (or (string= file-name "pom.xml") (string-match "\\.gradle\\'" file-name))
             (lsp-send-notification
              (lsp-make-request "java/projectConfigurationUpdate"
                                (list :uri (lsp--buffer-uri))))
