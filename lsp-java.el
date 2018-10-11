@@ -57,7 +57,7 @@ The slash is expected at the end."
   :type 'directory)
 
 (defcustom lsp-java--workspace-folders ()
-  "LSP java workspace folders storing files downloaded from JDT."
+  "(Deprecated) - use `lsp-workspace-folders-add' and `lsp-workspace-folders-remove'."
   :group 'lsp-java
   :risky t
   :type '(repeat directory))
@@ -329,10 +329,8 @@ FULL specify whether full or incremental build will be performed."
   "LS startup command."
   (let ((server-jar (lsp-java--locate-server-jar))
         (server-config (lsp-java--locate-server-config))
-        (root-dir (lsp-java--get-root))
-        (java-9-args (if (lsp-java--java-9-plus-p)
-                         lsp-java-9-args
-                       '())))
+        (java-9-args (when (lsp-java--java-9-plus-p)
+                       lsp-java-9-args)))
     (lsp-java--ensure-dir lsp-java-workspace-dir)
     `(,lsp-java-java-path
       "-Declipse.application=org.eclipse.jdt.ls.core.id1"
@@ -390,19 +388,43 @@ ACTION is the action to execute."
 
 WORKSPACE is the currently active workspace.
 PARAMS the parameters for actionable notifications."
-  (let ((notifications (or (lsp-workspace-get-metadata
-                            "actionable-notifications"
-                            workspace)
-                           (make-hash-table :test #'equal))))
-    (puthash (gethash "message" params) params notifications)
-    (lsp-workspace-set-metadata "actionable-notifications"
-                                notifications
-                                workspace)
-    (lsp-workspace-status
-     (concat "::"
-             (propertize
-              (concat (lsp-workspace-get-metadata "status" workspace) "[!]")
-              'face 'warning)))))
+  (let* ((project-root (lsp-java--get-root))
+         (classpath-incomplete-p (cl-find-if (lambda (command)
+                                               (string= (gethash "command" command)
+                                                        "java.ignoreIncompleteClasspath.help"))
+                                             (gethash "commands" params)))
+         (choices (list (format "Import project \"%s.\"" project-root)
+                        "Import project by selecting root directory interactively."
+                        (format "Do not ask more for the current project(add \"%s\" to lsp-project-blacklist)" project-root)
+                        "Do nothing."))
+         (action-index (when (and classpath-incomplete-p (not (member project-root lsp-project-blacklist)))
+                         (condition-case nil
+                             (cl-position
+                              (completing-read (format "%s is not part of any project. Select action: "
+                                                       (buffer-name))
+                                               choices
+                                               nil
+                                               t)
+                              choices
+                              :test 'equal)
+                           ('quit)))))
+    (case action-index
+      (0 (lsp-workspace-folders-add (list project-root)))
+      (1 (call-interactively 'lsp-workspace-folders-add))
+      (2 (add-to-list 'lsp-project-blacklist project-root))
+      (t (let ((notifications (or (lsp-workspace-get-metadata
+                                   "actionable-notifications"
+                                   workspace)
+                                  (make-hash-table :test #'equal))))
+           (puthash (gethash "message" params) params notifications)
+           (lsp-workspace-set-metadata "actionable-notifications"
+                                       notifications
+                                       workspace)
+           (lsp-workspace-status
+            (concat "::"
+                    (propertize
+                     (concat (lsp-workspace-get-metadata "status" workspace) "[!]")
+                     'face 'warning))))))))
 
 (defun lsp-java--progress-report (_workspace params)
   "Progress report handling.
@@ -636,12 +658,7 @@ server."
   ;; patch server capabilities since jdt server does not declare
   ;; executeCommandProvider capability required by `lsp-mode'
   (puthash "executeCommandProvider" t (lsp--server-capabilities))
-
-  ;; TODO temporary explicitly initialize lsp--workspaces with the workspace folders
-  ;; until lsp-mode provides facilities for managing folders
-  (mapc (lambda (root)
-          (puthash root lsp--cur-workspace lsp--workspaces))
-        lsp-java--workspace-folders)
+  ;; mark the cache dir as part of the current project
   (puthash lsp-java-workspace-cache-dir lsp--cur-workspace lsp--workspaces)
 
   (when lsp-java-enable-file-watch

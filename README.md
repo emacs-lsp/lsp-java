@@ -36,10 +36,6 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 (require 'lsp-java)
 (add-hook 'java-mode-hook #'lsp-java-enable)
 
-;; set the projects that are going to be imported into the workspace.
-(setq lsp-java--workspace-folders (list "/path/to/project1"
-                                        "/path/to/project2"
-                                        ...))
 ```
 ### [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
 
@@ -96,21 +92,23 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (add-hook 'java-mode-hook  'flycheck-mode)
   (add-hook 'java-mode-hook  'company-mode)
   (add-hook 'java-mode-hook  (lambda () (lsp-ui-flycheck-enable t)))
-  (add-hook 'java-mode-hook  'lsp-ui-mode)
-  (setq lsp-java--workspace-folders (list (error "XXX Specify your projects here"))))
+  (add-hook 'java-mode-hook  'lsp-ui-mode))
 ```
 ## Supported commands
 ### LSP Mode commands
-  | Command name | Description |
-  |-----------------------------|--------------------------------------------------------------|
-  | lsp-execute-code-action     | Execute code action.                                         |
-  | lsp-rename                  | Rename symbol at point                                       |
-  | lsp-describe-thing-at-point | Display help for the thing at point.                         |
-  | lsp-goto-type-definition    | Go to type definition                                        |
-  | lsp-goto-implementation     | Go to implementation                                         |
-  | lsp-workspace-restart       | Restart project                                              |
-  | lsp-format-buffer           | Format current buffer                                        |
-  | lsp-symbol-highlight        | Highlight all relevant references to the symbol under point. |
+  | Command name                 | Description                                                  |
+  |------------------------------|--------------------------------------------------------------|
+  | lsp-execute-code-action      | Execute code action.                                         |
+  | lsp-rename                   | Rename symbol at point                                       |
+  | lsp-describe-thing-at-point  | Display help for the thing at point.                         |
+  | lsp-goto-type-definition     | Go to type definition                                        |
+  | lsp-goto-implementation      | Go to implementation                                         |
+  | lsp-workspace-restart        | Restart project                                              |
+  | lsp-format-buffer            | Format current buffer                                        |
+  | lsp-symbol-highlight         | Highlight all relevant references to the symbol under point. |
+  | lsp-workspace-folders-add    | Add workspace folder                                         |
+  | lsp-workspace-folders-remove | Remove workspace folder                                      |
+  | lsp-workspace-folders-switch | Switch workspace folder                                      |
 ### LSP Java commands
 
   | Command name                          | Description                                                   |
@@ -123,8 +121,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   | lsp-java-update-server                | Update server instalation.                                    |
 #### Refactoring
 
-LSP Java provides rich set of refactorings via [Eclipse JDT Language
-Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
+LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
 
   | Command name                       | Description                  |
@@ -143,7 +140,6 @@ some of them are bound to Emacs commands:
   | lsp-java-java-path                    | Path of the java executable                                                                                     |
   | lsp-java-workspace-dir                | LSP java workspace directory                                                                                    |
   | lsp-java-workspace-cache-dir          | LSP java workspace cache directory                                                                              |
-  | lsp-java--workspace-folders           | LSP java workspace folders storing files downloaded from JDT                                                    |
   | lsp-java-vmargs                       | Specifies extra VM arguments used to launch the Java Language Server                                            |
   | lsp-java-incomplete-classpath         | Specifies the severity of the message when the classpath is incomplete for a Java file                          |
   | lsp-java-update-build-configuration   | Specifies how modifications on build files update the Java classpath/configuration                              |
@@ -184,4 +180,4 @@ LSP UI by default sends current line bounds for action region which breaks force
 ```
 * LSP Java does not provide completion, go to definition for some of the files?
 
-Make sure the project is properly imported according to instructions. When particular file is not part of imported project [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) could not calculate the current classpath.
+When particular file is not part of imported project [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) could not calculate the current classpath.
