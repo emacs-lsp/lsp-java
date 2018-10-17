@@ -462,7 +462,7 @@ PARAMS progress report notification data."
 (defun lsp-java--prepare-mvnw ()
   "Download mvnw."
   (let ((mvn-executable (if (string-equal system-type "windows-nt")
-                            "mvn.bat"
+                            "mvnw.cmd"
                           "mvnw"))
         (downloader ".mvn/wrapper/MavenWrapperDownloader.java")
         (properties ".mvn/wrapper/maven-wrapper.properties"))
