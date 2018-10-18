@@ -163,11 +163,6 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
-(defcustom lsp-java-organize-imports t
-  "Specifies whether or not organize imports is enabled as a save action."
-  :group 'lsp-java
-  :type 'boolean)
-
 (defcustom lsp-java-bundles nil
   "List of bundles that will be loaded in the JDT server."
   :group 'lsp-java

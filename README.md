@@ -153,7 +153,6 @@ some of them are bound to Emacs commands:
   | lsp-java-format-settings-profile      | Specifies the formatter profile name                                                                            |
   | lsp-java-format-comments-enabled      | Preference key used to include the comments during the formatting                                               |
   | lsp-java-save-action-organize-imports | Organize imports on save                                                                                        |
-  | lsp-java-organize-imports             | Specifies whether or not organize imports is enabled as a save action                                           |
   | lsp-java-bundles                      | List of bundles that will be loaded in the JDT server                                                           |
   | lsp-java-import-gradle-enabled        | Enable/disable the Gradle importer                                                                              |
   | lsp-java-import-maven-enabled         | Enable/disable the Maven importer                                                                               |
