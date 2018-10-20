@@ -30,9 +30,8 @@ Feature: Organize imports
     }
     """
 
-Feature: Organize imports save action
   @Imports
-  Scenario: Organize imports
+  Scenario: Organize imports save action
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
     And I have a java file "tmp/m/src/main/java/temp/App.java"
@@ -61,9 +60,8 @@ Feature: Organize imports save action
     }
     """
 
-Feature: Disable organize imports save action
   @Imports
-  Scenario: Organize imports
+  Scenario: Disable organize imports save action
     Given I have maven project "m" in "tmp"
     And I add project "m" folder "tmp" to the list of workspace folders
     And I have a java file "tmp/m/src/main/java/temp/App.java"

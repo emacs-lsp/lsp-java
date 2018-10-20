@@ -78,7 +78,9 @@
 
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
   (lambda (project dir-name)
-    (add-to-list 'lsp-java--workspace-folders (f-join lsp-java-test-root dir-name project))))
+    (mkdir lsp-java-workspace-dir t)
+    (lsp--persist (f-join lsp-java-workspace-dir ".folders")
+                  (list (f-join lsp-java-test-root dir-name project)))))
 
 (And "^I start lsp-java$"
   (lambda ()

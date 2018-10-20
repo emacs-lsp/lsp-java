@@ -33,6 +33,7 @@
 (Before
  (require 'lsp-java)
  (setq lsp-java-workspace-dir (f-join lsp-java-test-root "workspace")
+       lsp-java-pop-buffer-function 'pop-to-buffer
        lsp-java-workspace-cache-dir (f-join lsp-java-test-root "workspace-cache")
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
        lsp-response-timeout 30)

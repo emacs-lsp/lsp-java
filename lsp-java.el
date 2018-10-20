@@ -1,7 +1,7 @@
 ;;; lsp-java.el --- Java support for lsp-mode
 
 ;; Version: 1.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0") (markdown-mode "2.3"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0"))
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -25,6 +25,10 @@
 (require 'lsp-mode)
 (require 'markdown-mode)
 (require 'lsp-methods)
+(require 'dash)
+(require 'ht)
+(require 'f)
+(require 'tree-widget)
 
 (defgroup lsp-java nil
   "JDT emacs frontend."
@@ -62,6 +66,21 @@ The slash is expected at the end."
   :risky t
   :type '(repeat directory))
 
+(defcustom lsp-java-themes-directory (f-join (f-dirname (or load-file-name buffer-file-name)) "icons")
+  "Directory containing themes."
+  :type 'directory
+  :group 'lsp-java)
+
+(defcustom lsp-java-theme "vscode"
+  "Theme to use."
+  :type 'string
+  :group 'lsp-java)
+
+(defcustom lsp-java-pop-buffer-function 'lsp-java-show-buffer
+  "The function which will be used for showing the helper windows."
+  :type 'function
+  :group 'lsp-java)
+
 (defcustom lsp-java-vmargs '("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication")
   "Specifies extra VM arguments used to launch the Java Language Server.
 
@@ -69,12 +88,6 @@ Eg. use `-noverify -Xmx1G -XX:+UseG1GC
 -XX:+UseStringDeduplication` to bypass class
 verification,increase the heap size to 1GB and enable String
 deduplication with the G1 Garbage collector"
-  :group 'lsp-java
-  :risky t
-  :type '(repeat string))
-
-(defcustom lsp-java-9-args '("--add-modules=ALL-SYSTEM" "--add-opens java.base/java.util=ALL-UNNAMED" "--add-opens java.base/java.lang=ALL-UNNAMED")
-  "Specifies arguments specific to java 9 and later."
   :group 'lsp-java
   :risky t
   :type '(repeat string))
@@ -193,7 +206,6 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
-
 (defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
 
 (defun lsp-java--json-bool (param)
@@ -248,6 +260,22 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
       (favoriteStaticMembers . ,(lsp-java--list-or-empty lsp-java-favorite-static-members))
       (importOrder . ,(lsp-java--list-or-empty lsp-java-import-order))
       (guessMethodArguments . ,lsp-java-completion-guess-arguments)))))
+
+(defvar lsp-java-buffer-configurations
+  `(("*classpath*" . ((side . right) (slot . 10) (window-width . 0.20)))))
+
+(defun lsp-java-show-buffer (buf)
+  "Show BUF according to defined rules."
+  (let ((win (display-buffer-in-side-window buf
+                                            (or (-> buf
+                                                    buffer-name
+                                                    (assoc lsp-java-buffer-configurations)
+                                                    rest)
+                                                '((side . right)
+                                                  (slot . 1)
+                                                  (window-width . 0.20))))))
+    (set-window-dedicated-p win t)
+    (select-window win)))
 
 (defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
@@ -307,7 +335,7 @@ FULL specify whether full or incremental build will be performed."
 (defun lsp-java--ensure-dir (path)
   "Ensure that directory PATH exists."
   (unless (file-directory-p path)
-    (make-directory path)))
+    (make-directory path t)))
 
 (defun lsp-java--get-java-version ()
   "Retrieve the java version from shell command."
@@ -506,24 +534,39 @@ PARAMS progress report notification data."
   (lsp-java--ensure-server)
   (message "Server update finished..."))
 
+(defun lsp-java--folders-change (&rest _)
+  "Handler for folder's change."
+  (lsp-java-update-project-uris lsp--cur-workspace))
+
+(defun lsp-java--workspace-notify (&rest _args)
+  "Workspace notify handler."
+  (lsp-java-update-project-uris lsp--cur-workspace))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
   (lsp-client-on-notification client "language/actionableNotification" 'lsp-java--actionable-notification-callback)
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
+  (lsp-client-on-notification client "workspace/notify" 'lsp-java--workspace-notify)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
+  (lsp-client-register-uri-handler client "chelib" 'lsp-java--resolve-uri)
 
   (lsp-provide-marked-string-renderer client "java" #'lsp-java--render-string)
-  (lsp-provide-default-marked-string-renderer client #'lsp-java--render-markup))
+  (lsp-provide-default-marked-string-renderer client #'lsp-java--render-markup)
+  (add-hook 'lsp-workspace-folders-change 'lsp-java--folders-change))
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
-  (let ((regexp "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?"))
-    (save-match-data
-      (string-match regexp url)
-      (format "%s.java"
-              (replace-regexp-in-string "/" "." (match-string 2 url) t t)))))
+  (or (save-match-data
+        (when (string-match "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?" url)
+          (format "%s.java"
+                  (replace-regexp-in-string "/" "." (match-string 2 url) t t))))
+      (save-match-data
+        (when (string-match "chelib://\\(.*\\)" url)
+          (let ((matched (match-string 1 url)))
+            (replace-regexp-in-string (regexp-quote ".jar") "jar" matched t t))))
+      (error "Unable to match %s" url)))
 
 (defun lsp-java--get-metadata-location (file-location)
   "Given a FILE-LOCATION return the file containing the metadata for the file."
@@ -536,13 +579,12 @@ PARAMS progress report notification data."
   (let* ((buffer-name (lsp-java--get-filename uri))
          (file-location (concat lsp-java-workspace-cache-dir buffer-name)))
     (unless (file-readable-p file-location)
-      (lsp-java--ensure-dir lsp-java-workspace-cache-dir)
+      (lsp-java--ensure-dir (file-name-directory file-location))
       (let ((content (lsp-send-request (lsp-make-request
                                         "java/classFileContents"
                                         (list :uri uri)))))
         (with-temp-file file-location
           (insert content))
-                                        ; store uri
         (with-temp-file (lsp-java--get-metadata-location file-location)
           (insert uri))))
     file-location))
@@ -630,10 +672,7 @@ extract all or only the current occurrence."
                          :ignore-regexps
                          '("^SLF4J: "
                            "^Listening for transport dt_socket at address: ")
-                         :extra-init-params (list :workspaceFolders (mapcar
-                                                                     'lsp--path-to-uri
-                                                                     lsp-java--workspace-folders)
-                                                  :settings (lsp-java--settings)
+                         :extra-init-params (list :settings (lsp-java--settings)
                                                   :extendedClientCapabilities (list :progressReportProvider t
                                                                                     :classFileContentsSupport t)
                                                   :bundles (lsp-java--bundles))
@@ -671,7 +710,62 @@ server."
                lsp-java--workspace-folders))))
   (unless (gethash "initialized" (lsp--workspace-metadata lsp--cur-workspace))
     (lsp-java-update-user-settings)
-    (puthash "initialized" t (lsp--workspace-metadata lsp--cur-workspace))))
+    (puthash "initialized" t (lsp--workspace-metadata lsp--cur-workspace)))
+
+  (lsp-java-update-project-uris lsp--cur-workspace))
+
+(defun lsp-java-update-project-uris (&optional workspace)
+  "Update WORKSPACE project uris."
+  (interactive)
+  (setq workspace (or workspace lsp--cur-workspace))
+  (with-lsp-workspace workspace
+    (->> workspace
+         lsp--workspace-workspace-folders
+         (--map (or (lsp-send-execute-command "che.jdt.ls.extension.mavenProjects"
+                                              (lsp--path-to-uri it))
+                    (lsp--path-to-uri (file-name-as-directory it))))
+         -flatten
+         -uniq
+         (lsp-java--set-project-uris workspace))))
+
+(defun lsp-java--set-project-uris (workspace project-uris)
+  "Set WORKSPACE project uri list to PROJECT-URIS."
+  (puthash "project-uris" project-uris (lsp--workspace-metadata workspace)))
+
+(defun lsp-java--get-project-uris (workspace)
+  "Get WORKSPACE maven projects."
+  (let ((current-workspace-folders (lsp--workspace-workspace-folders workspace))
+        (workspace-metadata (lsp--workspace-metadata workspace)))
+    ;; update the project uri only if the workspace folders has changed after
+    ;; the last call.
+    ;; TODO investigate a better way to do that.
+    (if (eq current-workspace-folders (gethash "last-workspace-folders" workspace-metadata))
+        (gethash "project-uris" workspace-metadata)
+      (lsp-java-update-project-uris workspace)
+      (puthash "last-workspace-folders" current-workspace-folders workspace-metadata))))
+
+(defun lsp-java--find-workspace (file-uri)
+  "Return the workspace corresponding FILE-URI."
+  (->> lsp--workspaces
+       ht-values
+       -uniq
+       (--first (-some? (lambda (project-uri)
+                          (s-starts-with? (lsp--uri-to-path project-uri)
+                                          (lsp--uri-to-path file-uri)))
+                        (lsp-java--get-project-uris it)))))
+
+(defun lsp-java--find-project-uri (file-uri)
+  "Return the java project corresponding FILE-URI."
+  (->> lsp--workspaces
+       ht-values
+       -uniq
+       (-map 'lsp-java--get-project-uris)
+       -flatten
+       (--filter (s-starts-with? (lsp--uri-to-path it)
+                                 (lsp--uri-to-path file-uri)))
+       (-max-by (lambda (project-a project-b)
+                  (> (length project-a)
+                     (length project-b))))))
 
 (defun lsp-java--before-start (&rest _args)
   "Initialize lsp java variables."
@@ -686,6 +780,175 @@ server."
 
 (add-function :after (symbol-function 'lsp-java-enable) #'lsp-java--after-start)
 (add-function :before (symbol-function 'lsp-java-enable) #'lsp-java--before-start)
+
+(defun lsp-java--nearest-widget ()
+  "Return widget at point or next nearest widget."
+  (or (widget-at)
+      (ignore-errors
+        (let ((pos (point)))
+          (widget-forward 1)
+          (and (< pos (point))
+               (widget-at))))))
+
+(defun lsp-java--tree-under-cursor ()
+  "Get tree under cursor."
+  (-when-let (widget-under-cursor (lsp-java--nearest-widget))
+    (if (tree-widget-p widget-under-cursor )
+        widget-under-cursor
+      (widget-get widget-under-cursor :parent))))
+
+(defun lsp-java-classpath-open ()
+  "Open object at path."
+  (interactive)
+  (if-let ((file (widget-get (lsp-java--tree-under-cursor) :file)))
+      (if (file-exists-p file)
+          (find-file file)
+        (user-error "File %s does not exists" file))
+    (user-error "No file under cursor")))
+
+(defvar lsp-java-classpath-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'lsp-java-classpath-open)
+    map))
+
+(define-derived-mode lsp-java-classpath-mode special-mode "lsp-java-classpath"
+  "Minor mode for browsing classpath.")
+
+(define-widget 'lsp-java-widget-guide 'item
+  "Vertical guide line."
+  :tag       " "
+  :format    "%t")
+
+(define-widget 'lsp-java-widget-end-guide 'item
+  "End of a vertical guide line."
+  :tag       " "
+  :format    "%t")
+
+(define-widget 'lsp-java-widget-handle 'item
+  "Horizontal guide line that joins a vertical guide line to a node."
+  :tag       " "
+  :format    "%t")
+
+(defmacro lsp-java-define-widget (name &optional image-open image-closed image-empty)
+  "Helper for defining widget icons.
+NAME will be the name of the widget icon.
+IMAGE-OPEN will be used when the widget is open.
+IMAGE-CLOSED will be when the tree is closed.
+IMAGE-EMPTY will be used when the tree widget is empty."
+  (let ((open-icon (make-symbol (format "lsp-java-%s-open" name)))
+        (close-icon (make-symbol (format "lsp-java-%s-close" name)))
+        (empty-icon (make-symbol (format "lsp-java-%s-empty" name)))
+        (leaf-icon (make-symbol (format "lsp-java-%s-leaf" name))))
+    `(progn
+       (define-widget (quote ,open-icon) 'tree-widget-icon
+         "Icon for a open tree-widget node."
+         :tag        "[+]"
+         :glyph-name ,(or image-open name))
+       (define-widget (quote ,close-icon) 'tree-widget-icon
+         "Icon for a closed tree-widget node."
+         :tag        "[-]"
+         :glyph-name ,(or image-closed image-open name))
+       (define-widget (quote ,empty-icon) 'tree-widget-icon
+         "Icon for a closed tree-widget node."
+         :tag        "[.]"
+         :glyph-name ,(or image-empty image-open name))
+       (list :open-icon (quote ,open-icon)
+             :close-icon (quote ,close-icon)
+             :empty-icon (quote ,empty-icon)
+             :leaf-icon (quote ,leaf-icon)
+             :handle 'lsp-java-widget-handle
+             :end-guide 'lsp-java-widget-end-guide
+             :guide 'lsp-java-widget-guide))))
+
+(defvar lsp-java-icons-file-type-jar (lsp-java-define-widget "file_type_jar"))
+(defvar lsp-java-icons-file-type-class (lsp-java-define-widget "file_type_class"))
+(defvar lsp-java-icons-folder-type-component (lsp-java-define-widget "folder_type_component"
+                                                                     "folder_type_component_opened"
+                                                                     "folder_type_component"))
+(defvar lsp-java-icons-default-folder (lsp-java-define-widget "default_folder"
+                                                              "default_folder_opened"
+                                                              "default_folder"))
+(defvar lsp-java-icons-folder-type-library (lsp-java-define-widget "folder_type_library"
+                                                                   "folder_type_library_opened"
+                                                                   "folder_type_library"))
+(defvar lsp-java-icons-default-root-folder (lsp-java-define-widget "default_root_folder"
+                                                                   "default_root_folder_opened"
+                                                                   "default_root_folder"))
+(defvar lsp-java-icons-folder-type-maven (lsp-java-define-widget "folder_type_maven"
+                                                                 "folder_type_maven_opened"
+                                                                 "folder_type_maven"))
+
+(defvar lsp-java-icons-error (lsp-java-define-widget "error"))
+(defvar lsp-java-icons-warning (lsp-java-define-widget "warning"))
+(defvar lsp-java-icons-info (lsp-java-define-widget "info"))
+
+(defun lsp-java--classpath-get-icon (kind)
+  "Get the icon corresponding to KIND."
+  (pcase kind
+    (1 lsp-java-icons-file-type-jar)
+    (2 lsp-java-icons-default-root-folder)
+    (3 lsp-java-icons-default-folder)
+    (5 lsp-java-icons-folder-type-library)))
+
+(defun lsp-java--classpath-get-node (path kind project-uri)
+  "Get the icon corresponding to KIND.
+PATH to the item.
+PROJECT-URI uri of the item."
+  (pcase kind
+    (1 `(push-button :format "%[%t%]\n"
+                     :tag ,(-> path lsp--path-to-uri f-filename)))
+    (2 `(push-button :format "%[%t%]\n"
+                     :tag ,(-> path lsp--path-to-uri f-filename)))
+    (3 `(push-button :format "%[%t%]\n"
+                     :tag ,(f-relative (lsp--uri-to-path path) (lsp--uri-to-path project-uri))))
+    (5 `(push-button :format "%[%t%]\n"
+                     :tag ,path))))
+
+(defun lsp-java--classpath-render-classpath (classpath-entry project-uri)
+  "Render CLASSPATH-ENTRY comming from PROJECT-URI."
+  (-let* (((&hash "path" "children" "entryKind" kind) classpath-entry)
+          (icons (lsp-java--classpath-get-icon kind))
+          (node (lsp-java--classpath-get-node path kind project-uri)))
+    `(tree-widget :node ,node
+                  :open t
+                  :file ,(lsp--uri-to-path path)
+                  ,@icons
+                  ,@(--map (lsp-java--classpath-render-classpath it project-uri) children))))
+
+(defun lsp-java-classpath-browse ()
+  "Show currently active sessions."
+  (interactive)
+  (let ((uri (lsp--path-to-uri (or buffer-file-name (f-canonical default-directory)))))
+    (--if-let (lsp-java--find-workspace uri)
+        (with-lsp-workspace it
+          (if-let (project-uri (lsp-java--find-project-uri buffer-file-name))
+              (let ((inhibit-read-only t)
+                    (buf (get-buffer-create "*classpath*")))
+                (with-current-buffer buf
+                  (erase-buffer)
+                  (setq-local lsp--cur-workspace it)
+
+                  (when lsp-java-themes-directory
+                    (setq-local tree-widget-themes-directory lsp-java-themes-directory))
+
+                  (when lsp-java-theme
+                    (tree-widget-set-theme lsp-java-theme))
+
+                  (widget-create
+                   `(tree-widget
+                     :node (push-button :format "%[%t%]\n"
+                                        :tag ,(f-filename (lsp--uri-to-path project-uri)))
+                     :open t
+                     :file ,(lsp--uri-to-path project-uri)
+                     ,@lsp-java-icons-default-root-folder
+                     ,@(--map (lsp-java--classpath-render-classpath it project-uri)
+                              (lsp-send-execute-command "che.jdt.ls.extension.classpathTree" project-uri))))
+                  (lsp-java-classpath-mode)
+                  (run-hooks 'lsp-java-classpath-mode-hook))
+                (funcall lsp-java-pop-buffer-function buf)
+                (goto-char (point-min)))
+            (user-error "Failed to calculate project for buffer %s" (buffer-name))))
+      (user-error "Unable to find workspace for buffer %s" (buffer-name)))))
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
