@@ -92,6 +92,12 @@ deduplication with the G1 Garbage collector"
   :risky t
   :type '(repeat string))
 
+(defcustom lsp-java-9-args '("--add-modules=ALL-SYSTEM" "--add-opens java.base/java.util=ALL-UNNAMED" "--add-opens java.base/java.lang=ALL-UNNAMED")
+  "Specifies arguments specific to java 9 and later."
+  :group 'lsp-java
+  :risky t
+  :type '(repeat string))
+
 (defcustom lsp-java-incomplete-classpath 'warning
   "Specifies the severity of the message when the classpath is incomplete for a Java file."
   :group 'lsp-java
