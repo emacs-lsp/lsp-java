@@ -218,10 +218,13 @@ ADDED and REMOVED are pointing which are the changed folders."
    :position 'project-start
    :predicate 'lsp-java-treemacs--is-root)
 
+  (require 'treemacs)
+  (unless (eq 'visible (treemacs-current-visibility))
+    (treemacs))
 
   (maphash (lambda (root-path workspace)
-             (unless (or (f-equal? root-path lsp-java-workspace-dir)
-                         (f-equal? root-path lsp-java-workspace-cache-dir))
+             (unless (or (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-dir))
+                         (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-cache-dir)))
                (treemacs-do-add-project-to-workspace root-path (f-filename root-path))))
            lsp--workspaces)
   (add-hook 'lsp-workspace-folders-change 'lsp-java-treemacs--folders-change))
@@ -230,8 +233,10 @@ ADDED and REMOVED are pointing which are the changed folders."
   "Unregister extension."
   (interactive)
   (remove-hook 'lsp-workspace-folders-change 'lsp-java-treemacs--folders-change)
-  (treemacs-remove-extension 'treemacs-EXTERNAL-LIBRARY-extension
-                             'project-start))
+  (treemacs-remove-project-extension 'treemacs-EXTERNAL-LIBRARY-extension
+                                     'project-start)
+  (treemacs-remove-directory-extension 'treemacs-EXTERNAL-LIBRARY-extension
+                                       'directory-start))
 
 (provide 'lsp-java-treemacs )
 ;;; lsp-java-treemacs.el ends here

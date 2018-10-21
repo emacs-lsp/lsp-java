@@ -1,6 +1,7 @@
 [![MELPA](https://melpa.org/packages/lsp-java-badge.svg)](https://melpa.org/#/lsp-java)
 [![Build Status](https://travis-ci.com/emacs-lsp/lsp-java.svg?branch=master)](https://travis-ci.com/emacs-lsp/lsp-java)
 [![Join the chat at https://gitter.im/emacs-lsp/lsp-mode](https://badges.gitter.im/emacs-lsp/lsp-mode.svg)](https://gitter.im/emacs-lsp/lsp-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
 ## Features
 LSP java mode supports the following JDT Features:
@@ -123,10 +124,10 @@ some of them are bound to Emacs commands:
 * `lsp-java-extract-method` - Extract method refactoring
 * `lsp-java-add-import` - Add missing import
 #### Treemacs
-[lsp-java](https://github.com/emacs-lsp/lsp-java) provides integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
+[lsp-java](https://github.com/emacs-lsp/lsp-java) provides experimental integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
 * `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
 * `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
-* `lsp-java-update-project-uris`
+* `lsp-java-update-project-uris` refresh the project URIs.
 #### Classpath browsing
 [lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-browse-classpath` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
 ![Classpath](images/classpath.png)

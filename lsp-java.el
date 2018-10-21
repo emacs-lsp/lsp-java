@@ -919,13 +919,14 @@ PROJECT-URI uri of the item."
   "Show currently active sessions."
   (interactive)
   (let ((uri (lsp--path-to-uri (or buffer-file-name (f-canonical default-directory)))))
-    (--if-let (lsp-java--find-workspace uri)
+    (--if-let (or lsp--cur-workspace (lsp-java--find-workspace uri))
         (with-lsp-workspace it
           (if-let (project-uri (lsp-java--find-project-uri buffer-file-name))
               (let ((inhibit-read-only t)
                     (buf (get-buffer-create "*classpath*")))
                 (with-current-buffer buf
                   (erase-buffer)
+                  (lsp-java-classpath-mode)
                   (setq-local lsp--cur-workspace it)
 
                   (when lsp-java-themes-directory
@@ -943,7 +944,6 @@ PROJECT-URI uri of the item."
                      ,@lsp-java-icons-default-root-folder
                      ,@(--map (lsp-java--classpath-render-classpath it project-uri)
                               (lsp-send-execute-command "che.jdt.ls.extension.classpathTree" project-uri))))
-                  (lsp-java-classpath-mode)
                   (run-hooks 'lsp-java-classpath-mode-hook))
                 (funcall lsp-java-pop-buffer-function buf)
                 (goto-char (point-min)))
