@@ -121,5 +121,14 @@
         (funcall (intern command))
       (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
 
+(When "^I call \"\\([^\"]+\\)\" and see:$"
+  (lambda (command text callback)
+    (lsp-java-steps-async-wait
+     (lambda ()
+       (save-window-excursion
+         (funcall (intern command))
+         (s-contains? text (buffer-string) t)))
+     callback)))
+
 (provide 'lsp-java-steps)
 ;;; lsp-java-steps.el ends here

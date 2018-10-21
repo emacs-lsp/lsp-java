@@ -18,8 +18,7 @@ Feature: Browse classpaths
     And I call "save-buffer"
     And I start lsp-java
     And The server status must become "LSP::Started"
-    When I call "lsp-java-classpath-browse"
-    Then I should see:
+    When I call "lsp-java-classpath-browse" and see:
     """
     org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER
     """
