@@ -49,14 +49,14 @@
 (defun lsp-java-treemacs--get-libraries (project-uri)
   "Get the list of buffers, grouped by their major mode.
 PROJECT-URI is the project id of the active project."
-  (when-lsp-workspace (lsp-java--find-root project-uri)
+  (when-lsp-workspace (lsp-java--find-workspace project-uri)
     (lsp-send-execute-command "che.jdt.ls.extension.externalLibraries"
                               (list :projectUri project-uri))))
 
 (defun lsp-java-treemacs--library-children (project-uri node-id)
   "Get the list of library children.
 PROJECT-URI and NODE-ID are the details for the current node."
-  (when-lsp-workspace (lsp-java--find-root project-uri)
+  (when-lsp-workspace (lsp-java--find-workspace project-uri)
     (lsp-send-execute-command "che.jdt.ls.extension.libraryChildren"
                               (list :projectUri project-uri
                                     :nodeId node-id))))
@@ -64,7 +64,7 @@ PROJECT-URI and NODE-ID are the details for the current node."
 (defun lsp-java-treemacs--external-library-children (project-uri node-id path)
   "Get the list of external library children.
 PROJECT-URI, NODE-ID and PATH are the details for the current node."
-  (when-lsp-workspace (lsp-java--find-root project-uri)
+  (when-lsp-workspace (lsp-java--find-workspace project-uri)
     (lsp-send-execute-command "che.jdt.ls.extension.externalLibrariesChildren"
                               (list :projectUri project-uri
                                     :nodeId node-id
@@ -72,7 +72,7 @@ PROJECT-URI, NODE-ID and PATH are the details for the current node."
 
 (defun lsp-java-treemacs--open-file (_arg)
   "Open resource file."
-  (when-lsp-workspace (lsp-java--find-root (treemacs--prop-at-point :project-uri))
+  (when-lsp-workspace (lsp-java--find-workspace (treemacs--prop-at-point :project-uri))
     (->> (treemacs--prop-at-point :uri)
          lsp--uri-to-path
          find-file)))
@@ -183,7 +183,7 @@ REL-PATH rel path to the icon."
                     :face 'lsp-java-treemacs-directory-face
                     :key-form id
                     :more-properties (:node-id id :project-uri project-uri
-                                               :workspace (lsp-java--find-root project-uri)))))
+                                               :workspace (lsp-java--find-workspace project-uri)))))
 
 (defun lsp-java-treemacs--folders-change (added removed)
   "Handler for `lsp-workspace-folders-change' hook.
@@ -202,7 +202,7 @@ ADDED and REMOVED are pointing which are the changed folders."
                  dir-or-project
                (treemacs-project->path dir-or-project))))
     (-some-> dir
-             lsp-java--find-root
+             lsp-java--find-workspace
              lsp-java--get-project-uris
              (-contains? (lsp--path-to-uri dir)))))
 
