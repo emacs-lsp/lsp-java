@@ -100,7 +100,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 * `lsp-describe-thing-at-point` - Display help for the thing at point.
 * `lsp-goto-type-definition` - Go to type definition
 * `lsp-goto-implementation` - Go to implementation
-* `lsp-workspace-restart` - Restart project
+* `lsp-restart-workspace` - Restart project
 * `lsp-format-buffer` - Format current buffer
 * `lsp-symbol-highlight` - Highlight all relevant references to the symbol under point.
 * `lsp-workspace-folders-add` - Add workspace folder
@@ -129,7 +129,7 @@ some of them are bound to Emacs commands:
 * `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
 * `lsp-java-update-project-uris` refresh the project URIs.
 #### Classpath browsing
-[lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-browse-classpath` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
+[lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-classpath-browse` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
 ![Classpath](images/classpath.png)
 ## Supported settings
 * `lsp-java-server-install-dir` - Install directory for eclipsejdtls-server
