@@ -304,8 +304,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
                   "config_win")
                  ((string-equal system-type "darwin") ; Mac OS X
                   "config_mac")
-                 ((string-equal system-type "gnu/linux") ; linux
-                  "config_linux"))))
+                 (t "config_linux"))))
     (let ((inhibit-message t))
       (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
