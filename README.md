@@ -62,6 +62,9 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   :init (setq lsp-eldoc-render-all nil
               lsp-highlight-symbol-at-point nil))
 
+(use-package hydra
+  :ensure t)
+
 (use-package company-lsp
   :after  company
   :ensure t
@@ -82,9 +85,6 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (dap-mode t)
   (dap-ui-mode t))
 
-(use-package dap-java
-  :after 'lsp-java)
-
 (use-package lsp-java
   :ensure t
   :config
@@ -92,6 +92,15 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (add-hook 'java-mode-hook  'flycheck-mode)
   (add-hook 'java-mode-hook  'company-mode)
   (add-hook 'java-mode-hook  'lsp-ui-mode))
+
+(use-package dap-java
+  :after 'lsp-java)
+
+(use-package treemacs
+  :ensure t)
+
+(use-package lsp-java-treemacs
+  :after (treemacs))
 ```
 ## Supported commands
 ### LSP Mode commands
