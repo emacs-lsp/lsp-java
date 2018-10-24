@@ -49,6 +49,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 
 (condition-case nil
     (require 'use-package)
+    (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
   (file-error
    (require 'package)
    (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
@@ -56,6 +57,17 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
    (package-refresh-contents)
    (package-install 'use-package)
    (require 'use-package)))
+
+(use-package projectile
+  :ensure t)
+
+(use-package treemacs
+  :ensure t)
+
+(use-package yasnippet
+  :ensure t
+  :config
+  (yas-global-mode))
 
 (use-package lsp-mode
   :ensure t
@@ -69,14 +81,25 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   :after  company
   :ensure t
   :config
-  (add-hook 'java-mode-hook (lambda () (push 'company-lsp company-backends)))
-  (setq company-lsp-cache-candidates t)
-  (push 'java-mode company-global-modes))
+  (setq company-lsp-cache-candidates t
+        company-lsp-async t))
 
 (use-package lsp-ui
   :ensure t
   :config
   (setq lsp-ui-sideline-update-mode 'point))
+
+(use-package lsp-java
+  :ensure t
+  :config
+  (add-hook 'java-mode-hook
+	    (lambda ()
+	      (setq-local company-backends (list 'company-lsp))))
+
+  (add-hook 'java-mode-hook 'lsp-java-enable)
+  (add-hook 'java-mode-hook 'flycheck-mode)
+  (add-hook 'java-mode-hook 'company-mode)
+  (add-hook 'java-mode-hook 'lsp-ui-mode))
 
 (use-package dap-mode
   :ensure t
@@ -85,19 +108,8 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (dap-mode t)
   (dap-ui-mode t))
 
-(use-package lsp-java
-  :ensure t
-  :config
-  (add-hook 'java-mode-hook  'lsp-java-enable)
-  (add-hook 'java-mode-hook  'flycheck-mode)
-  (add-hook 'java-mode-hook  'company-mode)
-  (add-hook 'java-mode-hook  'lsp-ui-mode))
-
 (use-package dap-java
-  :after 'lsp-java)
-
-(use-package treemacs
-  :ensure t)
+  :after (lsp-java))
 
 (use-package lsp-java-treemacs
   :after (treemacs))
