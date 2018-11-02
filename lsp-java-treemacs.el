@@ -100,14 +100,27 @@ Insert VAR into `treemacs-icon-hash' for each of the given file EXTENSIONS."
        (--each (quote ,extensions) (ht-set! treemacs-icons-hash it ,var))
        ,var)))
 
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-jar "icons/vscode/file_type_jar.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-package "icons/vscode/folder_type_package.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-package-opened "icons/vscode/folder_type_package_opened.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder "icons/vscode/folder_type_component.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder-opened "icons/vscode/folder_type_component_opened.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder "icons/vscode/folder_type_library.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder-opened "icons/vscode/folder_type_library_opened.png")
-(lsp-java-treemacs--setup-icon lsp-java-treemacs-class "icons/vscode/file_type_class.png" "class")
+(if (treemacs--is-image-creation-impossible?)
+    (progn
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar "icons/vscode/file_type_jar.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-opened "icons/vscode/file_type_jar.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-package "icons/vscode/folder_type_package.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-package-opened "icons/vscode/folder_type_package_opened.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder "icons/vscode/folder_type_component.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder-opened "icons/vscode/folder_type_component_opened.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder "icons/vscode/folder_type_library.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder-opened "icons/vscode/folder_type_library_opened.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-class "icons/vscode/file_type_class.png" "class"))
+  (treemacs--set-icon-save-default
+   lsp-java-treemacs-jar treemacs-icon-closed-text
+   lsp-java-treemacs-jar-opened treemacs-icon-open-text
+   lsp-java-treemacs-package treemacs-icon-closed-text
+   lsp-java-treemacs-package-opened treemacs-icon-open-text
+   lsp-java-treemacs-jar-folder treemacs-icon-closed-text
+   lsp-java-treemacs-jar-folder-opened treemacs-icon-open-text
+   lsp-java-treemacs-library-folder treemacs-icon-closed-text
+   lsp-java-treemacs-library-folder-opened treemacs-icon-open-text
+   lsp-java-treemacs-class treemacs-icon-tag-leaf-text))
 
 (defmacro treemacs--lsp-node-or-folder ()
   "Extract common code from nodes."
@@ -158,7 +171,7 @@ Insert VAR into `treemacs-icon-hash' for each of the given file EXTENSIONS."
   :render-action (treemacs--lsp-node-or-folder))
 
 (treemacs-define-expandable-node jar-file
-  :icon-open lsp-java-treemacs-jar
+  :icon-open lsp-java-treemacs-jar-opened
   :icon-closed lsp-java-treemacs-jar
   :query-function (lsp-java-treemacs--library-children (button-get btn :project-uri)
                                                        (button-get btn :key))
