@@ -29,6 +29,7 @@
 (require 'lsp-mode)
 (require 'lsp-java)
 (require 'dash-functional)
+(require 'treemacs)
 (require 'treemacs-extensions)
 
 (defface lsp-java-treemacs-directory-face
@@ -46,6 +47,15 @@
   "Face used by treemacs for files."
   :group 'lsp-java-treemacs)
 
+(defun lsp-java-treemacs--is-root (dir-or-project)
+  "Return whether DIR-OR-PROJECT is root of a project."
+  (let ((dir (if (stringp dir-or-project)
+                 dir-or-project
+               (treemacs-project->path dir-or-project))))
+
+    (when-lsp-workspace (lsp-java--find-workspace dir)
+      (-contains? (lsp-java--get-project-uris lsp--cur-workspace)
+                  (lsp--path-to-uri dir)))))
 
 (defun lsp-java-treemacs--get-libraries (project-uri)
   "Get the list of buffers, grouped by their major mode.
@@ -101,26 +111,26 @@ Insert VAR into `treemacs-icon-hash' for each of the given file EXTENSIONS."
        ,var)))
 
 (if (treemacs--is-image-creation-impossible?)
-    (progn
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar "icons/vscode/file_type_jar.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-opened "icons/vscode/file_type_jar.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-package "icons/vscode/folder_type_package.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-package-opened "icons/vscode/folder_type_package_opened.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder "icons/vscode/folder_type_component.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder-opened "icons/vscode/folder_type_component_opened.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder "icons/vscode/folder_type_library.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder-opened "icons/vscode/folder_type_library_opened.png")
-      (lsp-java-treemacs--setup-icon lsp-java-treemacs-class "icons/vscode/file_type_class.png" "class"))
-  (treemacs--set-icon-save-default
-   lsp-java-treemacs-jar treemacs-icon-closed-text
-   lsp-java-treemacs-jar-opened treemacs-icon-open-text
-   lsp-java-treemacs-package treemacs-icon-closed-text
-   lsp-java-treemacs-package-opened treemacs-icon-open-text
-   lsp-java-treemacs-jar-folder treemacs-icon-closed-text
-   lsp-java-treemacs-jar-folder-opened treemacs-icon-open-text
-   lsp-java-treemacs-library-folder treemacs-icon-closed-text
-   lsp-java-treemacs-library-folder-opened treemacs-icon-open-text
-   lsp-java-treemacs-class treemacs-icon-tag-leaf-text))
+    (treemacs--set-icon-save-default
+     lsp-java-treemacs-jar treemacs-icon-closed-text
+     lsp-java-treemacs-jar-opened treemacs-icon-open-text
+     lsp-java-treemacs-package treemacs-icon-closed-text
+     lsp-java-treemacs-package-opened treemacs-icon-open-text
+     lsp-java-treemacs-jar-folder treemacs-icon-closed-text
+     lsp-java-treemacs-jar-folder-opened treemacs-icon-open-text
+     lsp-java-treemacs-library-folder treemacs-icon-closed-text
+     lsp-java-treemacs-library-folder-opened treemacs-icon-open-text
+     lsp-java-treemacs-class treemacs-icon-tag-leaf-text)
+  (progn
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar "icons/vscode/file_type_jar.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-opened "icons/vscode/file_type_jar.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-package "icons/vscode/folder_type_package.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-package-opened "icons/vscode/folder_type_package_opened.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder "icons/vscode/folder_type_component.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder-opened "icons/vscode/folder_type_component_opened.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder "icons/vscode/folder_type_library.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder-opened "icons/vscode/folder_type_library_opened.png")
+    (lsp-java-treemacs--setup-icon lsp-java-treemacs-class "icons/vscode/file_type_class.png" "class")))
 
 (defmacro treemacs--lsp-node-or-folder ()
   "Extract common code from nodes."
@@ -215,27 +225,33 @@ ADDED and REMOVED are pointing which are the changed folders."
               (-first (lambda (project) (f-equal? it (treemacs-project->path project))))
               treemacs-do-remove-project-from-workspace)))
 
+(defun lsp-java-treemacs--get-projects ()
+  "Get projects."
+  (or (when (functionp 'lsp-session)
+        (lsp-session-folders (lsp-session)))
+      (hash-table-keys lsp--workspaces)))
+
 (defun lsp-java-treemacs-register ()
   "Register `lsp-java' extension."
   (interactive)
   (treemacs-define-directory-extension
    :extension 'treemacs-EXTERNAL-LIBRARY-extension
-   :position 'directory-start
-   :predicate 'lsp-java--is-root)
+   :position 'top
+   :predicate 'lsp-java-treemacs--is-root)
   (treemacs-define-project-extension
    :extension 'treemacs-EXTERNAL-LIBRARY-extension
-   :position 'project-start
-   :predicate 'lsp-java--is-root)
+   :position 'top
+   :predicate 'lsp-java-treemacs--is-root)
 
   (require 'treemacs)
   (unless (eq 'visible (treemacs-current-visibility))
     (treemacs))
 
-  (maphash (lambda (root-path _workspace)
-             (unless (or (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-dir))
-                         (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-cache-dir)))
-               (treemacs-do-add-project-to-workspace root-path (f-filename root-path))))
-           lsp--workspaces)
+  (mapc (lambda (root-path)
+          (unless (or (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-dir))
+                      (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-cache-dir)))
+            (treemacs-do-add-project-to-workspace root-path (f-filename root-path))))
+        (lsp-java-treemacs--get-projects))
   (add-hook 'lsp-workspace-folders-change 'lsp-java-treemacs--folders-change))
 
 (defun lsp-java-treemacs-unregister ()

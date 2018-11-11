@@ -316,6 +316,13 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
    "java.edit.organizeImports"
    (list (lsp--path-to-uri buffer-file-name))))
 
+(defun lsp-java--current-workspace-or-lose ()
+  "Look for the jdt-ls workspace."
+  (or lsp--cur-workspace
+      (when (boundp 'lsp--workspaces) (gethash (lsp-java--get-root) lsp--workspaces))
+      (when (functionp 'lsp-find-workspace) (lsp-find-workspace 'jdtls (buffer-file-name)))
+      (error "Unable to find workspace")))
+
 (defun lsp-java-build-project (&optional full)
   "Perform project build action.
 
@@ -328,14 +335,12 @@ FULL specify whether full or incremental build will be performed."
   "Update project configuration."
   (interactive)
   (let ((file-name (file-name-nondirectory (buffer-file-name))))
-    (if-let ((lsp--cur-workspace (or lsp--cur-workspace
-                                     (gethash (lsp-java--get-root) lsp--workspaces))))
-        (if (or (string= file-name "pom.xml") (string-match "\\.gradle\\'" file-name))
-            (lsp-send-notification
-             (lsp-make-request "java/projectConfigurationUpdate"
-                               (list :uri (lsp--buffer-uri))))
-          (error "Update configuration could be called only from build file(pom.xml or gradle build file)"))
-      (error "Unable to find workspace"))))
+    (if (or (string= file-name "pom.xml") (string-match "\\.gradle\\'" file-name))
+        (with-lsp-workspace (lsp-java--current-workspace-or-lose)
+          (lsp-send-notification
+           (lsp-make-request "java/projectConfigurationUpdate"
+                             (list :uri (lsp--buffer-uri)))))
+      (error "Update configuration could be called only from build file(pom.xml or gradle build file)"))))
 
 (defun lsp-java--ensure-dir (path)
   "Ensure that directory PATH exists."
@@ -375,15 +380,12 @@ FULL specify whether full or incremental build will be performed."
       ,lsp-java-workspace-dir
       ,@java-9-args)))
 
-(defun lsp-java--is-root (dir-or-project)
-  "Return whether DIR-OR-PROJECT is root of a project."
-  (let ((dir (if (stringp dir-or-project)
-                 dir-or-project
-               (treemacs-project->path dir-or-project))))
-    (-some-> dir
-             lsp-java--find-workspace
-             lsp-java--get-project-uris
-             (-contains? (lsp--path-to-uri dir)))))
+(defun lsp-java--is-root (dir)
+  "Return whether DIR is root of a project."
+  (-some-> dir
+           lsp-java--find-workspace
+           lsp-java--get-project-uris
+           (-contains? (lsp--path-to-uri dir))))
 
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
@@ -552,11 +554,11 @@ PARAMS progress report notification data."
 
 (defun lsp-java--folders-change (&rest _)
   "Handler for folder's change."
-  (lsp-java-update-project-uris lsp--cur-workspace))
+  (lsp-java-update-project-uris))
 
 (defun lsp-java--workspace-notify (&rest _args)
   "Workspace notify handler."
-  (lsp-java-update-project-uris lsp--cur-workspace))
+  (lsp-java-update-project-uris))
 
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
@@ -728,21 +730,26 @@ server."
     (lsp-java-update-user-settings)
     (puthash "initialized" t (lsp--workspace-metadata lsp--cur-workspace)))
 
-  (lsp-java-update-project-uris lsp--cur-workspace))
+  (lsp-java-update-project-uris))
 
-(defun lsp-java-update-project-uris (&optional workspace)
+(defun lsp-java--workspace-folders (workspace)
+  "Return WORKSPACE folders."
+  (or (when (functionp 'lsp-session)
+        (lsp-session-folders (lsp-session)))
+      (lsp--workspace-workspace-folders workspace)))
+
+(defun lsp-java-update-project-uris ()
   "Update WORKSPACE project uris."
   (interactive)
-  (setq workspace (or workspace lsp--cur-workspace))
-  (with-lsp-workspace workspace
-    (->> workspace
-         lsp--workspace-workspace-folders
-         (--map (or (lsp-send-execute-command "che.jdt.ls.extension.mavenProjects"
-                                              (lsp--path-to-uri it))
-                    (lsp--path-to-uri (file-name-as-directory it))))
-         -flatten
-         -uniq
-         (lsp-java--set-project-uris workspace))))
+  (let ((workspace (lsp-java--current-workspace-or-lose)))
+    (with-lsp-workspace workspace
+      (->> (lsp-java--workspace-folders workspace)
+           (--map (or (lsp-send-execute-command "che.jdt.ls.extension.mavenProjects"
+                                                (lsp--path-to-uri it))
+                      (lsp--path-to-uri (file-name-as-directory it))))
+           -flatten
+           -uniq
+           (lsp-java--set-project-uris workspace)))))
 
 (defun lsp-java--set-project-uris (workspace project-uris)
   "Set WORKSPACE project uri list to PROJECT-URIS."
@@ -757,28 +764,28 @@ server."
     ;; TODO investigate a better way to do that.
     (if (eq current-workspace-folders (gethash "last-workspace-folders" workspace-metadata))
         (gethash "project-uris" workspace-metadata)
-      (lsp-java-update-project-uris workspace)
+      (lsp-java-update-project-uris)
       (puthash "last-workspace-folders" current-workspace-folders workspace-metadata))))
 
 (defun lsp-java--find-workspace (file-uri)
   "Return the workspace corresponding FILE-URI."
-  (->> lsp--workspaces
-       ht-values
-       -uniq
-       (--first (-some? (lambda (project-uri)
-                          (s-starts-with? (lsp--uri-to-path project-uri)
-                                          (lsp--uri-to-path file-uri)))
-                        (lsp-java--get-project-uris it)))))
+  (or (when (boundp 'lsp--workspaces)
+        (->> lsp--workspaces
+             ht-values
+             -uniq
+             (--first (-some? (lambda (project-uri)
+                                (s-starts-with? (lsp--uri-to-path project-uri)
+                                                (lsp--uri-to-path file-uri)))
+                              (lsp-java--get-project-uris it)))))
+      (when (functionp 'lsp-find-workspace)
+        (lsp-find-workspace 'jdtls (lsp--uri-to-path file-uri)))))
 
 (defun lsp-java--find-project-uri (file-uri)
   "Return the java project corresponding FILE-URI."
-  (->> lsp--workspaces
-       ht-values
-       -uniq
-       (-map 'lsp-java--get-project-uris)
-       -flatten
-       (--filter (s-starts-with? (lsp--uri-to-path it)
-                                 (lsp--uri-to-path file-uri)))
+  (->> (lsp--uri-to-path file-uri)
+       (lsp-find-workspace 'jdtls)
+       lsp-java--get-project-uris
+       (--filter (s-starts-with? (lsp--uri-to-path it) (lsp--uri-to-path file-uri)))
        (-max-by (lambda (project-a project-b)
                   (> (length project-a)
                      (length project-b))))))
@@ -934,37 +941,64 @@ PROJECT-URI uri of the item."
 (defun lsp-java-classpath-browse ()
   "Show currently active sessions."
   (interactive)
-  (let ((uri (lsp--path-to-uri (or buffer-file-name (f-canonical default-directory)))))
-    (--if-let (or lsp--cur-workspace (lsp-java--find-workspace uri))
-        (with-lsp-workspace it
-          (if-let (project-uri (lsp-java--find-project-uri buffer-file-name))
-              (let ((inhibit-read-only t)
-                    (buf (get-buffer-create "*classpath*")))
-                (with-current-buffer buf
-                  (erase-buffer)
-                  (lsp-java-classpath-mode)
-                  (setq-local lsp--cur-workspace it)
+  (let ((workspace (lsp-java--current-workspace-or-lose)))
+    (with-lsp-workspace workspace
+      (if-let (project-uri (lsp-java--find-project-uri buffer-file-name))
+          (let ((inhibit-read-only t)
+                (buf (get-buffer-create "*classpath*")))
+            (with-current-buffer buf
+              (erase-buffer)
+              (lsp-java-classpath-mode)
+              (setq-local lsp--cur-workspace workspace)
+              (when lsp-java-themes-directory
+                (setq-local tree-widget-themes-directory lsp-java-themes-directory))
 
-                  (when lsp-java-themes-directory
-                    (setq-local tree-widget-themes-directory lsp-java-themes-directory))
+              (when lsp-java-theme
+                (tree-widget-set-theme lsp-java-theme))
 
-                  (when lsp-java-theme
-                    (tree-widget-set-theme lsp-java-theme))
+              (widget-create
+               `(tree-widget
+                 :node (push-button :format "%[%t%]\n"
+                                    :tag ,(f-filename (lsp--uri-to-path project-uri)))
+                 :open t
+                 :file ,(lsp--uri-to-path project-uri)
+                 ,@lsp-java-icons-default-root-folder
+                 ,@(--map (lsp-java--classpath-render-classpath it project-uri)
+                          (lsp-send-execute-command "che.jdt.ls.extension.classpathTree" project-uri))))
+              (run-hooks 'lsp-java-classpath-mode-hook))
+            (funcall lsp-java-pop-buffer-function buf)
+            (goto-char (point-min)))
+        (user-error "Failed to calculate project for buffer %s" (buffer-name))))))
 
-                  (widget-create
-                   `(tree-widget
-                     :node (push-button :format "%[%t%]\n"
-                                        :tag ,(f-filename (lsp--uri-to-path project-uri)))
-                     :open t
-                     :file ,(lsp--uri-to-path project-uri)
-                     ,@lsp-java-icons-default-root-folder
-                     ,@(--map (lsp-java--classpath-render-classpath it project-uri)
-                              (lsp-send-execute-command "che.jdt.ls.extension.classpathTree" project-uri))))
-                  (run-hooks 'lsp-java-classpath-mode-hook))
-                (funcall lsp-java-pop-buffer-function buf)
-                (goto-char (point-min)))
-            (user-error "Failed to calculate project for buffer %s" (buffer-name))))
-      (user-error "Unable to find workspace for buffer %s" (buffer-name)))))
+(eval-after-load 'lsp
+  '(lsp-register-client
+    (make-lsp--client
+     :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
+     :major-modes '(java-mode)
+     :server-id 'jdtls
+     :multi-root t
+     :notification-handlers (lsp-ht ("language/status" 'lsp-java--language-status-callback)
+                                    ("language/actionableNotification" 'lsp-java--actionable-notification-callback)
+                                    ("language/progressReport" 'lsp-java--progress-report)
+                                    ("workspace/notify" 'lsp-java--workspace-notify))
+     :action-handlers (lsp-ht ("java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit))
+     :uri-handlers (lsp-ht ("jdt" 'lsp-java--resolve-uri)
+                           ("chelib" 'lsp-java--resolve-uri))
+     :initialization-options (lambda ()
+                               (list :settings (lsp-java--settings)
+                                     :extendedClientCapabilities (list :progressReportProvider t
+                                                                       :classFileContentsSupport t)
+                                     :bundles (lsp-java--bundles)))
+     :library-folders-fn (lambda (_workspace) (list lsp-java-workspace-cache-dir))
+     :before-file-open-fn (lambda (workspace)
+                            (let ((metadata-file-name (lsp-java--get-metadata-location buffer-file-name)))
+                              (setq-local lsp-buffer-uri
+                                          (when (file-exists-p metadata-file-name)
+                                            (with-temp-buffer (insert-file-contents metadata-file-name)
+                                                              (buffer-string))))))
+     :initialized-fn (lambda (workspace)
+                       (with-lsp-workspace workspace
+                         (lsp-java-update-project-uris))))))
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
