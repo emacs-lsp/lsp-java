@@ -215,27 +215,17 @@ ADDED and REMOVED are pointing which are the changed folders."
               (-first (lambda (project) (f-equal? it (treemacs-project->path project))))
               treemacs-do-remove-project-from-workspace)))
 
-(defun lsp-java-treemacs--is-root (dir-or-project)
-  "Return whether DIR-OR-PROJECT is root of a project."
-  (let ((dir (if (stringp dir-or-project)
-                 dir-or-project
-               (treemacs-project->path dir-or-project))))
-    (-some-> dir
-             lsp-java--find-workspace
-             lsp-java--get-project-uris
-             (-contains? (lsp--path-to-uri dir)))))
-
 (defun lsp-java-treemacs-register ()
   "Register `lsp-java' extension."
   (interactive)
   (treemacs-define-directory-extension
    :extension 'treemacs-EXTERNAL-LIBRARY-extension
    :position 'directory-start
-   :predicate 'lsp-java-treemacs--is-root)
+   :predicate 'lsp-java--is-root)
   (treemacs-define-project-extension
    :extension 'treemacs-EXTERNAL-LIBRARY-extension
    :position 'project-start
-   :predicate 'lsp-java-treemacs--is-root)
+   :predicate 'lsp-java--is-root)
 
   (require 'treemacs)
   (unless (eq 'visible (treemacs-current-visibility))

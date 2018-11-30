@@ -375,6 +375,16 @@ FULL specify whether full or incremental build will be performed."
       ,lsp-java-workspace-dir
       ,@java-9-args)))
 
+(defun lsp-java--is-root (dir-or-project)
+  "Return whether DIR-OR-PROJECT is root of a project."
+  (let ((dir (if (stringp dir-or-project)
+                 dir-or-project
+               (treemacs-project->path dir-or-project))))
+    (-some-> dir
+             lsp-java--find-workspace
+             lsp-java--get-project-uris
+             (-contains? (lsp--path-to-uri dir)))))
+
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
 
@@ -417,10 +427,11 @@ ACTION is the action to execute."
 WORKSPACE is the currently active workspace.
 PARAMS the parameters for actionable notifications."
   (let* ((project-root (lsp-java--get-root))
-         (classpath-incomplete-p (cl-find-if (lambda (command)
-                                               (string= (gethash "command" command)
-                                                        "java.ignoreIncompleteClasspath.help"))
-                                             (gethash "commands" params)))
+         (classpath-incomplete-p (unless (lsp-java--is-root (lsp-java--get-root))
+                                   (cl-find-if (lambda (command)
+                                                 (string= (gethash "command" command)
+                                                          "java.ignoreIncompleteClasspath.help"))
+                                               (gethash "commands" params))))
          (choices (list (format "Import project \"%s.\"" project-root)
                         "Import project by selecting root directory interactively."
                         (format "Do not ask more for the current project(add \"%s\" to lsp-project-blacklist)" project-root)
