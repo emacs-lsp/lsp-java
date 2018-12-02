@@ -782,13 +782,24 @@ server."
 
 (defun lsp-java--find-project-uri (file-uri)
   "Return the java project corresponding FILE-URI."
-  (->> (lsp--uri-to-path file-uri)
-       (lsp-find-workspace 'jdtls)
-       lsp-java--get-project-uris
-       (--filter (s-starts-with? (lsp--uri-to-path it) (lsp--uri-to-path file-uri)))
-       (-max-by (lambda (project-a project-b)
-                  (> (length project-a)
-                     (length project-b))))))
+  (if (functionp 'lsp-find-workspace)
+      (->> (lsp--uri-to-path file-uri)
+           (lsp-find-workspace 'jdtls)
+           lsp-java--get-project-uris
+           (--filter (s-starts-with? (lsp--uri-to-path it) (lsp--uri-to-path file-uri)))
+           (-max-by (lambda (project-a project-b)
+                      (> (length project-a)
+                         (length project-b)))))
+    (->> lsp--workspaces
+         ht-values
+         -uniq
+         (-map 'lsp-java--get-project-uris)
+         -flatten
+         (--filter (s-starts-with? (lsp--uri-to-path it)
+                                   (lsp--uri-to-path file-uri)))
+         (-max-by (lambda (project-a project-b)
+                    (> (length project-a)
+                       (length project-b)))))))
 
 (defun lsp-java--before-start (&rest _args)
   "Initialize lsp java variables."
