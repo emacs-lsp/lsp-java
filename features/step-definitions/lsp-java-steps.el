@@ -40,20 +40,20 @@
                      (message "The function failed, attempt %s" retry-count)))))))
 
 (Given "^I have maven project \"\\([^\"]+\\)\" in \"\\([^\"]+\\)\"$"
-  (lambda (project-name dir-name)
-    (setq default-directory lsp-java-test-root)
+       (lambda (project-name dir-name)
+         (setq default-directory lsp-java-test-root)
 
-    ;; delete old directory
-    (when (file-exists-p dir-name)
-      (delete-directory dir-name t))
+         ;; delete old directory
+         (when (file-exists-p dir-name)
+           (delete-directory dir-name t))
 
-    ;; create directory structure
-    (mkdir (expand-file-name
-            (f-join   dir-name project-name "src" "main" "java" "temp")) t)
+         ;; create directory structure
+         (mkdir (expand-file-name
+                 (f-join   dir-name project-name "src" "main" "java" "temp")) t)
 
-    ;; add pom.xml
-    (with-temp-file (expand-file-name "pom.xml" (f-join dir-name project-name))
-      (insert "
+         ;; add pom.xml
+         (with-temp-file (expand-file-name "pom.xml" (f-join dir-name project-name))
+           (insert "
 <project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
   xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">
   <modelVersion>4.0.0</modelVersion>
@@ -71,64 +71,63 @@
 </project>"))))
 
 (And "^I have a java file \"\\([^\"]+\\)\"$"
-  (lambda (file-name)
-    (setq default-directory lsp-java-test-root)
-    (find-file file-name)
-    (save-buffer)))
+     (lambda (file-name)
+       (setq default-directory lsp-java-test-root)
+       (find-file file-name)
+       (save-buffer)))
 
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
-  (lambda (project dir-name)
-    (mkdir lsp-java-workspace-dir t)
-    (lsp--persist (f-join lsp-java-workspace-dir ".folders")
-                  (list (f-join lsp-java-test-root dir-name project)))))
+     (lambda (project dir-name)
+       (mkdir lsp-java-workspace-dir t)
+       (lsp--persist (f-join lsp-java-workspace-dir ".folders")
+                     (list (f-join lsp-java-test-root dir-name project)))))
 
 (And "^I start lsp-java$"
-  (lambda ()
-    (lsp-java-enable)))
+     (lambda () (lsp)))
 
 (Then "^The server status must become \"\\([^\"]+\\)\"$"
-  (lambda (status callback)
-    (lsp-java-steps-async-wait
-     (lambda ()
-       (if (s-equals? (s-trim (lsp-mode-line)) status)
-           t
-         (progn
-           (message "Server status is %s" (lsp-mode-line))
-           nil)))
-     callback)))
+      (lambda (status callback)
+        (lsp-java-steps-async-wait
+         (lambda ()
+           (if (s-equals? (s-trim (lsp-mode-line)) status)
+               t
+             (progn
+               (message "Server status is %s" (lsp-mode-line))
+               nil)))
+         callback)))
 
 (And "^I use formatter profile \"\\([^\"]+\\)\" from \"\\([^\"]+\\)\"$"
-  (lambda (formatter-name formatter-file)
-    (setq lsp-java-format-settings-url (lsp--path-to-uri
-                                        (f-join lsp-java-root-path "features/fixtures" formatter-file)))
-    (setq lsp-java-format-settings-profile formatter-name)))
+     (lambda (formatter-name formatter-file)
+       (setq lsp-java-format-settings-url (lsp--path-to-uri
+                                           (f-join lsp-java-root-path "features/fixtures" formatter-file)))
+       (setq lsp-java-format-settings-profile formatter-name)))
 
 (And "^There must be \"\\([^\"]+\\)\" actionable notification$"
-  (lambda (count callback)
-    (lsp-java-steps-async-wait
-     (lambda ()
-       (= (string-to-number count)
-          (hash-table-count (lsp-workspace-get-metadata "actionable-notifications"))))
-     callback)))
+     (lambda (count callback)
+       (lsp-java-steps-async-wait
+        (lambda ()
+          (= (string-to-number count)
+             (hash-table-count (lsp-workspace-get-metadata "actionable-notifications"))))
+        callback)))
 
 (When "^I indent buffer$"
-  (lambda ()
-    (indent-region (point-min) (point-marker))))
+      (lambda ()
+        (indent-region (point-min) (point-marker))))
 
 (When "^I invoke \"\\([^\"]+\\)\" I should see error message \"\\([^\"]+\\)\"$"
-  (lambda (command message)
-    (condition-case err
-        (funcall (intern command))
-      (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
+      (lambda (command message)
+        (condition-case err
+            (funcall (intern command))
+          (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
 
 (When "^I call \"\\([^\"]+\\)\" and see:$"
-  (lambda (command text callback)
-    (lsp-java-steps-async-wait
-     (lambda ()
-       (save-window-excursion
-         (funcall (intern command))
-         (s-contains? text (buffer-string) t)))
-     callback)))
+      (lambda (command text callback)
+        (lsp-java-steps-async-wait
+         (lambda ()
+           (save-window-excursion
+             (funcall (intern command))
+             (s-contains? text (buffer-string) t)))
+         callback)))
 
 (provide 'lsp-java-steps)
 ;;; lsp-java-steps.el ends here

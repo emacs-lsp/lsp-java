@@ -24,8 +24,7 @@
 (let ((load-prefer-newer t))
   (require 'espuds)
   (require 'ert)
-  (require 'lsp-java)
-  (require 'lsp-mode))
+  (require 'lsp-java))
 
 (Setup
  (lsp-java-update-server))
