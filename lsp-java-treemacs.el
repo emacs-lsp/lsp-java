@@ -31,6 +31,7 @@
 (require 'dash-functional)
 (require 'treemacs)
 (require 'treemacs-extensions)
+(require 'treemacs-icons)
 
 (defface lsp-java-treemacs-directory-face
   '((t :inherit  treemacs-directory-face))
