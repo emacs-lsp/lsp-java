@@ -663,17 +663,6 @@ extract all or only the current occurrence."
     (append lsp-java-bundles (when (file-directory-p bundles-dir)
                                (directory-files bundles-dir t "\\.jar$")))))
 
-(lsp-define-stdio-client lsp-java "java" (lambda () lsp-java-workspace-dir)
-                         (lsp-java--ls-command)
-                         :ignore-regexps
-                         '("^SLF4J: "
-                           "^Listening for transport dt_socket at address: ")
-                         :extra-init-params (list :settings (lsp-java--settings)
-                                                  :extendedClientCapabilities (list :progressReportProvider t
-                                                                                    :classFileContentsSupport t)
-                                                  :bundles (lsp-java--bundles))
-                         :initialize 'lsp-java--client-initialized)
-
 (defun lsp-java-update-user-settings ()
   "Update user settings.
 
