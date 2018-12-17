@@ -36,7 +36,7 @@ maintained repos - [MELPA Stable](http://stable.melpa.org) and [MELPA](http://me
 Then add the following lines to your `.emacs` and open a file from the any of the specified projects.
 ```emacs-lisp
 (require 'lsp-java)
-(add-hook 'java-mode-hook #'lsp-java-enable)
+(add-hook 'java-mode-hook #'lsp)
 ```
 ### [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls)
 
