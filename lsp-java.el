@@ -205,6 +205,11 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
   :group 'lsp-java
   :type 'boolean)
 
+(defcustom lsp-java-inhibit-message t
+  "If non-nil, inhibit java messages echo via `inhibit-message'."
+  :type 'boolean
+  :group 'lsp-mode)
+
 (defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
 
 (defun lsp-java--json-bool (param)
@@ -406,8 +411,8 @@ PARAMS the parameters for language status notifications."
                     (string= "Starting" status)))
       (lsp-workspace-status (concat "::" status) workspace)
       (lsp-workspace-set-metadata "status" status workspace)
-      (let ((inhibit-message lsp-inhibit-message))
-        (message "%s[%s]" (gethash "message" params) (gethash "type" params))))))
+      (let ((inhibit-message lsp-java-inhibit-message))
+        (lsp-message "%s[%s]" (gethash "message" params) (gethash "type" params))))))
 
 (defun lsp-java--apply-workspace-edit (action)
   "Callback for java/applyWorkspaceEdit.
@@ -415,56 +420,19 @@ PARAMS the parameters for language status notifications."
 ACTION is the action to execute."
   (lsp--apply-workspace-edit (car (gethash "arguments" action))))
 
-(defun lsp-java--actionable-notification-callback (workspace params)
+(defun lsp-java--actionable-notification-callback (_workspace params)
   "Handler for actionable notifications.
 
 WORKSPACE is the currently active workspace.
 PARAMS the parameters for actionable notifications."
-  (let* ((project-root (lsp-java--get-root))
-         (classpath-incomplete-p (unless (lsp-java--is-root (lsp-java--get-root))
-                                   (cl-find-if (lambda (command)
-                                                 (string= (gethash "command" command)
-                                                          "java.ignoreIncompleteClasspath.help"))
-                                               (gethash "commands" params))))
-         (choices (list (format "Import project \"%s.\"" project-root)
-                        "Import project by selecting root directory interactively."
-                        (format "Do not ask more for the current project(add \"%s\" to lsp-project-blacklist)" project-root)
-                        "Do nothing."))
-         (action-index (when (and classpath-incomplete-p (not (member project-root lsp-project-blacklist)))
-                         (condition-case nil
-                             (cl-position
-                              (completing-read (format "%s is not part of any project. Select action: "
-                                                       (buffer-name))
-                                               choices
-                                               nil
-                                               t)
-                              choices
-                              :test 'equal)
-                           ('quit)))))
-    (case action-index
-      (0 (lsp-workspace-folders-add (list project-root)))
-      (1 (call-interactively 'lsp-workspace-folders-add))
-      (2 (add-to-list 'lsp-project-blacklist project-root))
-      (t (let ((notifications (or (lsp-workspace-get-metadata
-                                   "actionable-notifications"
-                                   workspace)
-                                  (make-hash-table :test #'equal))))
-           (puthash (gethash "message" params) params notifications)
-           (lsp-workspace-set-metadata "actionable-notifications"
-                                       notifications
-                                       workspace)
-           (lsp-workspace-status
-            (concat "::"
-                    (propertize
-                     (concat (lsp-workspace-get-metadata "status" workspace) "[!]")
-                     'face 'warning))))))))
+  (lsp--warn (gethash "message" params)))
 
 (defun lsp-java--progress-report (_workspace params)
   "Progress report handling.
 
 PARAMS progress report notification data."
-  (let ((inhibit-message lsp-inhibit-message))
-    (message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" ""))))
+  (let ((inhibit-message lsp-java-inhibit-message))
+    (lsp-message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" ""))))
 
 (defun lsp-java--render-string (str)
   "Render STR with `java-mode' syntax highlight."
@@ -475,22 +443,6 @@ PARAMS progress report notification data."
         (font-lock-ensure)
         (buffer-string))
     (error str)))
-
-(defun lsp-java--render-markup (string)
-  "Render STRING as markup."
-  (string-trim-right
-   (with-temp-buffer
-     (insert string)
-     (delay-mode-hooks
-       (make-local-variable 'markdown-code-lang-modes)
-       (add-to-list 'markdown-code-lang-modes (cons "java" 'java-mode))
-       (setq-local markdown-fontify-code-blocks-natively t)
-       (setq-local markdown-fontify-code-block-default-mode "java")
-       (setq-local markdown-hide-markup t)
-
-       (let ((inhibit-message t)) (gfm-view-mode))
-       (ignore-errors (font-lock-ensure)))
-     (buffer-string))))
 
 (defun lsp-java--prepare-mvnw ()
   "Download mvnw."
