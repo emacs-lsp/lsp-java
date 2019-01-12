@@ -19,6 +19,7 @@ LSP java mode supports the following JDT Features:
 * Visual debugger - [dap-mode](https://github.com/yyoncho/dap-mode/)
 * Test runner - [dap-mode](https://github.com/yyoncho/dap-mode/)
 * Project explorer integration - [treemacs](https://github.com/Alexander-Miller/treemacs)
+* Integration with [Spring Initializr](https://start.spring.io/)
 ## Screenshot
 ![demo](images/demo.png)
 ## Installation
@@ -115,6 +116,10 @@ some of them are bound to Emacs commands:
 #### Classpath browsing
 [lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-classpath-browse` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
 ![Classpath](images/classpath.png)
+
+#### Spring Initializr
+`lsp-java` provides a frontend for [Spring Initializr](https://start.spring.io/) which simplifies the creation of Spring Boot projects directly from Emacs via `lsp-java-spring-initializr`.
+![Create Spring boot project](images/boot.png)
 ## Supported settings
 * `lsp-java-server-install-dir` - Install directory for eclipsejdtls-server
 * `lsp-java-java-path` - Path of the java executable

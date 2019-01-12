@@ -1,7 +1,7 @@
 ;;; lsp-java.el --- Java support for lsp-mode
 
 ;; Version: 1.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0"))
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -28,6 +28,7 @@
 (require 'ht)
 (require 'f)
 (require 'tree-widget)
+(require 'request)
 
 (defgroup lsp-java nil
   "JDT emacs frontend."
@@ -667,9 +668,7 @@ server."
        (lsp-find-workspace 'jdtls)
        lsp-java--get-project-uris
        (--filter (s-starts-with? (lsp--uri-to-path it) (lsp--uri-to-path file-uri)))
-       (-max-by (lambda (project-a project-b)
-                  (> (length project-a)
-                     (length project-b))))))
+       (--max-by (> (length it) (length other)))))
 
 (defun lsp-java--nearest-widget ()
   "Return widget at point or next nearest widget."
@@ -847,6 +846,8 @@ PROJECT-URI uri of the item."
                                  ("language/actionableNotification" 'lsp-java--actionable-notification-callback)
                                  ("language/progressReport" 'lsp-java--progress-report)
                                  ("workspace/notify" 'lsp-java--workspace-notify))
+
+  :request-handlers (lsp-ht ("workspace/executeClientCommand" 'lsp-java--boot-workspace-execute-client-command))
   :action-handlers (lsp-ht ("java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit))
   :uri-handlers (lsp-ht ("jdt" 'lsp-java--resolve-uri)
                         ("chelib" 'lsp-java--resolve-uri))
@@ -865,6 +866,69 @@ PROJECT-URI uri of the item."
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
                       (lsp-java-update-project-uris)))))
+
+(defun lsp-java-spring-initializr ()
+  "Emacs frontend for https://start.spring.io/ ."
+  (interactive)
+  (let ((base-url "https://start.spring.io/"))
+    (message "Requesting spring initializr data...")
+    (request
+     base-url
+     :type "GET"
+     :parser (lambda () (let ((json-array-type 'list)) (json-read)))
+     :headers '(("Accept" . "application/vnd.initializr.v2.1+json"))
+     :success (cl-function
+               (lambda (&key data &allow-other-keys)
+                 (flet ((ask (message key) (alist-get 'id
+                                                      (lsp--completing-read message
+                                                                            (alist-get 'values (alist-get key data))
+                                                                            (-partial 'alist-get 'name)))))
+                   (condition-case _err
+                       (-let* ((group-id (read-string "Enter group name: " "com.example"))
+                               (artifact-id (read-string "Enter artifactId: " "demo"))
+                               (description (read-string "Enter description: " "Demo project for Spring Boot"))
+                               (boot-version (ask "Select boot-version: " 'bootVersion))
+                               (java-version (ask "Select java-version: " 'javaVersion))
+                               (language (ask "Select language: " 'language))
+                               (packaging (ask "Select packaging: " 'packaging))
+                               (base-url "https://start.spring.io/")
+                               (package-name (read-string "Select package name: " "com.example.demo"))
+                               (type (ask "Select type: " 'type))
+                               (target-directory (read-directory-name "Select project directory: " default-directory))
+                               (dependenciles-list (->> data
+                                                        (alist-get 'dependencies)
+                                                        (alist-get 'values)
+                                                        (-map (-lambda ((&alist 'name 'values))
+                                                                (-map (-lambda ((&alist 'id 'name dep-name 'description))
+                                                                        (cons (format "%s / %s (%s)" name dep-name description) id)) values)))
+                                                        (apply 'append)))
+                               (temp-file (make-temp-file "spring-project" nil ".zip"))
+                               deps dep)
+                         (while (setq dep (-> (lsp--completing-read
+                                               (if deps
+                                                   (format "Select dependency (M-RET to finish) (selected %s): " (length deps))
+                                                 "Select dependency (M-RET to finish): ")
+                                               dependenciles-list
+                                               (-lambda ((name . id))
+                                                 (if (-contains? deps id)
+                                                     (concat "(Added) " name)
+                                                   name)))
+                                              rest))
+                           (if (-contains? deps dep)
+                               (setq deps (remove dep deps))
+                             (pushnew dep deps)))
+                         (let ((download-url (format "%sstarter.zip?type=%s&language=%s&groupId=%s&artifactId=%s&packaging=%s&bootVersion=%s&baseDir=%s&dependencies=%s"
+                                                     base-url type language group-id artifact-id packaging boot-version artifact-id (s-join "," deps))))
+                           (message "Downloading template from %s" download-url)
+                           (url-copy-file download-url temp-file t)
+                           (if (executable-find "unzip")
+                               (progn
+                                 (shell-command (format "unzip %s -d %s" temp-file target-directory))
+                                 (when (yes-or-no-p "Do you want to import the project?")
+                                   (lsp-workspace-folders-add (f-join target-directory artifact-id)))
+                                 (find-file (f-join target-directory artifact-id)))
+                             (user-error "Unable to unzip tool - file %s cannot be extracted, extract it manually" temp-file))))
+                     ('quit))))))))
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
