@@ -836,19 +836,31 @@ PROJECT-URI uri of the item."
             (goto-char (point-min)))
         (user-error "Failed to calculate project for buffer %s" (buffer-name))))))
 
+(cl-defmethod lsp-execute-command
+  ((_server (eql jdtls)) (command (eql java.show.references)) params)
+  (if-let (refs (third params))
+      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+    (user-error "No references")))
+
+(cl-defmethod lsp-execute-command
+  ((_server (eql jdtls)) (command (eql java.show.implementations)) params)
+  (if-let (refs (third params))
+      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+    (user-error "No implementations")))
+
 (lsp-register-client
  (make-lsp--client
   :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
   :major-modes '(java-mode)
   :server-id 'jdtls
   :multi-root t
-  :notification-handlers (lsp-ht ("language/status" 'lsp-java--language-status-callback)
-                                 ("language/actionableNotification" 'lsp-java--actionable-notification-callback)
-                                 ("language/progressReport" 'lsp-java--progress-report)
-                                 ("workspace/notify" 'lsp-java--workspace-notify))
+  :notification-handlers (lsp-ht ("language/status" #'lsp-java--language-status-callback)
+                                 ("language/actionableNotification" #'lsp-java--actionable-notification-callback)
+                                 ("language/progressReport" #'lsp-java--progress-report)
+                                 ("workspace/notify" #'lsp-java--workspace-notify))
 
   :request-handlers (lsp-ht ("workspace/executeClientCommand" 'lsp-java--boot-workspace-execute-client-command))
-  :action-handlers (lsp-ht ("java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit))
+  :action-handlers (lsp-ht ("java.apply.workspaceEdit" #'lsp-java--apply-workspace-edit))
   :uri-handlers (lsp-ht ("jdt" 'lsp-java--resolve-uri)
                         ("chelib" 'lsp-java--resolve-uri))
   :initialization-options (lambda ()
@@ -868,7 +880,7 @@ PROJECT-URI uri of the item."
                       (lsp-java-update-project-uris)))))
 
 (defun lsp-java-spring-initializr ()
-  "Emacs frontend for https://start.spring.io/ ."
+  "Emacs frontend for https://start.spring.io/."
   (interactive)
   (let ((base-url "https://start.spring.io/"))
     (message "Requesting spring initializr data...")
