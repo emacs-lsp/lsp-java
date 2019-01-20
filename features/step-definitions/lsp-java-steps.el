@@ -79,8 +79,7 @@
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
      (lambda (project dir-name)
        (mkdir lsp-java-workspace-dir t)
-       (lsp--persist (f-join lsp-java-workspace-dir ".folders")
-                     (list (f-join lsp-java-test-root dir-name project)))))
+       (lsp-workspace-folders-add (f-join lsp-java-test-root dir-name project))))
 
 (And "^I start lsp-java$"
      (lambda () (lsp)))
@@ -89,11 +88,8 @@
       (lambda (status callback)
         (lsp-java-steps-async-wait
          (lambda ()
-           (if (s-equals? (s-trim (lsp-mode-line)) status)
-               t
-             (progn
-               (message "Server status is %s" (lsp-mode-line))
-               nil)))
+           (--some? (equal (lsp--workspace-status-string it) "::Started")
+                    (lsp--session-workspaces (lsp-session))))
          callback)))
 
 (And "^I use formatter profile \"\\([^\"]+\\)\" from \"\\([^\"]+\\)\"$"

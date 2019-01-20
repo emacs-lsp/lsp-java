@@ -664,11 +664,17 @@ server."
 
 (defun lsp-java--find-project-uri (file-uri)
   "Return the java project corresponding FILE-URI."
-  (->> (lsp--uri-to-path file-uri)
-       (lsp-find-workspace 'jdtls)
-       lsp-java--get-project-uris
-       (--filter (s-starts-with? (lsp--uri-to-path it) (lsp--uri-to-path file-uri)))
-       (--max-by (> (length it) (length other)))))
+  (let ((workspace (lsp-java--current-workspace-or-lose))
+        (session-folder (lsp-find-session-folder (lsp-session) (buffer-file-name))))
+    (with-lsp-workspace workspace
+      ;; look for a maven nested project or fallback to the session folder root.
+      (let ((project-folder (or (->> session-folder
+                                     lsp--path-to-uri
+                                     (lsp-send-execute-command "che.jdt.ls.extension.mavenProjects")
+                                     (--filter (f-ancestor-of? (lsp--uri-to-path (file-name-as-directory it)) buffer-file-name))
+                                     (--max-by (> (length it) (length other))))
+                                (lsp--path-to-uri (file-name-as-directory session-folder)))))
+        project-folder))))
 
 (defun lsp-java--nearest-widget ()
   "Return widget at point or next nearest widget."
@@ -682,7 +688,7 @@ server."
 (defun lsp-java--tree-under-cursor ()
   "Get tree under cursor."
   (-when-let (widget-under-cursor (lsp-java--nearest-widget))
-    (if (tree-widget-p widget-under-cursor )
+    (if (tree-widget-p widget-under-cursor)
         widget-under-cursor
       (widget-get widget-under-cursor :parent))))
 
@@ -877,7 +883,7 @@ PROJECT-URI uri of the item."
                                                            (buffer-string))))))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
-                      (lsp-java-update-project-uris)))))
+                      (lsp-java-update-user-settings)))))
 
 (defun lsp-java-spring-initializr ()
   "Emacs frontend for https://start.spring.io/."

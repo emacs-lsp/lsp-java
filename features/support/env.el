@@ -27,7 +27,8 @@
   (require 'lsp-java))
 
 (Setup
- (lsp-java-update-server))
+ (unless (file-directory-p (expand-file-name "plugins" lsp-java-server-install-dir))
+   (lsp-java-update-server)))
 
 (Before
  (require 'lsp-java)
@@ -39,7 +40,8 @@
        lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
        lsp-response-timeout 30)
  (when (file-exists-p lsp-java-test-root)
-   (delete-directory lsp-java-test-root t)))
+   (delete-directory lsp-java-test-root t))
+ (setq lsp--session (make-lsp-session)))
 
 (After
  (mapc 'kill-buffer
