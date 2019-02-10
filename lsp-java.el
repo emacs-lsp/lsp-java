@@ -103,37 +103,38 @@ deduplication with the G1 Garbage collector"
   :risky t
   :type '(repeat string))
 
-(defcustom lsp-java-incomplete-classpath 'warning
+(defcustom lsp-java-incomplete-classpath "warning"
   "Specifies the severity of the message when the classpath is incomplete for a Java file."
   :group 'lsp-java
-  :type '(choice (const ignore)
-                 (const info)
-                 (const warning)
-                 (const error)))
+  :type '(choice (const "ignore")
+                 (const "info")
+                 (const "warning")
+                 (const "error")))
 
-(defcustom lsp-java-update-build-configuration 'automatic
+(defcustom lsp-java-update-build-configuration "automatic"
   "Specifies how modifications on build files update the Java classpath/configuration."
   :group 'lsp-java
   :type '(choice
-          (const disabled)
-          (const interactive)
-          (const automatic)))
+          (const "disabled")
+          (const "interactive")
+          (const "automatic")))
 
-(defcustom lsp-java-import-exclusions '("**/node_modules/**"
-                                        "**/.metadata/**"
-                                        "**/archetype-resources/**"
-                                        "**/META-INF/maven/**")
+(defcustom lsp-java-import-exclusions
+  ["**/node_modules/**"
+   "**/.metadata/**"
+   "**/archetype-resources/**"
+   "**/META-INF/maven/**"]
   "Configure glob patterns for excluding folders."
   :group 'lsp-java
   :type '(repeat string))
 
 (defcustom lsp-java-favorite-static-members
-  '("org.junit.Assert.*"
-    "org.junit.Assume.*"
-    "org.junit.jupiter.api.Assertions.*"
-    "org.junit.jupiter.api.Assumptions.*"
-    "org.junit.jupiter.api.DynamicContainer.*"
-    "org.junit.jupiter.api.DynamicTest.*")
+  ["org.junit.Assert.*"
+   "org.junit.Assume.*"
+   "org.junit.jupiter.api.Assertions.*"
+   "org.junit.jupiter.api.Assumptions.*"
+   "org.junit.jupiter.api.DynamicContainer.*"
+   "org.junit.jupiter.api.DynamicTest.*"]
   "Defines a list of static members or types with static members.
 
  Content assist will propose those static members even if the
@@ -142,20 +143,20 @@ deduplication with the G1 Garbage collector"
   :type '(repeat string))
 
 (defcustom lsp-java-import-order
-  '("java" "javax" "com" "org")
+  ["java" "javax" "com" "org"]
   "Defines the sorting order of import statements.
 
 A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import is always added to the most specific group."
   :group 'lsp-java
   :type '(repeat string))
 
-(defcustom lsp-java-trace-server 'off
+(defcustom lsp-java-trace-server "off"
   "Traces the communication between Emacs and the Java language server."
   :group 'lsp-java
   :type '(choice
-          (const off)
-          (const messages)
-          (const verbose)))
+          (const "off")
+          (const "messages")
+          (const "verbose")))
 
 (defcustom lsp-java-enable-file-watch nil
   "Defines whether the client will monitor the files for changes."
@@ -545,13 +546,14 @@ PARAMS progress report notification data."
          (file-location (concat lsp-java-workspace-cache-dir buffer-name)))
     (unless (file-readable-p file-location)
       (lsp-java--ensure-dir (file-name-directory file-location))
-      (let ((content (lsp-send-request (lsp-make-request
-                                        "java/classFileContents"
-                                        (list :uri uri)))))
-        (with-temp-file file-location
-          (insert content))
-        (with-temp-file (lsp-java--get-metadata-location file-location)
-          (insert uri))))
+      (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
+        (let ((content (lsp-send-request (lsp-make-request
+                                          "java/classFileContents"
+                                          (list :uri uri)))))
+          (with-temp-file file-location
+            (insert content))
+          (with-temp-file (lsp-java--get-metadata-location file-location)
+            (insert uri)))))
     file-location))
 
 (defun lsp-java-actionable-notifications ()
@@ -630,7 +632,7 @@ extract all or only the current occurrence."
   "Get lsp java bundles."
   (let ((bundles-dir (lsp-java--bundles-dir)))
     (append lsp-java-bundles (when (file-directory-p bundles-dir)
-                               (directory-files bundles-dir t "\\.jar$")))))
+                               (apply 'vector (directory-files bundles-dir t "\\.jar$"))))))
 
 (defun lsp-java-update-user-settings ()
   "Update user settings.
@@ -859,13 +861,13 @@ PROJECT-URI uri of the item."
         (user-error "Failed to calculate project for buffer %s" (buffer-name))))))
 
 (cl-defmethod lsp-execute-command
-  ((_server (eql jdtls)) (command (eql java.show.references)) params)
+  (_server (command (eql java.show.references)) params)
   (if-let (refs (cl-third params))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
-  ((_server (eql jdtls)) (command (eql java.show.implementations)) params)
+  (_server (command (eql java.show.implementations)) params)
   (if-let (refs (cl-third params))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No implementations")))
@@ -883,7 +885,7 @@ PROJECT-URI uri of the item."
                                  ("language/progressReport" #'lsp-java--progress-report)
                                  ("workspace/notify" #'lsp-java--workspace-notify))
 
-  :request-handlers (lsp-ht ("workspace/executeClientCommand" 'lsp-java--boot-workspace-execute-client-command))
+  :request-handlers (ht ("workspace/executeClientCommand" 'lsp-java-boot--workspace-execute-client-command))
   :action-handlers (lsp-ht ("java.apply.workspaceEdit" #'lsp-java--apply-workspace-edit))
   :uri-handlers (lsp-ht ("jdt" 'lsp-java--resolve-uri)
                         ("chelib" 'lsp-java--resolve-uri))

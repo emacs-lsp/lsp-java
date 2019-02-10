@@ -116,6 +116,95 @@ some of them are bound to Emacs commands:
 #### Classpath browsing
 [lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-classpath-browse` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
 ![Classpath](images/classpath.png)
+#### STS4 Integration (experimental)
+
+LSP java has integration with [STS4](https://github.com/spring-projects/sts4/) providing the following functionality.
+
+## Spring boot support (Experimental)
+
+In addition to the integration with [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) [lsp-java](http://github.com/emacs-lsp/lsp-java) provides integration with [STS4](https://github.com/spring-projects/sts4/)  which covers Spring Boot
+`application.properties`, `application.yml` and `.java` files.
+
+## Usage:
+Make sure that you have configured `JAVA_HOME`. `lsp-java` will automatically download the [STS4](https://github.com/spring-projects/sts4/) when you call `lsp-java-update-server`. In order to enable [STS4](https://github.com/spring-projects/sts4/)  integration add the following lines to your config:
+``` emacs-lisp
+(require 'lsp-java-boot)
+
+;; to enable the lenses
+(add-hook 'lsp-mode-hook #'lsp-lens-mode)
+(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+```
+
+## Functionality for `.java`
+
+### Navigating the source code - Go to symbol in file/workspace
+Easy navigation to Spring-specific elements of your source code.
+
+![Go to Symbol in workspace](images/java-navigation.png)
+
+#### Commands
+`lsp-workspace-symbol` - (works better usign [helm-lsp](https://github.com/yyoncho/helm-lsp))
+
+#### Examples
+* `@/` shows all defined request mappings (mapped path, request method, source location)
+* `@+` shows all defined beans (bean name, bean type, source location)
+* `@>` shows all functions (prototype implementation)
+* `@` shows all Spring annotations in the code
+
+### Quick-access for running apps
+Easy navigation to the provided request mappings of running apps.
+
+![accessing running apps quickly](images/running-apps.png)
+
+#### Commands
+`lsp-workspace-symbol` - (works better usign [helm-lsp](https://github.com/yyoncho/helm-lsp))
+
+#### Examples
+* `//` shows all request mappings of all running Spring Boot apps and opens a browser for the selected endpoint
+
+### Live application information hovers
+STS4 automatically detects JVM processes for running boot applications on your local machine.
+
+For some types of information, STS 4 may also show a 'quick summary' as a codelens.
+
+If there are multiple instances of the app running on your machine, the live data from all those instances will show up in the hover information.
+
+``` emacs-lisp
+(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+```
+![live data from running apps as hover on source code](images/live-hovers.png)
+
+#### Examples
+* `@Profile`: shows information about the active profiles on the running apps
+* `@Component`, `@Bean`, `@Autowired`: shows detailed information about the beans and their wiring from the live app
+* `@ContidionalOn...`: shows information about the conditions and their evaluation at runtime
+
+### Code templates
+Write Spring code with templates, available via regular code completion.
+
+#### Examples
+* `@GetMapping`
+* `@PostMapping`
+* `@PutMapping`
+
+### Smart code completions
+Additional code completions for Spring-specific annotations
+
+![Smart code completion for boot properties](images/validation-completion.png)
+
+## Functionality for `.properties` and `.yml`
+
+This extension analyzes your project's classpath and parses and indexes any [Spring Boot
+Properties Metadata](https://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html) it finds. Both Maven and Gradle projects are supported.
+
+The data in the index is used to provide validation, code completions and information
+hovers while editing Spring Boot Properties in either `.properties` or `.yml` format.
+
+### Validation and code completion in properties file
+![application-properties-validation](images/validation-completion.png)
+
+### Validation and code completion in yaml file
+![application-properties-validation](images/yaml-completion-and-help.png)
 
 #### Spring Initializr
 `lsp-java` provides a frontend for [Spring Initializr](https://start.spring.io/) which simplifies the creation of Spring Boot projects directly from Emacs via `lsp-java-spring-initializr`.
