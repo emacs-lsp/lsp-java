@@ -18,7 +18,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary: Java specific adapter for LSP mode
+;;; Commentary:
+
+;; Java specific adapter for LSP mode
 
 ;;; Code:
 (require 'cc-mode)
@@ -29,6 +31,7 @@
 (require 'f)
 (require 'tree-widget)
 (require 'request)
+(require 'cl-lib)
 
 (defgroup lsp-java nil
   "JDT emacs frontend."
@@ -560,10 +563,10 @@ NOT-FOUND-MESSAGE will be used if there is no matching action."
   (let ((actions (cl-remove-if-not
                   (lambda (item) (string-match regexp (gethash "title" item)))
                   (lsp-get-or-calculate-code-actions))))
-    (case (length actions)
+    (pcase (length actions)
       (0 (error (or not-found-message "Unable to find action")))
       (1 (lsp-execute-code-action (car actions)))
-      (t (lsp-execute-code-action (lsp--select-action actions))))))
+      (_ (lsp-execute-code-action (lsp--select-action actions))))))
 
 (defun lsp-java-extract-to-local-variable (arg)
   "Extract local variable refactoring.
@@ -844,13 +847,13 @@ PROJECT-URI uri of the item."
 
 (cl-defmethod lsp-execute-command
   ((_server (eql jdtls)) (command (eql java.show.references)) params)
-  (if-let (refs (third params))
+  (if-let (refs (cl-third params))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
   ((_server (eql jdtls)) (command (eql java.show.implementations)) params)
-  (if-let (refs (third params))
+  (if-let (refs (cl-third params))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No implementations")))
 
@@ -897,10 +900,10 @@ PROJECT-URI uri of the item."
      :headers '(("Accept" . "application/vnd.initializr.v2.1+json"))
      :success (cl-function
                (lambda (&key data &allow-other-keys)
-                 (flet ((ask (message key) (alist-get 'id
-                                                      (lsp--completing-read message
-                                                                            (alist-get 'values (alist-get key data))
-                                                                            (-partial 'alist-get 'name)))))
+                 (cl-flet ((ask (message key) (alist-get 'id
+                                                         (lsp--completing-read message
+                                                                               (alist-get 'values (alist-get key data))
+                                                                               (-partial 'alist-get 'name)))))
                    (condition-case _err
                        (-let* ((group-id (read-string "Enter group name: " "com.example"))
                                (artifact-id (read-string "Enter artifactId: " "demo"))
@@ -934,7 +937,7 @@ PROJECT-URI uri of the item."
                                               rest))
                            (if (-contains? deps dep)
                                (setq deps (remove dep deps))
-                             (pushnew dep deps)))
+                             (cl-pushnew dep deps)))
                          (let ((download-url (format "%sstarter.zip?type=%s&language=%s&groupId=%s&artifactId=%s&packaging=%s&bootVersion=%s&baseDir=%s&dependencies=%s"
                                                      base-url type language group-id artifact-id packaging boot-version artifact-id (s-join "," deps))))
                            (message "Downloading template from %s" download-url)
