@@ -65,7 +65,7 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
-(defcustom lsp-java-workspace-cache-dir (expand-file-name (locate-user-emacs-file "workspace/.cache/"))
+(defcustom lsp-java-workspace-cache-dir (expand-file-name ".cache/" lsp-java-workspace-dir)
   "LSP java workspace cache directory."
   :group 'lsp-java
   :risky t
