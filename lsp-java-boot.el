@@ -55,20 +55,21 @@
                  :no-wait t)))
 
 (defun lsp-java-boot--sts-add-classpath-listener (_workspace params)
-  (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
-    (lsp-request "workspace/executeCommand"
-                 (list :command "sts.java.addClasspathListener"
-                       :arguments (gethash "callbackCommandId" params))
-                 :no-wait t)))
+  (ignore
+   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
+     (lsp-request "workspace/executeCommand"
+                  (list :command "sts.java.addClasspathListener"
+                        :arguments (gethash "callbackCommandId" params))
+                  :no-wait t))))
 
 (defun lsp-java-boot--workspace-execute-client-command (_jdt-ls-workspace params)
   "PARAMS is the classpath info."
-  (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
-    (-let (((&hash "command" "arguments") params))
-      (setf (nth 2 arguments) (if (nth 2 arguments) t :json-false))
-      (lsp-request "workspace/executeCommand"
-                   (list :command command :arguments arguments)
-                   :no-wait t))))
+  (ignore
+   (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
+     (-let (((&hash "command" "arguments") params))
+       (lsp-request "workspace/executeCommand"
+                    (list :command command :arguments arguments)
+                    :no-wait t)))))
 
 (defun lsp-java-boot--lens-backend (_ callback)
   "Boot backend.

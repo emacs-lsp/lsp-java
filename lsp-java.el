@@ -158,11 +158,6 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
           (const "messages")
           (const "verbose")))
 
-(defcustom lsp-java-enable-file-watch nil
-  "Defines whether the client will monitor the files for changes."
-  :group 'lsp-java
-  :type 'boolean)
-
 (defcustom lsp-java-format-enabled t
   "Specifies whether or not formatting is enabled on the language server."
   :group 'lsp-java
@@ -445,7 +440,7 @@ PARAMS the parameters for actionable notifications."
 
 PARAMS progress report notification data."
   (-let [(&hash "status" "complete") params]
-    (setq lsp-java-progress-string (propertize (s-replace "%" "%%" status) 'face 'lsp-java-progress-face))
+    (setq lsp-java-progress-string (propertize status 'face 'lsp-java-progress-face))
     (when complete
       (run-with-idle-timer 0.8 nil (lambda ()
                                      (setq lsp-java-progress-string nil))))))
