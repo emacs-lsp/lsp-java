@@ -426,7 +426,7 @@ PARAMS the parameters for language status notifications."
   "Callback for java/applyWorkspaceEdit.
 
 ACTION is the action to execute."
-  (lsp--apply-workspace-edit (car (gethash "arguments" action))))
+  (lsp--apply-workspace-edit (seq-first (gethash "arguments" action))))
 
 (defun lsp-java--actionable-notification-callback (_workspace params)
   "Handler for actionable notifications.
@@ -898,7 +898,17 @@ PROJECT-URI uri of the item."
                                                            (buffer-string))))))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
-                      (lsp-java-update-user-settings)))))
+                      (lsp-java-update-user-settings)
+                      (lsp--server-register-capability
+                       (ht ("id" "test-id")
+                           ("method" "workspace/didChangeWatchedFiles")
+                           ("registerOptions" (ht ("watchers"
+                                                   (vector (ht ("globPattern" "**/*.java"))
+                                                           (ht ("globPattern" "**/pom.xml"))
+                                                           (ht ("globPattern" "**/*.gradle"))
+                                                           (ht ("globPattern" "**/.project"))
+                                                           (ht ("globPattern" "**/.classpath"))
+                                                           (ht ("globPattern" "**/settings/*.prefs"))))))))))))
 
 (defun lsp-java-spring-initializr ()
   "Emacs frontend for https://start.spring.io/."
