@@ -52,7 +52,7 @@ The slash is expected at the end."
   :type 'string)
 
 (defvar lsp-java-progress-string ""
-  "Path of the java executable.")
+  "Java progress status as reported by the language server.")
 
 (defface lsp-java-progress-face
   '((t (:inherit 'success)))
