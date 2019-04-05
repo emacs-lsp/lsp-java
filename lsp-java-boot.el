@@ -118,15 +118,17 @@ Store CALLBACK to use it `sts/highlight'."
 
 (defun lsp-java-boot--ls-command (port)
   "Create LS command for PORT."
-  (list lsp-java-java-path
-        (format "-Dloader.path=%s" (lsp-java-boot--find-tools-jar))
-        (format "-Dspring.lsp.client-port=%s" port)
-        (format "-Dserver.port=%s" port)
-        "-Dsts.lsp.client=vscode"
-        (concat "-Dsts.log.file=" (make-temp-file "sts-log-file" nil ".log"))
-        (concat "-Dlogging.file=" (make-temp-file "logging-file" nil ".log"))
-        "-jar"
-        (lsp-java-boot--server-jar)))
+  (-filter 'identity
+           (list lsp-java-java-path
+                 (unless (lsp-java--java-9-plus-p)
+                   (format "-Dloader.path=%s" (lsp-java-boot--find-tools-jar)))
+                 (format "-Dspring.lsp.client-port=%s" port)
+                 (format "-Dserver.port=%s" port)
+                 "-Dsts.lsp.client=vscode"
+                 (concat "-Dsts.log.file=" (make-temp-file "sts-log-file" nil ".log"))
+                 (concat "-Dlogging.file=" (make-temp-file "logging-file" nil ".log"))
+                 "-jar"
+                 (lsp-java-boot--server-jar))))
 
 (lsp-register-client
  (make-lsp-client :new-connection
