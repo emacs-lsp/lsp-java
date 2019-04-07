@@ -62,15 +62,6 @@
                         :arguments (gethash "callbackCommandId" params))
                   :no-wait t))))
 
-(defun lsp-java-boot--workspace-execute-client-command (_jdt-ls-workspace params)
-  "PARAMS is the classpath info."
-  (ignore
-   (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
-     (-let (((&hash "command" "arguments") params))
-       (lsp-request "workspace/executeCommand"
-                    (list :command command :arguments arguments)
-                    :no-wait t)))))
-
 (defun lsp-java-boot--lens-backend (_ callback)
   "Boot backend.
 Store CALLBACK to use it `sts/highlight'."

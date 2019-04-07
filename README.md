@@ -3,6 +3,9 @@
 [![Join the chat at https://gitter.im/emacs-lsp/lsp-mode](https://badges.gitter.im/emacs-lsp/lsp-mode.svg)](https://gitter.im/emacs-lsp/lsp-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
+
+__ANNOUNCEMENT__ `lsp-java` switching from Eclipse [eclipse.che.jdt](https://github.com/eclipse/che-ls-jdt) to directly using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) due to the fact that [che-ls-jdt](https://github.com/eclipse/che-ls-jdt) does not bump upstream components often enough. As a result all Che dependent methods(Treemacs integation and browse classpath) won't work. If you still want to use [eclipse.che.jdt](https://github.com/eclipse/che-ls-jdt) functionality you may set `lsp-java-jdt-download-url` to `http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz` and call `lsp-java-update-server`.
+
 ## Features
 LSP java mode supports the following JDT Features:
 * As you type reporting of parsing and compilation errors (via [flycheck](https://github.com/flycheck/flycheck)/[lsp-ui](https://github.com/emacs-lsp/lsp-ui))
@@ -98,6 +101,9 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 * `lsp-java-actionable-notifications` - Resolve actionable notifications
 * `lsp-java-update-user-settings` - Update user settings (Check the options in the table bellow.)
 * `lsp-java-update-server` - Update server instalation.
+* `lsp-java-generate-to-string` - Generate `toString` method.
+* `lsp-java-generate-equals-and-hash-code` - Generate `equals` and `hashCode` methods.
+* `lsp-java-generate-overrides` - Generate method `overrides`
 #### Refactoring
 LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
@@ -109,11 +115,15 @@ some of them are bound to Emacs commands:
 * `lsp-java-extract-method` - Extract method refactoring
 * `lsp-java-add-import` - Add missing import
 #### Treemacs
+__NOTE__ It works only when using Eclipse Che Language Server.
+
 [lsp-java](https://github.com/emacs-lsp/lsp-java) provides experimental integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
 * `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
 * `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
 * `lsp-java-update-project-uris` refresh the project URIs.
 #### Classpath browsing
+__NOTE__ It works only when using Eclipse Che Language Server.
+
 [lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-classpath-browse` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
 ![Classpath](images/classpath.png)
 #### STS4 Integration (experimental)
@@ -210,29 +220,61 @@ hovers while editing Spring Boot Properties in either `.properties` or `.yml` fo
 `lsp-java` provides a frontend for [Spring Initializr](https://start.spring.io/) which simplifies the creation of Spring Boot projects directly from Emacs via `lsp-java-spring-initializr`.
 ![Create Spring boot project](images/boot.png)
 ## Supported settings
-* `lsp-java-server-install-dir` - Install directory for eclipsejdtls-server
-* `lsp-java-java-path` - Path of the java executable
-* `lsp-java-workspace-dir` - LSP java workspace directory
-* `lsp-java-workspace-cache-dir` - LSP java workspace cache directory
-* `lsp-java-vmargs` - Specifies extra VM arguments used to launch the Java Language Server
-* `lsp-java-incomplete-classpath` - Specifies the severity of the message when the classpath is incomplete for a Java file
-* `lsp-java-update-build-configuration` - Specifies how modifications on build files update the Java classpath/configuration
+* `lsp-java-server-install-dir` -
+  "Install directory for eclipse.jdt.ls-server.
+The slash is expected at the end."
+* `lsp-java-jdt-download-url` - JDT JS download url.
+Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz if you want to use Eclipse Che JDT LS.
+* `lsp-java-java-path` - Path of the java executable.
+* `lsp-java-progress-string` - Java progress status as reported by the language server.
+* `lsp-java-workspace-dir` - LSP java workspace directory.
+* `lsp-java-workspace-cache-dir` - LSP java workspace cache directory.
+* `lsp-java-themes-directory` - Directory containing themes.
+* `lsp-java-theme` - Theme to use.
+* `lsp-java-pop-buffer-function` - The function which will be used for showing the helper windows.
+* `lsp-java-vmargs` - Specifies extra VM arguments used to launch the Java Language Server. Eg. use `-noverify -Xmx1G -XX:+UseG1GC -XX:+UseStringDeduplication` to bypass class verification,increase the heap size to 1GB and enable String deduplication with the G1 Garbage collector
+* `lsp-java-9-args` - Specifies arguments specific to java 9 and later.
+* `lsp-java-errors-incomplete-classpath-severity` - Specifies the severity of the message when the classpath is incomplete for a Java file
+* `lsp-java-configuration-check-project-settings-exclusions` - Checks if the extension-generated project settings files (.project, .classpath, .factorypath, .settings/) should be excluded from the file explorer.
+* `lsp-java-configuration-update-build-configuration` - Specifies how modifications on build files update the Java classpath/configuration
+* `lsp-java-trace-server` - Traces the communication between VS Code and the Java language server.
+* `lsp-java-import-gradle-enabled` - Enable/disable the Gradle importer.
+* `lsp-java-import-maven-enabled` - Enable/disable the Maven importer.
+* `lsp-java-maven-download-sources` - Enable/disable eager download of Maven source artifacts.
+* `lsp-java-references-code-lens-enabled` - Enable/disable the references code lens.
+* `lsp-java-signature-help-enabled` - Enable/disable the signature help.
+* `lsp-java-implementations-code-lens-enabled` - Enable/disable the implementations code lens.
+* `lsp-java-configuration-maven-user-settings` - Path to Maven's settings.xml
+* `lsp-java-format-enabled` - Enable/disable default Java formatter
+* `lsp-java-save-actions-organize-imports ` - Enable/disable auto organize imports on save action
 * `lsp-java-import-exclusions` - Configure glob patterns for excluding folders
-* `lsp-java-favorite-static-members` - Defines a list of static members or types with static members
-* `lsp-java-import-order` - Defines the sorting order of import statements
-* `lsp-java-trace-server` - Traces the communication between Emacs and the Java language server
-* `lsp-java-enable-file-watch` - Defines whether the client will monitor the files for changes
-* `lsp-java-format-enabled` - Specifies whether or not formatting is enabled on the language server
-* `lsp-java-format-settings-url` - Specifies the file path to the formatter xml url
-* `lsp-java-format-settings-profile` - Specifies the formatter profile name
-* `lsp-java-format-comments-enabled` - Preference key used to include the comments during the formatting
-* `lsp-java-save-action-organize-imports` - Organize imports on save
-* `lsp-java-bundles` - List of bundles that will be loaded in the JDT server
-* `lsp-java-import-gradle-enabled` - Enable/disable the Gradle importer
-* `lsp-java-import-maven-enabled` - Enable/disable the Maven importer
-* `lsp-java-auto-build` - Enable/disable the 'auto build'
-* `lsp-java-progress-report` - [Experimental] Enable/disable progress reports from background processes on the server
-* `lsp-java-completion-guess-arguments` - When set to true, method arguments are guessed when a method is selected from as list of code assist proposals.
+* `lsp-java-content-provider-preferred` - Preferred content provider (a 3rd party decompiler id, usually)
+* `lsp-java-autobuild-enabled` - Enable/disable the 'auto build'
+* `lsp-java-max-concurrent-builds` - Max simultaneous project builds
+* `lsp-java-completion-enabled` - Enable/disable code completion support
+* `lsp-java-completion-overwrite` - When set to true, code completion overwrites the current text. When set to false, code is simply added instead.
+* `lsp-java-completion-guess-method-arguments` - When set to true, method arguments are guessed when a method is selected from as list of code assist proposals.
+* `lsp-java-completion-favorite-static-members` - Defines a list of static members or types with static members. Content assist will propose those static members even if the import is missing.
+* `lsp-java-completion-import-order` - Defines the sorting order of import statements. A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import is always added to the most specific group.
+* `lsp-java-folding-range-enabled` - Enable/disable smart folding range support. If disabled, it will use the default indentation-based folding range provided by VS Code.
+* `indentation-based` - [Experimental] Enable/disable progress reports from background processes on the server.
+* `lsp-java-progress-reports-enabled` - [Experimental] Enable/disable progress reports from background processes on the server.
+* `lsp-java-format-settings-url` - Specifies the url or file path to the [Eclipse formatter xml settings](https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings).
+* `lsp-java-format-settings-profile` - Optional formatter profile name from the Eclipse formatter settings.
+* `lsp-java-format-comments-enabled` - Includes the comments during code formatting.
+* `lsp-java-format-on-type-enabled` - Enable/disable automatic block formatting when typing `;`, `<enter>` or `}`
+* `lsp-java-bundles` - List of bundles that will be loaded in the JDT server.
+* `lsp-java-code-generation-hash-code-equals-use-java7objects` - Use Objects.hash and Objects.equals when generating the hashCode and equals methods. This setting only applies to Java 7 and higher.
+* `lsp-java-code-generation-hash-code-equals-use-instanceof` - Use 'instanceof' to compare types when generating the hashCode and equals methods.
+* `lsp-java-code-generation-use-blocks` - Use blocks in 'if' statements when generating the methods.
+* `lsp-java-code-generation-generate-comments` - Generate method comments when generating the methods.
+* `lsp-java-code-generation-to-string-template` - The template for generating the toString method.
+* `lsp-java-code-generation-to-string-code-style` - The code style for generating the toString method.
+* `lsp-java-code-generation-to-string-skip-null-values` - Skip null values when generating the toString method.
+* `lsp-java-code-generation-to-string-list-array-contents` - List contents of arrays instead of using native toString().
+* `lsp-java-code-generation-to-string-limit-elements` - Limit number of items in arrays/collections/maps to list, if 0 then list all.
+* `lsp-java-inhibit-message` - If non-nil, inhibit java messages echo via `inhibit-message'.
+
 ## Additional packages
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) : Flycheck, documentation and code actions support.
 * [company-lsp](https://github.com/tigersoldier/company-lsp) : LSP company backend.

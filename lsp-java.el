@@ -46,6 +46,12 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
+(defcustom lsp-java-jdt-download-url "http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz"
+  "JDT JS download url.
+Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz if you want to use Eclipse Che JDT LS."
+  :group 'lsp-java
+  :type 'string)
+
 (defcustom lsp-java-java-path "java"
   "Path of the java executable."
   :group 'lsp-java
@@ -103,122 +109,227 @@ deduplication with the G1 Garbage collector"
   :risky t
   :type '(repeat string))
 
-(defcustom lsp-java-incomplete-classpath "warning"
-  "Specifies the severity of the message when the classpath is incomplete for a Java file."
-  :group 'lsp-java
-  :type '(choice (const "ignore")
-                 (const "info")
-                 (const "warning")
-                 (const "error")))
+(defcustom lsp-java-errors-incomplete-classpath-severity "warning"
+  "Specifies the severity of the message when the classpath is
+incomplete for a Java file"
+  :type '(choice (:tag "ignore" "info" "warning" "error")))
 
-(defcustom lsp-java-update-build-configuration "automatic"
-  "Specifies how modifications on build files update the Java classpath/configuration."
-  :group 'lsp-java
-  :type '(choice
-          (const "disabled")
-          (const "interactive")
-          (const "automatic")))
+(defcustom lsp-java-configuration-check-project-settings-exclusions t
+  "Checks if the extension-generated project settings
+files (.project, .classpath, .factorypath, .settings/) should be
+excluded from the file explorer."
+  :type 'boolean)
 
-(defcustom lsp-java-import-exclusions
-  ["**/node_modules/**"
-   "**/.metadata/**"
-   "**/archetype-resources/**"
-   "**/META-INF/maven/**"]
-  "Configure glob patterns for excluding folders."
-  :group 'lsp-java
-  :type '(repeat string))
-
-(defcustom lsp-java-favorite-static-members
-  ["org.junit.Assert.*"
-   "org.junit.Assume.*"
-   "org.junit.jupiter.api.Assertions.*"
-   "org.junit.jupiter.api.Assumptions.*"
-   "org.junit.jupiter.api.DynamicContainer.*"
-   "org.junit.jupiter.api.DynamicTest.*"]
-  "Defines a list of static members or types with static members.
-
- Content assist will propose those static members even if the
- import is missing."
-  :group 'lsp-java
-  :type '(repeat string))
-
-(defcustom lsp-java-import-order
-  ["java" "javax" "com" "org"]
-  "Defines the sorting order of import statements.
-
-A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import is always added to the most specific group."
-  :group 'lsp-java
-  :type '(repeat string))
+(defcustom lsp-java-configuration-update-build-configuration "automatic"
+  "Specifies how modifications on build files update the Java
+classpath/configuration"
+  :type '(choice (:tag "disabled" "interactive" "automatic")))
 
 (defcustom lsp-java-trace-server "off"
-  "Traces the communication between Emacs and the Java language server."
-  :group 'lsp-java
-  :type '(choice
-          (const "off")
-          (const "messages")
-          (const "verbose")))
+  "Traces the communication between VS Code and the Java language
+server."
+  :type '(choice (:tag "off" "messages" "verbose")))
+
+(defcustom lsp-java-import-gradle-enabled t
+  "Enable/disable the Gradle importer."
+  :type 'boolean)
+
+(defcustom lsp-java-import-maven-enabled t
+  "Enable/disable the Maven importer."
+  :type 'boolean)
+
+(defcustom lsp-java-maven-download-sources nil
+  "Enable/disable eager download of Maven source artifacts."
+  :type 'boolean)
+
+(defcustom lsp-java-references-code-lens-enabled nil
+  "Enable/disable the references code lens."
+  :type 'boolean)
+
+(defcustom lsp-java-signature-help-enabled nil
+  "Enable/disable the signature help."
+  :type 'boolean)
+
+(defcustom lsp-java-implementations-code-lens-enabled nil
+  "Enable/disable the implementations code lens."
+  :type 'boolean)
+
+(defcustom lsp-java-configuration-maven-user-settings nil
+  "Path to Maven's settings.xml"
+  :type 'string)
 
 (defcustom lsp-java-format-enabled t
-  "Specifies whether or not formatting is enabled on the language server."
-  :group 'lsp-java
+  "Enable/disable default Java formatter"
+  :type 'boolean)
+
+(defcustom lsp-java-save-actions-organize-imports nil
+  "Enable/disable auto organize imports on save action"
+  :type 'boolean)
+
+(defcustom lsp-java-import-exclusions ["**/node_modules/**" "**/.metadata/**" "**/archetype-resources/**" "**/META-INF/maven/**"]
+  "Configure glob patterns for excluding folders"
+  :type '(repeat string))
+
+(defcustom lsp-java-content-provider-preferred nil
+  "Preferred content provider (a 3rd party decompiler id,
+usually)"
+  :type 'string)
+
+(defcustom lsp-java-autobuild-enabled t
+  "Enable/disable the 'auto build'"
+  :type 'boolean)
+
+(defcustom lsp-java-max-concurrent-builds 1
+  "Max simultaneous project builds"
+  :type 'number)
+
+(defcustom lsp-java-completion-enabled t
+  "Enable/disable code completion support"
+  :type 'boolean)
+
+(defcustom lsp-java-completion-overwrite t
+  "When set to true, code completion overwrites the current text.
+When set to false, code is simply added instead."
+  :type 'boolean)
+
+(defcustom lsp-java-completion-guess-method-arguments nil
+  "When set to true, method arguments are guessed when a method
+is selected from as list of code assist proposals."
+  :type 'boolean)
+
+(defcustom lsp-java-completion-favorite-static-members ["org.junit.Assert.*" "org.junit.Assume.*" "org.junit.jupiter.api.Assertions.*" "org.junit.jupiter.api.Assumptions.*" "org.junit.jupiter.api.DynamicContainer.*" "org.junit.jupiter.api.DynamicTest.*" "org.mockito.Mockito.*" "org.mockito.ArgumentMatchers.*" "org.mockito.Answers.*"]
+  "Defines a list of static members or types with static members.
+Content assist will propose those static members even if the
+import is missing."
+  :type '(repeat string))
+
+
+(defcustom lsp-java-completion-import-order ["java" "javax" "com" "org"]
+  "Defines the sorting order of import statements. A package or
+type name prefix (e.g. 'org.eclipse') is a valid entry. An import
+is always added to the most specific group."
+  :type '(repeat string))
+
+
+(defcustom lsp-java-folding-range-enabled t
+  "Enable/disable smart folding range support. If disabled, it
+will use the default indentation-based folding range provided by
+VS Code."
+  :type 'boolean)
+
+(defcustom lsp-java-progress-reports-enabled t
+  "[Experimental] Enable/disable progress reports from background
+processes on the server."
   :type 'boolean)
 
 (defcustom lsp-java-format-settings-url nil
-  "Specifies the file path to the formatter xml url."
-  :group 'lsp-java
+  "Specifies the url or file path to the [Eclipse formatter xml
+settings](https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings)."
   :type 'string)
 
 (defcustom lsp-java-format-settings-profile nil
-  "Specifies the formatter profile name."
-  :group 'lsp-java
+  "Optional formatter profile name from the Eclipse formatter
+settings."
   :type 'string)
 
-(defcustom lsp-java-format-comments-enabled nil
-  "Preference key used to include the comments during the formatting."
-  :group 'lsp-java
+(defcustom lsp-java-format-comments-enabled t
+  "Includes the comments during code formatting."
   :type 'boolean)
 
-(defcustom  lsp-java-save-action-organize-imports t
-  "Organize imports on save."
-  :group 'lsp-java
+(defcustom lsp-java-format-on-type-enabled t
+  "Enable/disable automatic block formatting when typing `;`,
+`<enter>` or `}`"
   :type 'boolean)
 
 (defcustom lsp-java-bundles nil
   "List of bundles that will be loaded in the JDT server."
   :group 'lsp-java
   :type 'list)
-
-(defcustom lsp-java-import-gradle-enabled t
-  "Enable/disable the Gradle importer."
-  :group 'lsp-java
+(defcustom lsp-java-code-generation-hash-code-equals-use-java7objects nil
+  "Use Objects.hash and Objects.equals when generating the
+hashCode and equals methods. This setting only applies to Java 7
+and higher."
   :type 'boolean)
 
-(defcustom lsp-java-import-maven-enabled t
-  "Enable/disable the Maven importer."
-  :group 'lsp-java
+(defcustom lsp-java-code-generation-hash-code-equals-use-instanceof nil
+  "Use 'instanceof' to compare types when generating the hashCode
+and equals methods."
   :type 'boolean)
 
-(defcustom lsp-java-auto-build t
-  "Enable/disable the 'auto build'."
-  :group 'lsp-java
+(defcustom lsp-java-code-generation-use-blocks nil
+  "Use blocks in 'if' statements when generating the methods."
   :type 'boolean)
 
-(defcustom lsp-java-progress-report t
-  "[Experimental] Enable/disable progress reports from background processes on the server."
-  :group 'lsp-java
+(defcustom lsp-java-code-generation-generate-comments nil
+  "Generate method comments when generating the methods."
   :type 'boolean)
 
-(defcustom lsp-java-completion-guess-arguments nil
-  "When set to true, method arguments are guessed when a method is selected from as list of code assist proposals."
-  :group 'lsp-java
+(defcustom lsp-java-code-generation-to-string-template "${object.className} [${member.name()}=${member.value}, ${otherMembers}]"
+  "The template for generating the toString method."
+  :type 'string)
+
+(defcustom lsp-java-code-generation-to-string-code-style "STRING_CONCATENATION"
+  "The code style for generating the toString method."
+  :type '(choice (:tag "STRING_CONCATENATION" "STRING_BUILDER" "STRING_BUILDER_CHAINED" "STRING_FORMAT")))
+
+(defcustom lsp-java-code-generation-to-string-skip-null-values nil
+  "Skip null values when generating the toString method."
   :type 'boolean)
+
+(defcustom lsp-java-code-generation-to-string-list-array-contents t
+  "List contents of arrays instead of using native toString()."
+  :type 'boolean)
+
+(defcustom lsp-java-code-generation-to-string-limit-elements 0
+  "Limit number of items in arrays/collections/maps to list, if 0
+then list all."
+  :type 'number)
+
+(lsp-register-custom-settings
+ '(("java.codeGeneration.toString.limitElements" lsp-java-code-generation-to-string-limit-elements)
+   ("java.codeGeneration.toString.listArrayContents" lsp-java-code-generation-to-string-list-array-contents t)
+   ("java.codeGeneration.toString.skipNullValues" lsp-java-code-generation-to-string-skip-null-values t)
+   ("java.codeGeneration.toString.codeStyle" lsp-java-code-generation-to-string-code-style)
+   ("java.codeGeneration.toString.template" lsp-java-code-generation-to-string-template)
+   ("java.codeGeneration.generateComments" lsp-java-code-generation-generate-comments t)
+   ("java.codeGeneration.useBlocks" lsp-java-code-generation-use-blocks t)
+   ("java.codeGeneration.hashCodeEquals.useInstanceof" lsp-java-code-generation-hash-code-equals-use-instanceof t)
+   ("java.codeGeneration.hashCodeEquals.useJava7Objects" lsp-java-code-generation-hash-code-equals-use-java7objects t)
+   ("java.format.onType.enabled" lsp-java-format-on-type-enabled t)
+   ("java.format.comments.enabled" lsp-java-format-comments-enabled t)
+   ("java.format.settings.profile" lsp-java-format-settings-profile)
+   ("java.format.settings.url" lsp-java-format-settings-url)
+   ("java.progressReports.enabled" lsp-java-progress-reports-enabled t)
+   ("java.foldingRange.enabled" lsp-java-folding-range-enabled t)
+   ("java.completion.importOrder" lsp-java-completion-import-order)
+   ("java.completion.favoriteStaticMembers" lsp-java-completion-favorite-static-members)
+   ("java.completion.guessMethodArguments" lsp-java-completion-guess-method-arguments t)
+   ("java.completion.overwrite" lsp-java-completion-overwrite t)
+   ("java.completion.enabled" lsp-java-completion-enabled t)
+   ("java.maxConcurrentBuilds" lsp-java-max-concurrent-builds)
+   ("java.autobuild.enabled" lsp-java-autobuild-enabled t)
+   ("java.contentProvider.preferred" lsp-java-content-provider-preferred)
+   ("java.import.exclusions" lsp-java-import-exclusions)
+   ("java.saveActions.organizeImports" lsp-java-save-actions-organize-imports t)
+   ("java.format.enabled" lsp-java-format-enabled t)
+   ("java.configuration.maven.userSettings" lsp-java-configuration-maven-user-settings)
+   ("java.implementationsCodeLens.enabled" lsp-java-implementations-code-lens-enabled t)
+   ("java.signatureHelp.enabled" lsp-java-signature-help-enabled t)
+   ("java.referencesCodeLens.enabled" lsp-java-references-code-lens-enabled t)
+   ("java.maven.downloadSources" lsp-java-maven-download-sources t)
+   ("java.import.maven.enabled" lsp-java-import-maven-enabled t)
+   ("java.import.gradle.enabled" lsp-java-import-gradle-enabled t)
+   ("java.trace.server" lsp-java-trace-server)
+   ("java.configuration.updateBuildConfiguration" lsp-java-configuration-update-build-configuration)
+   ("java.configuration.checkProjectSettingsExclusions" lsp-java-configuration-check-project-settings-exclusions t)
+   ("java.errors.incompleteClasspath.severity" lsp-java-errors-incomplete-classpath-severity)))
 
 (defcustom lsp-java-inhibit-message t
   "If non-nil, inhibit java messages echo via `inhibit-message'."
   :type 'boolean
   :group 'lsp-mode)
 
-(defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
+(defvar lsp-java--download-root "https://raw.githubusercontent.com/yyoncho/lsp-java/che-dep/install/")
 
 (defun lsp-java--json-bool (param)
   "Return a PARAM for setting parsable by json.el for booleans."
@@ -227,51 +338,6 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
 (defun lsp-java--list-or-empty (param)
   "Return either PARAM or empty vector in case PARAM is nil."
   (or param (vector)))
-
-(defun lsp-java--settings ()
-  "JDT settings."
-  `((java
-     (jdt
-      (ls
-       (vmargs . ,(string-join lsp-java-vmargs " "))))
-     (errors
-      (incompleteClasspath
-       (severity . ,lsp-java-incomplete-classpath)))
-     (configuration
-      (updateBuildConfiguration . ,lsp-java-update-build-configuration)
-      (maven))
-     (trace
-      (server . ,lsp-java-trace-server))
-     (import
-      (gradle
-       (enabled . ,(lsp-java--json-bool lsp-java-import-gradle-enabled)))
-      (maven
-       (enabled . ,(lsp-java--json-bool lsp-java-import-maven-enabled)))
-      (exclusions . ,(lsp-java--list-or-empty lsp-java-import-exclusions)))
-     (referencesCodeLens
-      (enabled . t))
-     (progressReports
-      (enabled . ,(lsp-java--json-bool lsp-java-progress-report)))
-     (signatureHelp
-      (enabled . t))
-     (implementationsCodeLens
-      (enabled . t))
-     (format
-      (enabled . ,(lsp-java--json-bool lsp-java-format-enabled))
-      (settings
-       (profile . ,lsp-java-format-settings-profile)
-       (url . ,lsp-java-format-settings-url))
-      (comments
-       (enabled . ,(lsp-java--json-bool lsp-java-format-comments-enabled))))
-     (saveActions
-      (organizeImports . ,(lsp-java--json-bool lsp-java-save-action-organize-imports)))
-     (contentProvider)
-     (autobuild
-      (enabled . ,(lsp-java--json-bool lsp-java-auto-build)))
-     (completion
-      (favoriteStaticMembers . ,(lsp-java--list-or-empty lsp-java-favorite-static-members))
-      (importOrder . ,(lsp-java--list-or-empty lsp-java-import-order))
-      (guessMethodArguments . ,lsp-java-completion-guess-arguments)))))
 
 (defvar lsp-java-buffer-configurations
   `(("*classpath*" . ((side . right) (slot . 10) (window-width . 0.20)))))
@@ -314,13 +380,6 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (let ((inhibit-message t))
       (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
-
-(defun lsp-java-organize-imports ()
-  "Organize java imports."
-  (interactive)
-  (lsp--send-execute-command
-   "java.edit.organizeImports"
-   (list (lsp--path-to-uri buffer-file-name))))
 
 (defun lsp-java--current-workspace-or-lose ()
   "Look for the jdt-ls workspace."
@@ -488,7 +547,7 @@ PARAMS progress report notification data."
     (mkdir default-directory t)
     (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
     (let ((full-command (format
-                         "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package"
+                         "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
                          (or (lsp-java--prepare-mvnw) (executable-find "mvn"))
                          (expand-file-name lsp-java-server-install-dir)
                          (expand-file-name
@@ -498,7 +557,8 @@ PARAMS progress report notification data."
                          (if (boundp 'dap-java-test-runner)
                              (file-name-nondirectory (directory-file-name dap-java-test-runner))
                            "junit-platform-console-standalone.jar")
-                         (expand-file-name (lsp-java--bundles-dir)))))
+                         (expand-file-name (lsp-java--bundles-dir))
+                         lsp-java-jdt-download-url)))
       (message "Running %s" full-command)
       (shell-command full-command))))
 
@@ -580,18 +640,33 @@ NOT-FOUND-MESSAGE will be used if there is no matching action."
 
 (defun lsp-java-extract-to-local-variable (arg)
   "Extract local variable refactoring.
-The prefix ARG and `cider-prompt-for-symbol' decide whether to
-extract all or only the current occurrence."
+The prefix ARG decide whether to act on all or only on the
+current symbol."
   (interactive "P")
   (lsp-java-execute-matching-action
    (if arg
        "Extract to local variable$"
      "Extract to local variable (replace all occurrences)")))
 
+(defun lsp-java-conver-to-static-import (arg)
+  "Convert to static import.
+The prefix ARG decide whether to act on all or only on the
+current symbol."
+  (interactive "P")
+  (lsp-java-execute-matching-action
+   (if arg
+       "Convert to static import$"
+     "Convert to static import (replace all occurrences)$")))
+
 (defun lsp-java-extract-to-constant ()
   "Extract constant refactoring."
   (interactive)
   (lsp-java-execute-matching-action "Extract to constant"))
+
+(defun lsp-java-add-throws ()
+  "Extract constant refactoring."
+  (interactive)
+  (lsp-java-execute-matching-action "Add throws declaration"))
 
 (defun lsp-java-add-unimplemented-methods ()
   "Extract constant refactoring."
@@ -629,14 +704,14 @@ extract all or only the current occurrence."
     (append lsp-java-bundles (when (file-directory-p bundles-dir)
                                (apply 'vector (directory-files bundles-dir t "\\.jar$"))))))
 
-(defun lsp-java-update-user-settings ()
-  "Update user settings.
+;; (defun lsp-java-update-user-settings ()
+;;   "Update user settings.
 
-The method could be called after changing configuration
-property (e. g. `lsp-java-organize-imports') to update the
-server."
-  (interactive)
-  (lsp--set-configuration (lsp-java--settings)))
+;; The method could be called after changing configuration
+;; property (e. g. `lsp-java-organize-imports') to update the
+;; server."
+;;   (interactive)
+;;   (lsp--set-configuration (lsp-java--settings)))
 
 (defun lsp-java--workspace-folders (workspace)
   "Return WORKSPACE folders."
@@ -869,25 +944,154 @@ PROJECT-URI uri of the item."
 
 (add-to-list 'global-mode-string (list '(t lsp-java-progress-string)))
 
+(defun lsp-java-boot--workspace-execute-client-command (_jdt-ls-workspace params)
+  "PARAMS is the classpath info."
+  (-let (((&hash "command" "arguments") params))
+    (pcase command
+      ("java.action.organizeImports.chooseImports"
+       (-let (([file-uri imports] (gethash "arguments" params)))
+         (with-current-buffer (find-file (lsp--uri-to-path file-uri))
+           (->> imports
+                (seq-map (-lambda ((&hash "candidates" "range"))
+                           (-let (((beg .  end) (lsp--range-to-region range)))
+                             (goto-char beg)
+                             (recenter nil))
+                           (lsp--completing-read "Select class to import: "
+                                                 candidates
+                                                 (-partial #'gethash "fullyQualifiedName"))))
+                (apply #'vector)))))
+      (_ (ignore
+          (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
+            (lsp-request "workspace/executeCommand"
+                         (list :command command :arguments arguments)
+                         :no-wait t)))))))
+
+(defun lsp-java-generate-to-string ()
+  "Generate `toString' method."
+  (interactive)
+  (lsp-execute-code-action-by-kind "source.generate.toString"))
+
+(defun lsp-java-generate-equals-and-hash-code ()
+  "Generate `toString' method."
+  (interactive)
+  (lsp-execute-code-action-by-kind "source.generate.hashCodeEquals"))
+
+(defun lsp-java-generate-overrides ()
+  "Generate `toString' method."
+  (interactive)
+  (lsp-execute-code-action-by-kind "source.overrideMethods"))
+
+(defun lsp-java-organize-imports ()
+  "Generate `toString' method."
+  (interactive)
+  (lsp-execute-code-action-by-kind "source.organizeImports"))
+
+(defun lsp-java--completing-read-multiple (message items initial-selection)
+  (let ((deps initial-selection) dep)
+    (while (setq dep (cl-rest (lsp--completing-read
+                               (if deps
+                                   (format "%s (selected %s): " message (length deps))
+                                 (concat message ": "))
+                               items
+                               (-lambda ((name . id))
+                                 (if (-contains? deps id)
+                                     (concat name " ✓")
+                                   name)))))
+      (if (-contains? deps dep)
+          (setq deps (remove dep deps))
+        (cl-pushnew dep deps)))
+    deps))
+
+(defun lsp-java--apply-document-changes (response)
+  "Apply document CHANGES."
+  (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
+             (lsp--apply-text-edits value))
+           (gethash "changes" response)))
+
+(defun lsp-java--action-generate-to-string (action)
+  (-let* ((context (seq-first (gethash "arguments" action)))
+          ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
+          (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+                               (cons (format "%s: %s" name type) field))
+                             fields)))
+    (when (or (not exists) (y-or-n-p "The equals method already exists. Replace?") )
+      (let ((selected-fields (lsp-java--completing-read-multiple
+                              "Select fields to include"
+                              fields-data
+                              (-map #'cl-rest fields-data))))
+        (lsp-java--apply-document-changes
+         (lsp-request "java/generateToString"
+                      (list :fields (apply #'vector selected-fields)
+                            :context context)))))))
+
+(defun lsp-java--action-generate-equals-and-hash-code (action)
+  (-let* ((context (seq-first (gethash "arguments" action)))
+          ((&hash "fields" "existingMethods" methods) (lsp-request "java/checkHashCodeEqualsStatus" context))
+          (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+                               (cons (format "%s: %s" name type) field))
+                             fields)))
+    (when (or (seq-empty-p methods) (y-or-n-p (format "The %s method already exists. Replace?" methods)) )
+      (let* ((selected-fields (lsp-java--completing-read-multiple "Select fields to include"
+                                                                  fields-data (-map #'cl-rest fields-data))))
+        (lsp-java--apply-document-changes
+         (lsp-request "java/generateHashCodeEquals"
+                      (list :fields (apply #'vector selected-fields)
+                            :context context
+                            :regenerate (not (null methods)))))))))
+
+(defun lsp-java--action-organize-imports (action)
+  (let ((context (seq-first (gethash "arguments" action))))
+    (lsp-request-async
+     "java/organizeImports" context
+     (lambda (result)
+       (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
+                  (lsp--apply-text-edits value))
+                (gethash "changes" result)))
+     :mode 'detached)))
+
+(defun lsp-java--override-methods-prompt (action)
+  (let* ((context (seq-first (gethash "arguments" action)))
+         (result (lsp-request "java/listOverridableMethods" context))
+         (methods-data (-map (-lambda ((field &as &hash "name" "parameters" "declaringClass" class))
+                               (cons (format "%s(%s) class: %s" name (s-join ", " parameters) class) field))
+                             (gethash "methods" result)))
+         (methods-to-override (lsp-java--completing-read-multiple
+                               "Select methods to override"
+                               methods-data
+                               (-map #'cl-rest methods-data))))
+    (lsp-java--apply-document-changes
+     (lsp-request "java/addOverridableMethods"
+                  (list :overridableMethods (apply #'vector methods-to-override)
+                        :context context)))))
+
 (lsp-register-client
  (make-lsp--client
   :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
   :major-modes '(java-mode)
   :server-id 'jdtls
   :multi-root t
-  :notification-handlers (lsp-ht ("language/status" #'lsp-java--language-status-callback)
-                                 ("language/actionableNotification" #'lsp-java--actionable-notification-callback)
-                                 ("language/progressReport" #'lsp-java--progress-report)
-                                 ("workspace/notify" #'lsp-java--workspace-notify))
-
+  :notification-handlers (ht ("language/status" #'lsp-java--language-status-callback)
+                             ("language/actionableNotification" #'lsp-java--actionable-notification-callback)
+                             ("language/progressReport" #'lsp-java--progress-report)
+                             ("workspace/notify" #'lsp-java--workspace-notify))
   :request-handlers (ht ("workspace/executeClientCommand" 'lsp-java-boot--workspace-execute-client-command))
-  :action-handlers (lsp-ht ("java.apply.workspaceEdit" #'lsp-java--apply-workspace-edit))
-  :uri-handlers (lsp-ht ("jdt" 'lsp-java--resolve-uri)
-                        ("chelib" 'lsp-java--resolve-uri))
+  :action-handlers (ht ("java.apply.workspaceEdit" #'lsp-java--apply-workspace-edit)
+                       ("java.action.generateToStringPrompt" #'lsp-java--action-generate-to-string)
+                       ("java.action.hashCodeEqualsPrompt" #'lsp-java--action-generate-equals-and-hash-code)
+                       ("java.action.organizeImports" #'lsp-java--action-organize-imports)
+                       ("java.action.overrideMethodsPrompt" #'lsp-java--override-methods-prompt))
+  :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri)
+                    ("chelib" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
-                            (list :settings (lsp-java--settings)
+                            (list :settings (lsp-configuration-section "java")
                                   :extendedClientCapabilities (list :progressReportProvider t
-                                                                    :classFileContentsSupport t)
+                                                                    :classFileContentsSupport t
+                                                                    :progressReportProvider t
+                                                                    :classFileContentsSupport t
+                                                                    :overrideMethodsPromptSupport t
+                                                                    :hashCodeEqualsPromptSupport t
+                                                                    :advancedOrganizeImportsSupport t
+                                                                    :generateToStringPromptSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
                                                          lsp-session-server-id->folders
@@ -904,7 +1108,7 @@ PROJECT-URI uri of the item."
                                                            (buffer-string))))))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
-                      (lsp-java-update-user-settings)
+                      ;; (lsp-java-update-user-settings)
                       (lsp--server-register-capability
                        (ht ("id" "test-id")
                            ("method" "workspace/didChangeWatchedFiles")
@@ -981,3 +1185,7 @@ PROJECT-URI uri of the item."
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
+
+;; Local Variables:
+;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
+;; End:

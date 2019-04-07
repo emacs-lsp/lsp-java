@@ -36,8 +36,9 @@
                             <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz</url>
-                            <outputFileName>che-jdt-language-server-latest.tar.gz</outputFileName>
+                            <url>${jdt.download.url}</url>
+                            <outputFileName>jdt-language-server-latest.tar.gz</outputFileName>
+                            <skipCache>true</skipCache>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                         </configuration>
                     </execution>
@@ -65,7 +66,7 @@
                         <phase>process-resources</phase>
                         <configuration>
                             <tasks>
-                                <untar src="${project.build.directory}/che-jdt-language-server-latest.tar.gz" compression="gzip" dest="${jdt.js.server.root}"/>
+                                <untar src="${project.build.directory}/jdt-language-server-latest.tar.gz" compression="gzip" dest="${jdt.js.server.root}"/>
                                 <unzip src="${project.build.directory}/vscode-extension.zip" dest="${project.build.directory}/vscode-extension-extracted"/>
                             </tasks>
                         </configuration>
