@@ -888,7 +888,13 @@ PROJECT-URI uri of the item."
                             (list :settings (lsp-java--settings)
                                   :extendedClientCapabilities (list :progressReportProvider t
                                                                     :classFileContentsSupport t)
-                                  :bundles (lsp-java--bundles)))
+                                  :bundles (lsp-java--bundles)
+                                  :workspaceFolders (->> (lsp-session)
+                                                         lsp-session-server-id->folders
+                                                         (gethash 'jdtls)
+                                                         (-uniq)
+                                                         (-map #'lsp--path-to-uri)
+                                                         (apply #'vector))))
   :library-folders-fn (lambda (_workspace) (list lsp-java-workspace-cache-dir))
   :before-file-open-fn (lambda (workspace)
                          (let ((metadata-file-name (lsp-java--get-metadata-location buffer-file-name)))
