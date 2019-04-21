@@ -569,13 +569,8 @@ PARAMS progress report notification data."
   (lsp-java--ensure-server)
   (message "Server update finished..."))
 
-(defun lsp-java--folders-change (&rest _)
-  "Handler for folder's change."
-  (lsp-java-update-project-uris))
-
 (defun lsp-java--workspace-notify (&rest _args)
-  "Workspace notify handler."
-  (lsp-java-update-project-uris))
+  "Workspace notify handler.")
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
