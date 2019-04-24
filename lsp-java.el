@@ -967,12 +967,12 @@ PROJECT-URI uri of the item."
   (lsp-execute-code-action-by-kind "source.generate.toString"))
 
 (defun lsp-java-generate-equals-and-hash-code ()
-  "Generate `toString' method."
+  "Generate `hashCode' and `equals' methods."
   (interactive)
   (lsp-execute-code-action-by-kind "source.generate.hashCodeEquals"))
 
 (defun lsp-java-generate-overrides ()
-  "Generate `toString' method."
+  "Override methods."
   (interactive)
   (lsp-execute-code-action-by-kind "source.overrideMethods"))
 
