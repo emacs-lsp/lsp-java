@@ -146,7 +146,7 @@ server."
   "Enable/disable the references code lens."
   :type 'boolean)
 
-(defcustom lsp-java-signature-help-enabled nil
+(defcustom lsp-java-signature-help-enabled t
   "Enable/disable the signature help."
   :type 'boolean)
 
@@ -192,7 +192,7 @@ usually)"
 When set to false, code is simply added instead."
   :type 'boolean)
 
-(defcustom lsp-java-completion-guess-method-arguments nil
+(defcustom lsp-java-completion-guess-method-arguments t
   "When set to true, method arguments are guessed when a method
 is selected from as list of code assist proposals."
   :type 'boolean)
