@@ -411,6 +411,18 @@ FULL specify whether full or incremental build will be performed."
   (unless (file-directory-p path)
     (make-directory path t)))
 
+(cl-defmethod lsp-execute-command
+  (_server (command (eql java.show.references)) params)
+  (if-let (refs (cl-third params))
+      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+    (user-error "No references")))
+
+(cl-defmethod lsp-execute-command
+  (_server (command (eql java.show.implementations)) params)
+  (if-let (refs (cl-third params))
+      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+    (user-error "No implementations")))
+
 (defun lsp-java--get-java-version ()
   "Retrieve the java version from shell command."
   (let* ((java-version-output (shell-command-to-string (concat lsp-java-java-path " -version")))
