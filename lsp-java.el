@@ -329,7 +329,7 @@ then list all."
   :type 'boolean
   :group 'lsp-mode)
 
-(defvar lsp-java--download-root "https://raw.githubusercontent.com/yyoncho/lsp-java/che-dep/install/")
+(defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
 
 (defun lsp-java--json-bool (param)
   "Return a PARAM for setting parsable by json.el for booleans."

@@ -49,7 +49,7 @@
                             <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.1/Pivotal.vscode-spring-boot-1.3.0.vsix</url>
+                            <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/Pivotal.vscode-spring-boot-1.6.0.vsix</url>
                             <outputFileName>vscode-extension.zip</outputFileName>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                         </configuration>
