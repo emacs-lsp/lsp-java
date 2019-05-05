@@ -413,13 +413,13 @@ FULL specify whether full or incremental build will be performed."
 
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.references)) params)
-  (if-let (refs (cl-third params))
+  (if-let (refs (seq-elt params 2))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.implementations)) params)
-  (if-let (refs (cl-third params))
+  (if-let (refs (seq-elt params 2))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No implementations")))
 
