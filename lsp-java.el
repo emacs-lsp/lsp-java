@@ -1125,7 +1125,8 @@ PROJECT-URI uri of the item."
                                                            (ht ("globPattern" "**/*.gradle"))
                                                            (ht ("globPattern" "**/.project"))
                                                            (ht ("globPattern" "**/.classpath"))
-                                                           (ht ("globPattern" "**/settings/*.prefs"))))))))))))
+                                                           (ht ("globPattern" "**/settings/*.prefs"))))))))))
+  :completion-in-comments? t))
 
 (defun lsp-java-spring-initializr ()
   "Emacs frontend for https://start.spring.io/."
