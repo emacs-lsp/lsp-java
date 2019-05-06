@@ -117,6 +117,7 @@ Store CALLBACK to use it `sts/highlight'."
                    (format "-Dloader.path=%s" (lsp-java-boot--find-tools-jar)))
                  (format "-Dspring.lsp.client-port=%s" port)
                  (format "-Dserver.port=%s" port)
+                 ;; "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044,quiet=y"
                  "-Dsts.lsp.client=vscode"
                  (concat "-Dsts.log.file=" (make-temp-file "sts-log-file" nil ".log"))
                  (concat "-Dlogging.file=" (make-temp-file "logging-file" nil ".log"))
