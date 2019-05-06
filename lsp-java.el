@@ -969,9 +969,9 @@ PROJECT-URI uri of the item."
                 (apply #'vector)))))
       (_ (ignore
           (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
+            (aset arguments 2 (if (seq-elt arguments 2) t :json-false))
             (lsp-request "workspace/executeCommand"
-                         (list :command command :arguments arguments)
-                         :no-wait t)))))))
+                         (list :command command :arguments arguments))))))))
 
 (defun lsp-java-generate-to-string ()
   "Generate `toString' method."
