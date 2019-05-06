@@ -4,6 +4,8 @@
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0"))
+
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -46,7 +48,7 @@
       (error "Please configure either JAVA_HOME or lsp-java-boot-java-tools-jar"))
     tools-jar))
 
-(defun lsp-java--sts-javadoc-hover-link (_workspace params)
+(defun lsp-java-boot--sts-javadoc-hover-link (_workspace params)
   "Handler for java doc hover."
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
     (lsp-request "workspace/executeCommand"
@@ -89,7 +91,7 @@ Store CALLBACK to use it `sts/highlight'."
   (goto-char (lsp--position-to-point (first params)))
   (lsp-describe-thing-at-point))
 
-(defun lsp-java-boot--sts/hightlight (workspace params)
+(defun lsp-java-boot--sts-hightlight (workspace params)
   "WORKSPACE PARAMS."
   (with-lsp-workspace workspace
     (-let (((&hash "doc" (&hash "uri" "version") "codeLenses" code-lenses) params))
@@ -129,8 +131,8 @@ Store CALLBACK to use it `sts/highlight'."
                                         (memq major-mode '(java-mode conf-javaprop-mode yaml-mode))
                                         (lsp-java-boot--server-jar)))
                   :request-handlers  (ht ("sts/addClasspathListener" #'lsp-java-boot--sts-add-classpath-listener)
-                                         ("sts/javadocHoverLink" #'lsp-java--sts-javadoc-hover-link))
-                  :notification-handlers  (ht ("sts/highlight" #'lsp-java-boot--sts/hightlight)
+                                         ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link))
+                  :notification-handlers  (ht ("sts/highlight" #'lsp-java-boot--sts-hightlight)
                                               ("sts/progress" #'ignore))
                   :initialized-fn (lambda (workspace)
                                     (puthash
