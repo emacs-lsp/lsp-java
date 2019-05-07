@@ -39,8 +39,7 @@
                      (setq retry-count (1+ retry-count))
                      (message "The function failed, attempt %s" retry-count)))))))
 
-(Given "^I have maven project \"\\([^\"]+\\)\" in \"\\([^\"]+\\)\"$"
-       (lambda (project-name dir-name)
+(defun lsp-java-steps-project (project-name dir-name config-name config)
          (setq default-directory lsp-java-test-root)
 
          ;; delete old directory
@@ -52,8 +51,12 @@
                  (f-join   dir-name project-name "src" "main" "java" "temp")) t)
 
          ;; add pom.xml
-         (with-temp-file (expand-file-name "pom.xml" (f-join dir-name project-name))
-           (insert "
+         (with-temp-file (expand-file-name config-name (f-join dir-name project-name))
+           (insert config)))
+
+(Given "^I have maven project \"\\([^\"]+\\)\" in \"\\([^\"]+\\)\"$"
+       (lambda (project-name dir-name)
+				 (lsp-java-steps-project project-name dir-name "pom.xml" "
 <project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
   xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">
   <modelVersion>4.0.0</modelVersion>
@@ -68,7 +71,33 @@
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-</project>"))))
+</project>")))
+
+(Given "^I have gradle groovy DSL project \"\\([^\"]+\\)\" in \"\\([^\"]+\\)\"$"
+       (lambda (project-name dir-name)
+				 (lsp-java-steps-project project-name dir-name "build.gradle" "
+plugins {
+    id 'java'
+}
+repositories {
+    jcenter()
+}
+dependencies {
+    implementation 'com.google.guava:guava:27.0.1-jre'
+}")))
+
+(Given "^I have gradle kotlin DSL project \"\\([^\"]+\\)\" in \"\\([^\"]+\\)\"$"
+       (lambda (project-name dir-name)
+				 (lsp-java-steps-project project-name dir-name "build.gradle.kts" "
+plugins {
+    java
+}
+repositories {
+    jcenter()
+}
+dependencies {
+    implementation(\"com.google.guava:guava:27.0.1-jre\")
+}")))
 
 (And "^I have a java file \"\\([^\"]+\\)\"$"
      (lambda (file-name)
