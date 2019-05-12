@@ -384,26 +384,31 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
 (defun lsp-java--current-workspace-or-lose ()
   "Look for the jdt-ls workspace."
   (or lsp--cur-workspace
-      (when (functionp 'lsp-find-workspace) (lsp-find-workspace 'jdtls (buffer-file-name)))
+      (lsp-find-workspace 'jdtls (buffer-file-name))
       (error "Unable to find workspace")))
+
+(defmacro lsp-java-with-jdtls  (&rest body)
+  "Helper macro for invoking BODY against WORKSPACE context."
+  (declare (debug (form body))
+           (indent 0))
+  `(let ((lsp--cur-workspace (lsp-java--current-workspace-or-lose))) ,@body))
 
 (defun lsp-java-build-project (&optional full)
   "Perform project build action.
 
 FULL specify whether full or incremental build will be performed."
   (interactive "P" )
-  (lsp-send-notification
-   (lsp-make-request "java/buildWorkspace" (if full t :json-false))))
+  (lsp-java-with-jdtls
+    (lsp-notify "java/buildWorkspace" (if full t :json-false))))
 
 (defun lsp-java-update-project-configuration ()
   "Update project configuration."
   (interactive)
   (let ((file-name (file-name-nondirectory (buffer-file-name))))
     (if (or (string= file-name "pom.xml") (string-match "\\.gradle" file-name))
-        (with-lsp-workspace (lsp-java--current-workspace-or-lose)
-          (lsp-send-notification
-           (lsp-make-request "java/projectConfigurationUpdate"
-                             (list :uri (lsp--buffer-uri)))))
+        (lsp-java-with-jdtls
+          (lsp-notify "java/projectConfigurationUpdate"
+                      (lsp--text-document-identifier)))
       (error "Update configuration could be called only from build file(pom.xml or gradle build file)"))))
 
 (defun lsp-java--ensure-dir (path)
@@ -993,6 +998,11 @@ PROJECT-URI uri of the item."
   (interactive)
   (lsp-execute-code-action-by-kind "source.organizeImports"))
 
+(defun lsp-java-generate-getters-and-setters ()
+  "Generate getter and setters with prompt."
+  (interactive)
+  (lsp-execute-code-action-by-kind "source.generate.accessors"))
+
 (defun lsp-java--completing-read-multiple (message items initial-selection)
   (let ((deps initial-selection) dep)
     (while (setq dep (cl-rest (lsp--completing-read
@@ -1032,44 +1042,66 @@ PROJECT-URI uri of the item."
                             :context context)))))))
 
 (defun lsp-java--action-generate-equals-and-hash-code (action)
-  (-let* ((context (seq-first (gethash "arguments" action)))
-          ((&hash "fields" "existingMethods" methods) (lsp-request "java/checkHashCodeEqualsStatus" context))
-          (fields-data (-map (-lambda ((field &as &hash "name" "type"))
-                               (cons (format "%s: %s" name type) field))
-                             fields)))
-    (when (or (seq-empty-p methods) (y-or-n-p (format "The %s method already exists. Replace?" methods)) )
-      (let* ((selected-fields (lsp-java--completing-read-multiple "Select fields to include"
-                                                                  fields-data (-map #'cl-rest fields-data))))
-        (lsp-java--apply-document-changes
-         (lsp-request "java/generateHashCodeEquals"
-                      (list :fields (apply #'vector selected-fields)
-                            :context context
-                            :regenerate (not (null methods)))))))))
+  (lsp-java-with-jdtls
+    (-let* ((context (seq-first (gethash "arguments" action)))
+            ((&hash "fields" "existingMethods" methods) (lsp-request "java/checkHashCodeEqualsStatus" context))
+            (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+                                 (cons (format "%s: %s" name type) field))
+                               fields)))
+      (when (or (seq-empty-p methods) (y-or-n-p (format "The %s method already exists. Replace?" methods)) )
+        (let* ((selected-fields (lsp-java--completing-read-multiple "Select fields to include"
+                                                                    fields-data (-map #'cl-rest fields-data))))
+          (lsp-java--apply-document-changes
+           (lsp-request "java/generateHashCodeEquals"
+                        (list :fields (apply #'vector selected-fields)
+                              :context context
+                              :regenerate (not (null methods))))))))))
 
 (defun lsp-java--action-organize-imports (action)
-  (let ((context (seq-first (gethash "arguments" action))))
-    (lsp-request-async
-     "java/organizeImports" context
-     (lambda (result)
-       (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
-                  (lsp--apply-text-edits value))
-                (gethash "changes" result)))
-     :mode 'detached)))
+  (lsp-java-with-jdtls
+    (let ((context (seq-first (gethash "arguments" action))))
+      (lsp-request-async
+       "java/organizeImports" context
+       (lambda (result)
+         (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
+                    (lsp--apply-text-edits value))
+                  (gethash "changes" result)))
+       :mode 'detached))))
 
 (defun lsp-java--override-methods-prompt (action)
-  (let* ((context (seq-first (gethash "arguments" action)))
-         (result (lsp-request "java/listOverridableMethods" context))
-         (methods-data (-map (-lambda ((field &as &hash "name" "parameters" "declaringClass" class))
-                               (cons (format "%s(%s) class: %s" name (s-join ", " parameters) class) field))
-                             (gethash "methods" result)))
-         (methods-to-override (lsp-java--completing-read-multiple
-                               "Select methods to override"
-                               methods-data
-                               (-map #'cl-rest methods-data))))
-    (lsp-java--apply-document-changes
-     (lsp-request "java/addOverridableMethods"
-                  (list :overridableMethods (apply #'vector methods-to-override)
-                        :context context)))))
+  (lsp-java-with-jdtls
+    (let* ((context (seq-first (gethash "arguments" action)))
+           (result (lsp-request "java/listOverridableMethods" context))
+           (methods-data (-map (-lambda ((field &as &hash "name" "parameters" "declaringClass" class))
+                                 (cons (format "%s(%s) class: %s" name (s-join ", " parameters) class) field))
+                               (gethash "methods" result)))
+           (methods-to-override (lsp-java--completing-read-multiple
+                                 "Select methods to override"
+                                 methods-data
+                                 (-map #'cl-rest methods-data))))
+      (lsp-java--apply-document-changes
+       (lsp-request "java/addOverridableMethods"
+                    (list :overridableMethods (apply #'vector methods-to-override)
+                          :context context))))))
+
+(defun lsp-java--generate-accessors-prompt (action)
+  (lsp-java-with-jdtls
+    (let* ((context (seq-first (gethash "arguments" action)))
+           (result (lsp-request "java/resolveUnimplementedAccessors" context))
+           (fields-data (-map (-lambda ((field &as &hash "fieldName" name
+                                               "generateGetter" getter?
+                                               "generateSetter" setter?
+                                               "isStatic" static?))
+                                 (cons (format "%s" name) field))
+                              result))
+           (to-generate (lsp-java--completing-read-multiple
+                                 "Select getters/setters to generate"
+                                 fields-data
+                                 (-map #'cl-rest fields-data))))
+      (lsp-java--apply-document-changes
+       (lsp-request "java/generateAccessors"
+                    (list :accessors(apply #'vector to-generate)
+                          :context context))))))
 
 (lsp-register-client
  (make-lsp--client
@@ -1086,7 +1118,8 @@ PROJECT-URI uri of the item."
                        ("java.action.generateToStringPrompt" #'lsp-java--action-generate-to-string)
                        ("java.action.hashCodeEqualsPrompt" #'lsp-java--action-generate-equals-and-hash-code)
                        ("java.action.organizeImports" #'lsp-java--action-organize-imports)
-                       ("java.action.overrideMethodsPrompt" #'lsp-java--override-methods-prompt))
+                       ("java.action.overrideMethodsPrompt" #'lsp-java--override-methods-prompt)
+                       ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt))
   :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri)
                     ("chelib" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
@@ -1098,7 +1131,8 @@ PROJECT-URI uri of the item."
                                                                     :overrideMethodsPromptSupport t
                                                                     :hashCodeEqualsPromptSupport t
                                                                     :advancedOrganizeImportsSupport t
-                                                                    :generateToStringPromptSupport t)
+                                                                    :generateToStringPromptSupport t
+                                                                    :advancedGenerateAccessorsSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
                                                          lsp-session-server-id->folders

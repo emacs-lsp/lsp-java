@@ -62,7 +62,6 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
    (require 'use-package)))
 
 (use-package projectile :ensure t)
-(use-package treemacs :ensure t)
 (use-package yasnippet :ensure t)
 (use-package lsp-mode :ensure t)
 (use-package hydra :ensure t)
@@ -78,7 +77,6 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (dap-ui-mode t))
 
 (use-package dap-java :after (lsp-java))
-(use-package lsp-java-treemacs :after (treemacs))
 
 ```
 ## Supported commands
@@ -104,6 +102,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 * `lsp-java-generate-to-string` - Generate `toString` method.
 * `lsp-java-generate-equals-and-hash-code` - Generate `equals` and `hashCode` methods.
 * `lsp-java-generate-overrides` - Generate method `overrides`
+* `lsp-java-generate-getters-and-setters` - Generate getters and setters.
 #### Refactoring
 LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
