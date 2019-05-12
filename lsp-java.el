@@ -705,6 +705,16 @@ current symbol."
   (interactive)
   (lsp-java-execute-matching-action "Extract to method"))
 
+(defun lsp-java-assign-to-field ()
+  "Assign to new field."
+  (interactive)
+  (lsp-java-execute-matching-action "Assign parameter to new field"))
+
+(defun lsp-java-assign-all ()
+  "Assign to new field."
+  (interactive)
+  (lsp-java-execute-matching-action "Assign all parameters to new fields"))
+
 (defun lsp-java-add-import ()
   "Add missing import."
   (interactive)
