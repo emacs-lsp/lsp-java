@@ -1036,20 +1036,21 @@ PROJECT-URI uri of the item."
            (gethash "changes" response)))
 
 (defun lsp-java--action-generate-to-string (action)
-  (-let* ((context (seq-first (gethash "arguments" action)))
-          ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
-          (fields-data (-map (-lambda ((field &as &hash "name" "type"))
-                               (cons (format "%s: %s" name type) field))
-                             fields)))
-    (when (or (not exists) (y-or-n-p "The equals method already exists. Replace?") )
-      (let ((selected-fields (lsp-java--completing-read-multiple
-                              "Select fields to include"
-                              fields-data
-                              (-map #'cl-rest fields-data))))
-        (lsp-java--apply-document-changes
-         (lsp-request "java/generateToString"
-                      (list :fields (apply #'vector selected-fields)
-                            :context context)))))))
+  (lsp-java-with-jdtls
+    (-let* ((context (seq-first (gethash "arguments" action)))
+           ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
+           (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+                                (cons (format "%s: %s" name type) field))
+                              fields)))
+     (when (or (not exists) (y-or-n-p "The equals method already exists. Replace?") )
+       (let ((selected-fields (lsp-java--completing-read-multiple
+                               "Select fields to include"
+                               fields-data
+                               (-map #'cl-rest fields-data))))
+         (lsp-java--apply-document-changes
+          (lsp-request "java/generateToString"
+                       (list :fields (apply #'vector selected-fields)
+                             :context context))))))))
 
 (defun lsp-java--action-generate-equals-and-hash-code (action)
   (lsp-java-with-jdtls
