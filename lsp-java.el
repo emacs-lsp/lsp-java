@@ -399,7 +399,14 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
 FULL specify whether full or incremental build will be performed."
   (interactive "P" )
   (lsp-java-with-jdtls
-    (lsp-notify "java/buildWorkspace" (if full t :json-false))))
+    (lsp-request-async
+     "java/buildWorkspace"
+     (lsp-json-bool full)
+     (lambda (result)
+       (pcase result
+         (1 (lsp--info "Successfully build project."))
+         (2 (lsp--error "Failed to build project."))))
+     :mode 'detached)))
 
 (defun lsp-java-update-project-configuration ()
   "Update project configuration."
