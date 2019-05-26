@@ -577,7 +577,7 @@ PARAMS progress report notification data."
                          (expand-file-name (lsp-java--bundles-dir))
                          lsp-java-jdt-download-url)))
       (message "Running %s" full-command)
-      (shell-command full-command))))
+      (async-shell-command full-command))))
 
 (defun lsp-java-update-server ()
   "Update LDT LS server."
