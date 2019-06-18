@@ -1167,7 +1167,7 @@ PROJECT-URI uri of the item."
                                                            (buffer-string))))))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
-                      ;; (lsp-java-update-user-settings)
+                      (lsp--set-configuration (lsp-configuration-section "java"))
                       (lsp--server-register-capability
                        (ht ("id" "test-id")
                            ("method" "workspace/didChangeWatchedFiles")
