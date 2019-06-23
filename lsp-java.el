@@ -961,13 +961,13 @@ PROJECT-URI uri of the item."
 
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.references)) params)
-  (if-let (refs (cl-third params))
+  (if-let (refs (cl-third (append params nil)))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.implementations)) params)
-  (if-let (refs (cl-third params))
+  (if-let (refs (cl-third (append params nil)))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No implementations")))
 
