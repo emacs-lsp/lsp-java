@@ -1110,15 +1110,44 @@ PROJECT-URI uri of the item."
                                                "generateGetter" getter?
                                                "generateSetter" setter?
                                                "isStatic" static?))
-                                 (cons (format "%s" name) field))
+                                (cons (format "%s" name) field))
                               result))
            (to-generate (lsp-java--completing-read-multiple
-                                 "Select getters/setters to generate"
-                                 fields-data
-                                 (-map #'cl-rest fields-data))))
+                         "Select getters/setters to generate"
+                         fields-data
+                         (-map #'cl-rest fields-data))))
       (lsp-java--apply-document-changes
        (lsp-request "java/generateAccessors"
                     (list :accessors(apply #'vector to-generate)
+                          :context context))))))
+
+(defun lsp-java--generate-constructors-prompt (action)
+  (lsp-java-with-jdtls
+    (-let* ((context (seq-first (gethash "arguments" action)))
+            ((all &as &hash "constructors" "fields") (lsp-request "java/checkConstructorsStatus" context))
+            (constructors (append constructors nil))
+            (selection-constructors (-map (-lambda ((field &as &hash "name" "parameters"))
+                                            (cons (format "%s(%s)" name (s-join ", " parameters)) field))
+                                          (append constructors nil)))
+
+            (to-generate (if (cl-rest selection-constructors)
+                             (lsp-java--completing-read-multiple
+                              "Select constructors to generate"
+                              selection-constructors
+                              (-map #'cl-rest  selection-constructors))
+                           (append  constructors nil)))
+            (fields-source (-map (-lambda ((field &as &hash "name" "type"))
+                                   (cons (format "%s: %s" name type) field))
+                                 fields))
+            (fields (when fields-source
+                      (lsp-java--completing-read-multiple
+                       "Select fields"
+                       fields-source
+                       (-map #'cl-rest fields-source)))))
+      (lsp-java--apply-document-changes
+       (lsp-request "java/generateConstructors"
+                    (list :fields (apply #'vector fields)
+                          :constructors (apply #'vector to-generate)
                           :context context))))))
 
 (lsp-register-client
@@ -1137,7 +1166,8 @@ PROJECT-URI uri of the item."
                        ("java.action.hashCodeEqualsPrompt" #'lsp-java--action-generate-equals-and-hash-code)
                        ("java.action.organizeImports" #'lsp-java--action-organize-imports)
                        ("java.action.overrideMethodsPrompt" #'lsp-java--override-methods-prompt)
-                       ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt))
+                       ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt)
+                       ("java.action.generateConstructorsPrompt" #'lsp-java--generate-constructors-prompt))
   :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri)
                     ("chelib" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
@@ -1149,6 +1179,7 @@ PROJECT-URI uri of the item."
                                                                     :overrideMethodsPromptSupport t
                                                                     :hashCodeEqualsPromptSupport t
                                                                     :advancedOrganizeImportsSupport t
+                                                                    :generateConstructorsPromptSupport t
                                                                     :generateToStringPromptSupport t
                                                                     :advancedGenerateAccessorsSupport t)
                                   :bundles (lsp-java--bundles)
