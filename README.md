@@ -78,6 +78,12 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 
 (use-package dap-java :after (lsp-java))
 
+(use-package lsp-ui-flycheck
+  :ensure nil
+  :after lsp-mode
+  :config
+  (add-hook 'lsp-after-open-hook (lambda () (lsp-ui-flycheck-enable 1))))
+
 ```
 ## Supported commands
 ### LSP Mode commands
