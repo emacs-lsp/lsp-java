@@ -142,7 +142,8 @@ Store CALLBACK to use it `sts/highlight'."
                                      (gethash "completionProvider" (lsp--workspace-server-capabilities workspace))))
                   :multi-root t
                   :add-on? t
-                  :server-id 'boot-ls))
+                  :server-id 'boot-ls
+                  :completion-in-comments? t))
 
 (provide 'lsp-java-boot)
 ;;; lsp-java-boot.el ends here
