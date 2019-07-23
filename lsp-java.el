@@ -1256,20 +1256,7 @@ PROJECT-URI uri of the item."
                                                                         (cons (format "%s / %s (%s)" name dep-name description) id)) values)))
                                                         (apply 'append)))
                                (temp-file (make-temp-file "spring-project" nil ".zip"))
-                               deps dep)
-                         (while (setq dep (-> (lsp--completing-read
-                                               (if deps
-                                                   (format "Select dependency (M-RET to finish) (selected %s): " (length deps))
-                                                 "Select dependency (M-RET to finish): ")
-                                               dependenciles-list
-                                               (-lambda ((name . id))
-                                                 (if (-contains? deps id)
-                                                     (concat "(Added) " name)
-                                                   name)))
-                                              rest))
-                           (if (-contains? deps dep)
-                               (setq deps (remove dep deps))
-                             (cl-pushnew dep deps)))
+                               (deps (lsp-java--completing-read-multiple "Select dependencies: " dependenciles-list nil)))
                          (let ((download-url (format "%sstarter.zip?type=%s&language=%s&groupId=%s&artifactId=%s&packaging=%s&bootVersion=%s&baseDir=%s&dependencies=%s"
                                                      base-url type language group-id artifact-id packaging boot-version artifact-id (s-join "," deps))))
                            (message "Downloading template from %s" download-url)
