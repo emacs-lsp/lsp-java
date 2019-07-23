@@ -1021,20 +1021,29 @@ PROJECT-URI uri of the item."
   (lsp-execute-code-action-by-kind "source.generate.accessors"))
 
 (defun lsp-java--completing-read-multiple (message items initial-selection)
-  (let ((deps initial-selection) dep)
-    (while (setq dep (cl-rest (lsp--completing-read
-                               (if deps
-                                   (format "%s (selected %s): " message (length deps))
-                                 (concat message ": "))
-                               items
-                               (-lambda ((name . id))
-                                 (if (-contains? deps id)
-                                     (concat name " ✓")
-                                   name)))))
-      (if (-contains? deps dep)
-          (setq deps (remove dep deps))
-        (cl-pushnew dep deps)))
-    deps))
+  (if (functionp 'helm)
+      (let (result)
+        (helm :sources (helm-build-sync-source message
+                         :candidates items
+                         :action '(("Identity" . (lambda (_)
+                                                   (setq result (helm-marked-candidates))))))
+              :buffer "*lsp-java select*"
+              :prompt message)
+        result)
+    (let ((deps initial-selection) dep)
+      (while (setq dep (cl-rest (lsp--completing-read
+                                 (if deps
+                                     (format "%s (selected %s): " message (length deps))
+                                   (concat message ": "))
+                                 items
+                                 (-lambda ((name . id))
+                                   (if (-contains? deps id)
+                                       (concat name " ✓")
+                                     name)))))
+        (if (-contains? deps dep)
+            (setq deps (remove dep deps))
+          (cl-pushnew dep deps)))
+      deps)))
 
 (defun lsp-java--apply-document-changes (response)
   "Apply document CHANGES."
@@ -1045,19 +1054,19 @@ PROJECT-URI uri of the item."
 (defun lsp-java--action-generate-to-string (action)
   (lsp-java-with-jdtls
     (-let* ((context (seq-first (gethash "arguments" action)))
-           ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
-           (fields-data (-map (-lambda ((field &as &hash "name" "type"))
-                                (cons (format "%s: %s" name type) field))
-                              fields)))
-     (when (or (not exists) (y-or-n-p "The equals method already exists. Replace?") )
-       (let ((selected-fields (lsp-java--completing-read-multiple
-                               "Select fields to include"
-                               fields-data
-                               (-map #'cl-rest fields-data))))
-         (lsp-java--apply-document-changes
-          (lsp-request "java/generateToString"
-                       (list :fields (apply #'vector selected-fields)
-                             :context context))))))))
+            ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
+            (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+                                 (cons (format "%s: %s" name type) field))
+                               fields)))
+      (when (or (not exists) (y-or-n-p "The equals method already exists. Replace?") )
+        (let ((selected-fields (lsp-java--completing-read-multiple
+                                "Select fields to include"
+                                fields-data
+                                (-map #'cl-rest fields-data))))
+          (lsp-java--apply-document-changes
+           (lsp-request "java/generateToString"
+                        (list :fields (apply #'vector selected-fields)
+                              :context context))))))))
 
 (defun lsp-java--action-generate-equals-and-hash-code (action)
   (lsp-java-with-jdtls
