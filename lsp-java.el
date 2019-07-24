@@ -1030,20 +1030,28 @@ PROJECT-URI uri of the item."
               :buffer "*lsp-java select*"
               :prompt message)
         result)
-    (let ((deps initial-selection) dep)
-      (while (setq dep (cl-rest (lsp--completing-read
-                                 (if deps
-                                     (format "%s (selected %s): " message (length deps))
-                                   (concat message ": "))
-                                 items
-                                 (-lambda ((name . id))
-                                   (if (-contains? deps id)
-                                       (concat name " ✓")
-                                     name)))))
-        (if (-contains? deps dep)
-            (setq deps (remove dep deps))
-          (cl-pushnew dep deps)))
-      deps)))
+    (if (functionp 'ivy-read)
+        (let (result)
+          (ivy-read message (mapcar #'car items)
+                    :action (lambda (c) (setq result (list (cdr (assoc c items)))))
+                    :multi-action
+                    (lambda (canditates)
+                      (setq result (mapcar (lambda (c) (cdr (assoc c items))) canditates))))
+          result)
+      (let ((deps initial-selection) dep)
+        (while (setq dep (cl-rest (lsp--completing-read
+                                   (if deps
+                                       (format "%s (selected %s): " message (length deps))
+                                     (concat message ": "))
+                                   items
+                                   (-lambda ((name . id))
+                                     (if (-contains? deps id)
+                                         (concat name " ✓")
+                                       name)))))
+          (if (-contains? deps dep)
+              (setq deps (remove dep deps))
+            (cl-pushnew dep deps)))
+        deps))))
 
 (defun lsp-java--apply-document-changes (response)
   "Apply document CHANGES."
