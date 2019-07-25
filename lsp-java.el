@@ -584,7 +584,8 @@ PARAMS progress report notification data."
                          (expand-file-name (lsp-java--bundles-dir))
                          lsp-java-jdt-download-url)))
       (message "Running %s" full-command)
-      (shell-command full-command))))
+      (unless (zerop (shell-command full-command))
+	(user-error "Failed to install lsp server using '%s'" full-command)))))
 
 (defun lsp-java-update-server ()
   "Update LDT LS server."
