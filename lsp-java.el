@@ -1023,10 +1023,10 @@ PROJECT-URI uri of the item."
 (defun lsp-java--completing-read-multiple (message items initial-selection)
   (if (functionp 'helm)
       (let (result)
-        (helm :sources (helm-build-sync-source message
-                         :candidates items
-                         :action '(("Identity" . (lambda (_)
-                                                   (setq result (helm-marked-candidates))))))
+        (require 'helm-source)
+        (helm :sources (helm-make-source
+                           message 'helm-source-sync :candidates items :action
+                           '(("Identity" lambda (_) (setq result (helm-marked-candidates)))))
               :buffer "*lsp-java select*"
               :prompt message)
         result)
