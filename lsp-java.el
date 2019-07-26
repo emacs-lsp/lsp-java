@@ -46,7 +46,7 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
-(defcustom lsp-java-jdt-download-url "http://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz"
+(defcustom lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz"
   "JDT JS download url.
 Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz if you want to use Eclipse Che JDT LS."
   :group 'lsp-java
@@ -563,28 +563,27 @@ PARAMS progress report notification data."
 
 (defun lsp-java--ensure-server ()
   "Ensure that JDT server and the other configuration."
-  (let* ((default-directory (concat temporary-file-directory "lsp-java-install/")))
-    (when (file-directory-p default-directory)
-      (delete-directory default-directory t))
-    (when (file-directory-p lsp-java-server-install-dir)
-      (delete-directory lsp-java-server-install-dir t))
-    (mkdir default-directory t)
-    (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
-    (let ((full-command (format
-                         "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
-                         (or (executable-find "mvn") (lsp-java--prepare-mvnw))
-                         (expand-file-name lsp-java-server-install-dir)
-                         (expand-file-name
-                          (if (boundp 'dap-java-test-runner)
-                              (file-name-directory dap-java-test-runner)
-                            (concat (file-name-directory lsp-java-server-install-dir) "test-runner")))
-                         (if (boundp 'dap-java-test-runner)
-                             (file-name-nondirectory (directory-file-name dap-java-test-runner))
-                           "junit-platform-console-standalone.jar")
-                         (expand-file-name (lsp-java--bundles-dir))
-                         lsp-java-jdt-download-url)))
-      (message "Running %s" full-command)
-      (shell-command full-command))))
+  (let* ((default-directory (make-temp-file "lsp-java-install" t)))
+    (unwind-protect
+	(progn
+	  (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
+	  (let ((full-command (format
+			       "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
+			       (or (executable-find "mvn") (lsp-java--prepare-mvnw))
+			       (expand-file-name lsp-java-server-install-dir)
+			       (expand-file-name
+				(if (boundp 'dap-java-test-runner)
+				    (file-name-directory dap-java-test-runner)
+				  (concat (file-name-directory lsp-java-server-install-dir) "test-runner")))
+			       (if (boundp 'dap-java-test-runner)
+				   (file-name-nondirectory (directory-file-name dap-java-test-runner))
+				 "junit-platform-console-standalone.jar")
+			       (expand-file-name (lsp-java--bundles-dir))
+			       lsp-java-jdt-download-url)))
+	    (message "Running %s" full-command)
+	    (unless (zerop (shell-command full-command))
+	      (user-error "Failed to install lsp server using '%s'" full-command)))))
+    (delete-directory default-directory t)))
 
 (defun lsp-java-update-server ()
   "Update LDT LS server."
