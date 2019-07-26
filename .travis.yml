@@ -22,7 +22,7 @@ install:
   - cask install
 script:
   - cask build
-  - cask exec ecukes --timeout 60
+  # - cask exec ecukes --timeout 60
 
 notifications:
   webhooks:
