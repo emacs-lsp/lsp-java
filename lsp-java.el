@@ -1167,6 +1167,37 @@ PROJECT-URI uri of the item."
                           :constructors (apply #'vector to-generate)
                           :context context))))))
 
+(defun lsp-java--apply-refactoring-command (action)
+  (lsp-java-with-jdtls
+    (-let* (((command context command-info) (append (gethash "arguments" action) nil))
+            (arguments (when (or (string= command "extractField")
+                                 (string= command "convertVariableToField"))
+                         (when-let (scope (pcase (append (gethash "initializedScopes" command-info) nil)
+                                            (`nil nil)
+                                            (`(,scope) scope)
+                                            (scopes (or (completing-read "Initialize the field in: " scopes nil t)
+                                                        (user-error "Cancelled...")))))
+                           (vector scope))))
+            ((&hash "edit" "command") (lsp-request
+                                       "java/getRefactorEdit"
+                                       (list :command command
+                                             :context context
+                                             :options (plist-get (lsp--make-document-formatting-params) :options)
+                                             :commandArguments arguments))))
+      (lsp--apply-workspace-edit edit)
+      (lsp-execute-code-action command))))
+
+
+(defun lsp-java--action-rename (action)
+  (-let* (([(&hash "uri" "offset" "length")] (gethash "arguments" action)))
+    (with-current-buffer (find-file (lsp--uri-to-path uri))
+      (deactivate-mark)
+      (goto-char (1+ offset))
+      (set-mark (point))
+      (goto-char (+ (point) length))
+      (call-interactively 'lsp-rename)
+      (deactivate-mark))))
+
 (lsp-register-client
  (make-lsp--client
   :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
@@ -1184,7 +1215,9 @@ PROJECT-URI uri of the item."
                        ("java.action.organizeImports" #'lsp-java--action-organize-imports)
                        ("java.action.overrideMethodsPrompt" #'lsp-java--override-methods-prompt)
                        ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt)
-                       ("java.action.generateConstructorsPrompt" #'lsp-java--generate-constructors-prompt))
+                       ("java.action.generateConstructorsPrompt" #'lsp-java--generate-constructors-prompt)
+                       ("java.action.applyRefactoringCommand" #'lsp-java--apply-refactoring-command)
+                       ("java.action.rename" 'lsp-java--action-rename))
   :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri)
                     ("chelib" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
@@ -1198,7 +1231,8 @@ PROJECT-URI uri of the item."
                                                                     :advancedOrganizeImportsSupport t
                                                                     :generateConstructorsPromptSupport t
                                                                     :generateToStringPromptSupport t
-                                                                    :advancedGenerateAccessorsSupport t)
+                                                                    :advancedGenerateAccessorsSupport t
+                                                                    :advancedExtractRefactoringSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
                                                          lsp-session-server-id->folders
