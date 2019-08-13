@@ -43,13 +43,25 @@
           </execution>
           <execution>
             <phase>process-resources</phase>
-            <id>download-vscode</id>
+            <id>download-spring-boot</id>
             <goals>
               <goal>wget</goal>
             </goals>
             <configuration>
               <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/Pivotal.vscode-spring-boot-1.6.0.vsix</url>
               <outputFileName>vscode-extension.zip</outputFileName>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>process-resources</phase>
+            <id>download-java-dependency</id>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/vscjava.vscode-java-dependency-0.5.1.vsix</url>
+              <outputFileName>java-dependency.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
           </execution>
@@ -67,6 +79,7 @@
               <tasks>
                 <untar src="${project.build.directory}/jdt-language-server-latest.tar.gz" compression="gzip" dest="${jdt.js.server.root}" />
                 <unzip src="${project.build.directory}/vscode-extension.zip" dest="${project.build.directory}/vscode-extension-extracted" />
+                <unzip src="${project.build.directory}/java-dependency.zip" dest="${project.build.directory}/java-dependency" />
               </tasks>
             </configuration>
             <goals>
@@ -145,6 +158,24 @@
                     <include>jdt-ls-commons.jar</include>
                     <include>org.reactivestreams.reactive-streams.jar</include>
                     <include>io.projectreactor.reactor-core.jar</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-dep-bundles</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jdt.js.server.root}/bundles/</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/java-dependency/extension/server/</directory>
+                  <includes>
+                    <include>com.microsoft.jdtls.ext.core-0.5.1.jar</include>
                   </includes>
                 </resource>
               </resources>

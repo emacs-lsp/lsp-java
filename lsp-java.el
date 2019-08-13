@@ -179,6 +179,10 @@ usually)"
   "Enable/disable the 'auto build'"
   :type 'boolean)
 
+(defcustom lsp-java-selection-enabled t
+  "Enable/disable the 'auto build'"
+  :type 'boolean)
+
 (defcustom lsp-java-max-concurrent-builds 1
   "Max simultaneous project builds"
   :type 'number)
@@ -308,6 +312,7 @@ then list all."
    ("java.completion.enabled" lsp-java-completion-enabled t)
    ("java.maxConcurrentBuilds" lsp-java-max-concurrent-builds)
    ("java.autobuild.enabled" lsp-java-autobuild-enabled t)
+   ("java.selection.enabled" lsp-java-autobuild-enabled t)
    ("java.contentProvider.preferred" lsp-java-content-provider-preferred)
    ("java.import.exclusions" lsp-java-import-exclusions)
    ("java.saveActions.organizeImports" lsp-java-save-actions-organize-imports t)

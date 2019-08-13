@@ -113,18 +113,9 @@ some of them are bound to Emacs commands:
 * `lsp-java-create-local` - Create local refactoring
 * `lsp-java-extract-method` - Extract method refactoring
 * `lsp-java-add-import` - Add missing import
-#### Treemacs
-__NOTE__ It works only when using Eclipse Che Language Server.
+#### Dependency viewer
+* `lsp-java-dependency-list` - View java dependencies
 
-[lsp-java](https://github.com/emacs-lsp/lsp-java) provides experimental integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
-* `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
-* `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
-* `lsp-java-update-project-uris` refresh the project URIs.
-#### Classpath browsing
-__NOTE__ It works only when using Eclipse Che Language Server.
-
-[lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-classpath-browse` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
-![Classpath](images/classpath.png)
 #### STS4 Integration (experimental)
 
 LSP java has integration with [STS4](https://github.com/spring-projects/sts4/) providing the following functionality.
