@@ -31,6 +31,10 @@
   (require 'lsp-java)
   (require 'dash-functional)
 
+  (defcustom lsp-java-dependency-theme "Default"
+    "The `lsp-java-dependency' theme."
+    :type 'string)
+
   (defun lsp-java-dependency--goto-element (&rest _args)
     (if-let ((dep (-some-> (treemacs-node-at-point)
                            (button-get :dep))))
@@ -86,7 +90,7 @@
          (treemacs-get-icon-value
           (if expanded 'expanded 'collapsed)
           nil
-          lsp-treemacs-theme))
+          lsp-java-dependency-theme))
        (if (or (= kind 8)
                (= kind 6))
            (treemacs-icon-for-file uri)
@@ -99,7 +103,7 @@
            ((eq entry-kind 3) 'packagefolder)
            ((eq entry-kind 5) 'library))
           nil
-          lsp-treemacs-theme)))))
+          lsp-java-dependency-theme)))))
 
   (defun lsp-java-dependency--get-children (dep)
     (lsp-java-with-jdtls
