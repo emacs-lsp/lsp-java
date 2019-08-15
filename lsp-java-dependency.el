@@ -97,8 +97,9 @@
            (treemacs-icon-for-file uri)
          (treemacs-get-icon-value
           (cond
-           ((eq kind 5) 'namespace)
-           ((eq kind 4) 'jar)
+           ((eq kind 5) 'package)
+           ((eq kind 7) 'folder)
+           ((eq kind 4) 'packagefolder)
            ((eq kind 2) 'java-project)
            ((eq entry-kind 1) 'package)
            ((eq entry-kind 3) 'packagefolder)
@@ -111,19 +112,23 @@
       (-let (((&hash "projectUri" project-uri "rootPath" root-path "path" "kind" "name") dep))
         (unless (or (= kind 6)
                     (= kind 8))
-          (--map (--doto it
-                   (puthash "projectUri" project-uri it)
-                   (when (= kind 4)
-                     (puthash "rootPath" path it)))
-                 (lsp-send-execute-command "java.getPackageData"
-                                           (vector (ht ("kind"  kind)
-                                                       ("path"  (unless (eq kind 2)
-                                                                  (if (= 5 kind)
-                                                                      name
-                                                                    path)))
-                                                       ("rootPath" (unless (eq kind 2)
-                                                                     (or root-path path)))
-                                                       ("projectUri"  project-uri)))))))))
+          (->> (lsp-send-execute-command
+                "java.getPackageData"
+                (vector (ht ("kind"  kind)
+                            ("path"  (unless (eq kind 2)
+                                       (if (= 5 kind)
+                                           name
+                                         path)))
+                            ("rootPath" (unless (eq kind 2)
+                                          (or root-path path)))
+                            ("projectUri"  project-uri))))
+               (-mapcat (lambda (inner-dep)
+                          (puthash "projectUri" project-uri inner-dep)
+                          (when (= kind 4)
+                            (puthash "rootPath" path inner-dep))
+                          (if (eq (gethash "entryKind" inner-dep) 3)
+                              (lsp-java-dependency--get-children inner-dep)
+                            (list inner-dep)))))))))
 
   (treemacs-define-expandable-node lsp-java-dependency
     :icon-open-form (lsp-java-dependency--icon (treemacs-button-get node :dep) t)
