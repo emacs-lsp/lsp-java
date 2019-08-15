@@ -25,15 +25,16 @@
 
 ;;; Code:
 
-(with-eval-after-load 'treemacs
-  (require 'dash)
-  (require 'lsp-mode)
-  (require 'lsp-java)
-  (require 'dash-functional)
+(require 'dash)
+(require 'lsp-mode)
+(require 'lsp-java)
+(require 'dash-functional)
 
+(with-eval-after-load 'treemacs
   (defcustom lsp-java-dependency-theme "Default"
     "The `lsp-java-dependency' theme."
-    :type 'string)
+    :type 'string
+    :group 'lsp-java-dependency)
 
   (defun lsp-java-dependency--goto-element (&rest _args)
     (if-let ((dep (-some-> (treemacs-node-at-point)
