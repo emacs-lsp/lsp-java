@@ -114,6 +114,11 @@ deduplication with the G1 Garbage collector"
 incomplete for a Java file"
   :type '(choice (:tag "ignore" "info" "warning" "error")))
 
+(defcustom lsp-java-dependency-package-representation "flat"
+  "Specifies the severity of the message when the classpath is
+incomplete for a Java file"
+  :type '(choice (:tag "flat" "hierarchical")))
+
 (defcustom lsp-java-configuration-check-project-settings-exclusions t
   "Checks if the extension-generated project settings
 files (.project, .classpath, .factorypath, .settings/) should be
@@ -327,7 +332,8 @@ then list all."
    ("java.trace.server" lsp-java-trace-server)
    ("java.configuration.updateBuildConfiguration" lsp-java-configuration-update-build-configuration)
    ("java.configuration.checkProjectSettingsExclusions" lsp-java-configuration-check-project-settings-exclusions t)
-   ("java.errors.incompleteClasspath.severity" lsp-java-errors-incomplete-classpath-severity)))
+   ("java.errors.incompleteClasspath.severity" lsp-java-errors-incomplete-classpath-severity)
+   ("java.dependency.packagePresentation" lsp-java-dependency-package-representation)))
 
 (defcustom lsp-java-inhibit-message t
   "If non-nil, inhibit java messages echo via `inhibit-message'."
