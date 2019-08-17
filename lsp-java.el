@@ -612,6 +612,14 @@ PARAMS progress report notification data."
         (when (string-match "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?" url)
           (format "%s.java"
                   (replace-regexp-in-string "/" "." (match-string 2 url) t t))))
+      (-when-let ((_ file-name _ jar)
+                  (s-match
+                   "jdt://.*?/\\(.*?\\)\\?=\\(.*?\\)/.*/\\(.*\\)"
+                   (url-unhex-string url)))
+        (format "%s(%s)" file-name
+                (->> jar
+                     (s-replace "/" "")
+                     (s-replace "\\" ""))))
       (save-match-data
         (when (string-match "chelib://\\(.*\\)" url)
           (let ((matched (match-string 1 url)))
