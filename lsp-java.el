@@ -576,24 +576,24 @@ PARAMS progress report notification data."
   "Ensure that JDT server and the other configuration."
   (let* ((default-directory (make-temp-file "lsp-java-install" t)))
     (unwind-protect
-	(progn
-	  (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
-	  (let ((full-command (format
-			       "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
-			       (or (executable-find "mvn") (lsp-java--prepare-mvnw))
-			       (expand-file-name lsp-java-server-install-dir)
-			       (expand-file-name
-				(if (boundp 'dap-java-test-runner)
-				    (file-name-directory dap-java-test-runner)
-				  (concat (file-name-directory lsp-java-server-install-dir) "test-runner")))
-			       (if (boundp 'dap-java-test-runner)
-				   (file-name-nondirectory (directory-file-name dap-java-test-runner))
-				 "junit-platform-console-standalone.jar")
-			       (expand-file-name (lsp-java--bundles-dir))
-			       lsp-java-jdt-download-url)))
-	    (message "Running %s" full-command)
-	    (unless (zerop (shell-command full-command))
-	      (user-error "Failed to install lsp server using '%s'" full-command)))))
+        (progn
+          (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
+          (let ((full-command (format
+                               "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
+                               (or (executable-find "mvn") (lsp-java--prepare-mvnw))
+                               (expand-file-name lsp-java-server-install-dir)
+                               (expand-file-name
+                                (if (boundp 'dap-java-test-runner)
+                                    (file-name-directory dap-java-test-runner)
+                                  (concat (file-name-directory lsp-java-server-install-dir) "test-runner")))
+                               (if (boundp 'dap-java-test-runner)
+                                   (file-name-nondirectory (directory-file-name dap-java-test-runner))
+                                 "junit-platform-console-standalone.jar")
+                               (expand-file-name (lsp-java--bundles-dir))
+                               lsp-java-jdt-download-url)))
+            (message "Running %s" full-command)
+            (unless (zerop (shell-command full-command))
+              (user-error "Failed to install lsp server using '%s'" full-command)))))
     (delete-directory default-directory t)))
 
 (defun lsp-java-update-server ()
@@ -811,172 +811,6 @@ current symbol."
                                 (lsp--path-to-uri (file-name-as-directory session-folder)))))
         project-folder))))
 
-(defun lsp-java--nearest-widget ()
-  "Return widget at point or next nearest widget."
-  (or (widget-at)
-      (ignore-errors
-        (let ((pos (point)))
-          (widget-forward 1)
-          (and (< pos (point))
-               (widget-at))))))
-
-(defun lsp-java--tree-under-cursor ()
-  "Get tree under cursor."
-  (-when-let (widget-under-cursor (lsp-java--nearest-widget))
-    (if (tree-widget-p widget-under-cursor)
-        widget-under-cursor
-      (widget-get widget-under-cursor :parent))))
-
-(defun lsp-java-classpath-open ()
-  "Open object at path."
-  (interactive)
-  (if-let ((file (widget-get (lsp-java--tree-under-cursor) :file)))
-      (if (file-exists-p file)
-          (find-file file)
-        (user-error "File %s does not exists" file))
-    (user-error "No file under cursor")))
-
-(defvar lsp-java-classpath-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'lsp-java-classpath-open)
-    map))
-
-(define-derived-mode lsp-java-classpath-mode special-mode "lsp-java-classpath"
-  "Minor mode for browsing classpath.")
-
-(define-widget 'lsp-java-widget-guide 'item
-  "Vertical guide line."
-  :tag       " "
-  :format    "%t")
-
-(define-widget 'lsp-java-widget-end-guide 'item
-  "End of a vertical guide line."
-  :tag       " "
-  :format    "%t")
-
-(define-widget 'lsp-java-widget-handle 'item
-  "Horizontal guide line that joins a vertical guide line to a node."
-  :tag       " "
-  :format    "%t")
-
-(defmacro lsp-java-define-widget (name &optional image-open image-closed image-empty)
-  "Helper for defining widget icons.
-NAME will be the name of the widget icon.
-IMAGE-OPEN will be used when the widget is open.
-IMAGE-CLOSED will be when the tree is closed.
-IMAGE-EMPTY will be used when the tree widget is empty."
-  (let ((open-icon (make-symbol (format "lsp-java-%s-open" name)))
-        (close-icon (make-symbol (format "lsp-java-%s-close" name)))
-        (empty-icon (make-symbol (format "lsp-java-%s-empty" name)))
-        (leaf-icon (make-symbol (format "lsp-java-%s-leaf" name))))
-    `(progn
-       (define-widget (quote ,open-icon) 'tree-widget-icon
-         "Icon for a open tree-widget node."
-         :tag        "[+]"
-         :glyph-name ,(or image-open name))
-       (define-widget (quote ,close-icon) 'tree-widget-icon
-         "Icon for a closed tree-widget node."
-         :tag        "[-]"
-         :glyph-name ,(or image-closed image-open name))
-       (define-widget (quote ,empty-icon) 'tree-widget-icon
-         "Icon for a closed tree-widget node."
-         :tag        "[.]"
-         :glyph-name ,(or image-empty image-open name))
-       (list :open-icon (quote ,open-icon)
-             :close-icon (quote ,close-icon)
-             :empty-icon (quote ,empty-icon)
-             :leaf-icon (quote ,leaf-icon)
-             :handle 'lsp-java-widget-handle
-             :end-guide 'lsp-java-widget-end-guide
-             :guide 'lsp-java-widget-guide))))
-
-(defvar lsp-java-icons-file-type-jar (lsp-java-define-widget "file_type_jar"))
-(defvar lsp-java-icons-file-type-class (lsp-java-define-widget "file_type_class"))
-(defvar lsp-java-icons-folder-type-component (lsp-java-define-widget "folder_type_component"
-                                                                     "folder_type_component_opened"
-                                                                     "folder_type_component"))
-(defvar lsp-java-icons-default-folder (lsp-java-define-widget "default_folder"
-                                                              "default_folder_opened"
-                                                              "default_folder"))
-(defvar lsp-java-icons-folder-type-library (lsp-java-define-widget "folder_type_library"
-                                                                   "folder_type_library_opened"
-                                                                   "folder_type_library"))
-(defvar lsp-java-icons-default-root-folder (lsp-java-define-widget "default_root_folder"
-                                                                   "default_root_folder_opened"
-                                                                   "default_root_folder"))
-(defvar lsp-java-icons-folder-type-maven (lsp-java-define-widget "folder_type_maven"
-                                                                 "folder_type_maven_opened"
-                                                                 "folder_type_maven"))
-
-(defvar lsp-java-icons-error (lsp-java-define-widget "error"))
-(defvar lsp-java-icons-warning (lsp-java-define-widget "warning"))
-(defvar lsp-java-icons-info (lsp-java-define-widget "info"))
-
-(defun lsp-java--classpath-get-icon (kind)
-  "Get the icon corresponding to KIND."
-  (pcase kind
-    (1 lsp-java-icons-file-type-jar)
-    (2 lsp-java-icons-default-root-folder)
-    (3 lsp-java-icons-default-folder)
-    (5 lsp-java-icons-folder-type-library)))
-
-(defun lsp-java--classpath-get-node (path kind project-uri)
-  "Get the icon corresponding to KIND.
-PATH to the item.
-PROJECT-URI uri of the item."
-  (pcase kind
-    (1 `(push-button :format "%[%t%]\n"
-                     :tag ,(-> path lsp--path-to-uri f-filename)))
-    (2 `(push-button :format "%[%t%]\n"
-                     :tag ,(-> path lsp--path-to-uri f-filename)))
-    (3 `(push-button :format "%[%t%]\n"
-                     :tag ,(f-relative (lsp--uri-to-path path) (lsp--uri-to-path project-uri))))
-    (5 `(push-button :format "%[%t%]\n"
-                     :tag ,path))))
-
-(defun lsp-java--classpath-render-classpath (classpath-entry project-uri)
-  "Render CLASSPATH-ENTRY comming from PROJECT-URI."
-  (-let* (((&hash "path" "children" "entryKind" kind) classpath-entry)
-          (icons (lsp-java--classpath-get-icon kind))
-          (node (lsp-java--classpath-get-node path kind project-uri)))
-    `(tree-widget :node ,node
-                  :open t
-                  :file ,(lsp--uri-to-path path)
-                  ,@icons
-                  ,@(--map (lsp-java--classpath-render-classpath it project-uri) children))))
-
-(defun lsp-java-classpath-browse ()
-  "Show currently active sessions."
-  (interactive)
-  (let ((workspace (lsp-java--current-workspace-or-lose)))
-    (with-lsp-workspace workspace
-      (if-let (project-uri (lsp-java--find-project-uri buffer-file-name))
-          (let ((inhibit-read-only t)
-                (buf (get-buffer-create "*classpath*")))
-            (with-current-buffer buf
-              (erase-buffer)
-              (lsp-java-classpath-mode)
-              (setq-local lsp--cur-workspace workspace)
-              (when lsp-java-themes-directory
-                (setq-local tree-widget-themes-directory lsp-java-themes-directory))
-
-              (when lsp-java-theme
-                (tree-widget-set-theme lsp-java-theme))
-
-              (widget-create
-               `(tree-widget
-                 :node (push-button :format "%[%t%]\n"
-                                    :tag ,(f-filename (lsp--uri-to-path project-uri)))
-                 :open t
-                 :file ,(lsp--uri-to-path project-uri)
-                 ,@lsp-java-icons-default-root-folder
-                 ,@(--map (lsp-java--classpath-render-classpath it project-uri)
-                          (lsp-send-execute-command "che.jdt.ls.extension.classpathTree" project-uri))))
-              (run-hooks 'lsp-java-classpath-mode-hook))
-            (funcall lsp-java-pop-buffer-function buf)
-            (goto-char (point-min)))
-        (user-error "Failed to calculate project for buffer %s" (buffer-name))))))
-
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.references)) params)
   (if-let (refs (cl-third (append params nil)))
@@ -1185,26 +1019,171 @@ PROJECT-URI uri of the item."
                           :constructors (apply #'vector to-generate)
                           :context context))))))
 
-(defun lsp-java--apply-refactoring-command (action)
-  (lsp-java-with-jdtls
-    (-let* (((command context command-info) (append (gethash "arguments" action) nil))
-            (arguments (when (or (string= command "extractField")
-                                 (string= command "convertVariableToField"))
-                         (when-let (scope (pcase (append (gethash "initializedScopes" command-info) nil)
-                                            (`nil nil)
-                                            (`(,scope) scope)
-                                            (scopes (or (completing-read "Initialize the field in: " scopes nil t)
-                                                        (user-error "Cancelled...")))))
-                           (vector scope))))
-            ((&hash "edit" "command") (lsp-request
-                                       "java/getRefactorEdit"
-                                       (list :command command
-                                             :context context
-                                             :options (plist-get (lsp--make-document-formatting-params) :options)
-                                             :commandArguments arguments))))
-      (lsp--apply-workspace-edit edit)
+(defun lsp-java-move-file (move-uris)
+  (-let [destination (lsp--completing-read
+                      (format "Select destination for %s: " (buffer-name))
+                      (gethash "destinations"
+                               (lsp-request "java/getMoveDestinations"
+                                            (list :moveKind "moveResource"
+                                                  :sourceUris move-uris
+                                                  :params nil)))
+                      (-lambda ((&hash "displayName" display-name "path"))
+                        (format "%s - %s" display-name path)))]
+    (when-let (move-uris (if-let (destination-folder (lsp--uri-to-path (gethash "uri" destination)))
+                             (-let [(duplicated-files to-move)
+                                    (--split-with
+                                     (f-exists? (f-join destination-folder (f-filename it)))
+                                     (append move-uris nil))]
+                               (when duplicated-files
+                                 (lsp-warn "The files %s already exist in the package %s. The move operation will ignore them."
+                                           duplicated-files destination-folder))
+                               (apply #'vector to-move))
+                           move-uris))
+      (lsp-java--apply-edit
+       (lsp-request "java/move"
+                    (list :moveKind "moveResource"
+                          :sourceUris move-uris
+                          :destination destination
+                          :updateReferences t))))))
+
+(defun lsp-java--apply-edit (to-apply)
+  (-let [(&hash "edit" "message" "command") to-apply]
+    (when message
+      (lsp--error "%s" message))
+
+    (when edit
+      (lsp--apply-workspace-edit edit))
+
+    (when command
       (lsp-execute-code-action command))))
 
+(defun lsp-java--symbol-label (symbol)
+  (-let [(&hash "name" "containerName") symbol]
+    (format "%s.%s" containerName name)))
+
+(defun lsp-java--move-type (context command-info)
+  (-let ((document-uri (->> context
+                            (gethash "textDocument")
+                            (gethash "uri")))
+         ((&hash "enclosingTypeName" enclosing-type-name
+                 "displayName" display-name
+                 "projectName" project-name
+                 "supportedDestinationKinds" supported-destination-kinds) command-info))
+    (lsp-java--apply-edit
+     (lsp-request "java/move"
+                  (if (string= "newFile"
+                               (lsp--completing-read "What would you like to do? "
+                                                     supported-destination-kinds
+                                                     (lambda (kind)
+                                                       (if (string= kind "newFile")
+                                                           (format "Move type %s to new file" display-name)
+                                                         (format "Move type %s to another class" display-name)))
+                                                     nil
+                                                     t))
+                      (list :moveKind "moveTypeToNewFile"
+                            :sourceUris (vector document-uri)
+                            :params context)
+                    (list :moveKind "moveTypeToClass"
+                          :sourceUris (vector document-uri)
+                          :params context
+                          :destination (lsp-java--select-destination-class
+                                        (list enclosing-type-name
+                                              (format "%s.%s" enclosing-type-name
+                                                      display-name))
+                                        project-name)))))))
+
+(defun lsp-java--select-destination-class (excluded project-name)
+  (lsp--completing-read
+   "Select class: "
+   (->> (lsp-request "java/searchSymbols"
+                     (list :query "*"
+                           :projectName project-name
+                           :sourceOnly t))
+        (-filter (-lambda ((&hash "name" "containerName" container-name))
+                   (not (-contains? excluded (format "%s.%s" container-name name)))))
+        (--sort (s-less? (gethash "name" it)
+                         (gethash "name" other))))
+   #'lsp-java--symbol-label))
+
+(defun lsp-java-move-static-member (context command-info)
+  (-let [(&hash? "displayName" display-name
+                 "enclosingTypeName" enclosing-type-name
+                 "memberType" member-type
+                 "projectName" project-name) command-info]
+    (lsp-java--apply-edit
+     (lsp-request "java/move"
+                  (list :moveKind "moveStaticMember"
+                        :sourceUris (->> context
+                                         (gethash "textDocument")
+                                         (gethash "uri")
+                                         vector)
+                        :params context
+                        :destination (lsp-java--select-destination-class
+                                      (list enclosing-type-name) project-name))))))
+
+(defun lsp-java--move-instance-method (context command-info)
+  (-let* ((document-uri (->> context
+                             (gethash "textDocument")
+                             (gethash "uri")))
+          ((&hash "destinations" "errorMessage" message)
+           (lsp-request "java/getMoveDestinations"
+                        (list :moveKind "moveInstanceMethod"
+                              :sourceUris (vector document-uri)
+                              :params context))))
+    (when message
+      (user-error message))
+
+    (when (seq-empty-p destinations)
+      (user-error "Cannot find possible class targets to move the selected method to."))
+
+    (lsp-java--apply-edit
+     (lsp-request
+      "java/move"
+      (list
+       :moveKind "moveInstanceMethod"
+       :params context
+       :sourceUris (vector )
+       :destination (lsp--completing-read
+                     (format "Select the new class for the instance method %s"
+                             (gethash "methodName" command-info))
+                     destinations
+                     (-lambda ((&hash "name" "type" "isField" field?))
+                       (format "%s.%s (%s)" type name (if field?
+                                                          "Field"
+                                                        "Method Parameter")))
+                     nil
+                     t))))))
+
+(defun lsp-java--apply-refactoring-command (action)
+  (lsp-java-with-jdtls
+    (-let [(command context command-info) (append (gethash "arguments" action) nil)]
+      (cond
+       ((-contains? '("extractVariable"
+                      "extractVariableAllOccurrence"
+                      "extractConstant"
+                      "extractMethod"
+                      "extractField"
+                      "convertVariableToField"
+                      "invertVariable")
+                    command)
+        (-let ((arguments (when (memq command '("extractField" "convertVariableToField"))
+                            (when-let (scope (pcase (append (gethash "initializedScopes" command-info) nil)
+                                               (`nil nil)
+                                               (`(,scope) scope)
+                                               (scopes (or (completing-read "Initialize the field in: " scopes nil t)
+                                                           (user-error "Cancelled...")))))
+                              (vector scope)))))
+          (lsp-java--apply-edit
+           (lsp-request
+            "java/getRefactorEdit"
+            (list :command command
+                  :context context
+                  :options (plist-get (lsp--make-document-formatting-params) :options)
+                  :commandArguments arguments)))))
+       ((string= command "moveFile") (lsp-java-move-file (vector (gethash "uri" command-info))))
+       ((string= command "moveStaticMember") (lsp-java-move-static-member context command-info))
+       ((string= command "moveInstanceMethod") (lsp-java--move-instance-method context command-info))
+       ((string= command "moveType") (lsp-java--move-type context command-info))))))
 
 (defun lsp-java--action-rename (action)
   (-let* (([(&hash "uri" "offset" "length")] (gethash "arguments" action)))
@@ -1250,7 +1229,8 @@ PROJECT-URI uri of the item."
                                                                     :generateConstructorsPromptSupport t
                                                                     :generateToStringPromptSupport t
                                                                     :advancedGenerateAccessorsSupport t
-                                                                    :advancedExtractRefactoringSupport t)
+                                                                    :advancedExtractRefactoringSupport t
+                                                                    :moveRefactoringSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
                                                          lsp-session-server-id->folders
