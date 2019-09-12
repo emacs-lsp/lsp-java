@@ -814,13 +814,13 @@ current symbol."
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.references)) params)
   (if-let (refs (cl-third (append params nil)))
-      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
   (_server (command (eql java.show.implementations)) params)
   (if-let (refs (cl-third (append params nil)))
-      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
     (user-error "No implementations")))
 
 (add-to-list 'global-mode-string (list '(t lsp-java-progress-string)))
