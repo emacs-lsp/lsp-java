@@ -1174,7 +1174,8 @@ current symbol."
                       "extractMethod"
                       "extractField"
                       "convertVariableToField"
-                      "invertVariable")
+                      "invertVariable"
+                      "convertAnonymousClassToNestedCommand")
                     command)
         (-let ((arguments (when (memq command '("extractField" "convertVariableToField"))
                             (when-let (scope (pcase (append (gethash "initializedScopes" command-info) nil)
