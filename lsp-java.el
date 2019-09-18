@@ -872,6 +872,16 @@ current symbol."
   (interactive)
   (lsp-execute-code-action-by-kind "source.generate.accessors"))
 
+(defun lsp-java-open-super-implementation ()
+  "Open super implementation."
+  (interactive)
+  (if-let ((locations (append (lsp-request "java/findLinks"
+                                    (list :type "superImplementation"
+                                          :position (lsp--text-document-position-params)))
+                              nil)))
+      (lsp-show-xrefs (lsp--locations-to-xref-items locations) nil nil)
+    (user-error "No super implementations.")))
+
 (defun lsp-java--completing-read-multiple (message items initial-selection)
   (if (functionp 'helm)
       (let (result)
