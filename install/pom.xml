@@ -30,7 +30,7 @@
         <executions>
           <execution>
             <phase>process-resources</phase>
-            <id>download-che</id>
+            <id>download-server</id>
             <goals>
               <goal>wget</goal>
             </goals>
@@ -65,6 +65,18 @@
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
           </execution>
+          <execution>
+            <phase>process-resources</phase>
+            <id>download-java-test-dependency</id>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/vscode-java-test.zip</url>
+              <outputFileName>vscode-java-test.zip</outputFileName>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -80,6 +92,7 @@
                 <untar src="${project.build.directory}/jdt-language-server-latest.tar.gz" compression="gzip" dest="${jdt.js.server.root}" />
                 <unzip src="${project.build.directory}/vscode-extension.zip" dest="${project.build.directory}/vscode-extension-extracted" />
                 <unzip src="${project.build.directory}/java-dependency.zip" dest="${project.build.directory}/java-dependency" />
+                <unzip src="${project.build.directory}/vscode-java-test.zip" dest="${jdt.js.server.root}/java-test" />
               </tasks>
             </configuration>
             <goals>
@@ -164,7 +177,25 @@
             </configuration>
           </execution>
           <execution>
-            <id>copy-dep-bundles</id>
+            <id>copy-test-bundle</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jdt.js.server.root}/bundles/</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${jdt.js.server.root}/java-test/server/</directory>
+                  <includes>
+                    <include>com.microsoft.java.test.runner.jar</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-test-data</id>
             <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>

@@ -1,7 +1,7 @@
-;;; lsp-java.el --- Java support for lsp-mode
+;;; lsp-java.el --- Java support for lsp-mode  -*- lexical-binding: t; -*-
 
 ;; Version: 2.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0") (treemacs "2.5"))
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -86,6 +86,10 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
   "Theme to use."
   :type 'string
   :group 'lsp-java)
+
+(defcustom lsp-java-test-root (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/server/java-test"))
+  "The `lsp-java-test' root."
+  :type 'string)
 
 (defcustom lsp-java-pop-buffer-function 'lsp-java-show-buffer
   "The function which will be used for showing the helper windows."
@@ -485,13 +489,6 @@ FULL specify whether full or incremental build will be performed."
       ,lsp-java-workspace-dir
       ,@java-9-args)))
 
-(defun lsp-java--is-root (dir)
-  "Return whether DIR is root of a project."
-  (-some-> dir
-           lsp-java--find-workspace
-           lsp-java--get-project-uris
-           (-contains? (lsp--path-to-uri dir))))
-
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
 
@@ -578,7 +575,7 @@ PARAMS progress report notification data."
   "Get default bundles dir."
   (concat (file-name-as-directory lsp-java-server-install-dir) "bundles"))
 
-(defun lsp-java--ensure-server ()
+(defun lsp-java--ensure-server (&optional async)
   "Ensure that JDT server and the other configuration."
   (let* ((default-directory (make-temp-file "lsp-java-install" t)))
     (unwind-protect
@@ -597,17 +594,18 @@ PARAMS progress report notification data."
                                  "junit-platform-console-standalone.jar")
                                (expand-file-name (lsp-java--bundles-dir))
                                lsp-java-jdt-download-url)))
-            (message "Running %s" full-command)
-            (unless (zerop (shell-command full-command))
-              (user-error "Failed to install lsp server using '%s'" full-command)))))
-    (delete-directory default-directory t)))
+            (if async
+                (async-shell-command full-command)
+              (message "Running %s" full-command)
+              (unless (zerop (shell-command full-command))
+                (user-error "Failed to install lsp server using '%s'" full-command))
+              (delete-directory default-directory t)))))))
 
 (defun lsp-java-update-server ()
   "Update LDT LS server."
   (interactive)
-  (message "Server update started...")
-  (lsp-java--ensure-server)
-  (message "Server update finished..."))
+  (lsp--info "Server update started...")
+  (lsp-java--ensure-server t))
 
 (defun lsp-java--workspace-notify (&rest _args)
   "Workspace notify handler.")
@@ -757,47 +755,9 @@ current symbol."
     (append lsp-java-bundles (when (file-directory-p bundles-dir)
                                (apply 'vector (directory-files bundles-dir t "\\.jar$"))))))
 
-;; (defun lsp-java-update-user-settings ()
-;;   "Update user settings.
-
-;; The method could be called after changing configuration
-;; property (e. g. `lsp-java-organize-imports') to update the
-;; server."
-;;   (interactive)
-;;   (lsp--set-configuration (lsp-java--settings)))
-
 (defun lsp-java--workspace-folders (workspace)
   "Return WORKSPACE folders."
   (lsp-session-folders (lsp-session)))
-
-(defun lsp-java-update-project-uris ()
-  "Update WORKSPACE project uris."
-  (interactive)
-  (let ((workspace (lsp-java--current-workspace-or-lose)))
-    (with-lsp-workspace workspace
-      (->> (lsp-java--workspace-folders workspace)
-           (--map (or (lsp-send-execute-command "che.jdt.ls.extension.mavenProjects"
-                                                (lsp--path-to-uri it))
-                      (lsp--path-to-uri (file-name-as-directory it))))
-           -flatten
-           -uniq
-           (lsp-java--set-project-uris workspace)))))
-
-(defun lsp-java--set-project-uris (workspace project-uris)
-  "Set WORKSPACE project uri list to PROJECT-URIS."
-  (puthash "project-uris" project-uris (lsp--workspace-metadata workspace)))
-
-(defun lsp-java--get-project-uris (workspace)
-  "Get WORKSPACE maven projects."
-  (let ((current-workspace-folders (lsp--workspace-workspace-folders workspace))
-        (workspace-metadata (lsp--workspace-metadata workspace)))
-    ;; update the project uri only if the workspace folders has changed after
-    ;; the last call.
-    ;; TODO investigate a better way to do that.
-    (if (eq current-workspace-folders (gethash "last-workspace-folders" workspace-metadata))
-        (gethash "project-uris" workspace-metadata)
-      (lsp-java-update-project-uris)
-      (puthash "last-workspace-folders" current-workspace-folders workspace-metadata))))
 
 (defun lsp-java--find-workspace (file-uri)
   "Return the workspace corresponding FILE-URI."
@@ -882,8 +842,8 @@ current symbol."
   "Open super implementation."
   (interactive)
   (if-let ((locations (append (lsp-request "java/findLinks"
-                                    (list :type "superImplementation"
-                                          :position (lsp--text-document-position-params)))
+                                           (list :type "superImplementation"
+                                                 :position (lsp--text-document-position-params)))
                               nil)))
       (lsp-show-xrefs (lsp--locations-to-xref-items locations) nil nil)
     (user-error "No super implementations.")))
@@ -1326,6 +1286,7 @@ current symbol."
                                  (find-file (f-join target-directory artifact-id)))
                              (user-error "Unable to unzip tool - file %s cannot be extracted, extract it manually" temp-file))))
                      ('quit))))))))
+
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here

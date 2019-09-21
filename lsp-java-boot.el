@@ -1,4 +1,4 @@
-;;; lsp-java.el --- Spring boot support for lsp-java
+;;; lsp-java.el --- Spring boot support for lsp-java               -*- lexical-binding: t; -*-
 
 ;; Version: 2.0
 ;; Keywords: java
