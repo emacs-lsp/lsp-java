@@ -691,7 +691,7 @@ current symbol."
        "Extract to local variable$"
      "Extract to local variable (replace all occurrences)")))
 
-(defun lsp-java-conver-to-static-import (arg)
+(defun lsp-java-convert-to-static-import (arg)
   "Convert to static import.
 The prefix ARG decide whether to act on all or only on the
 current symbol."
