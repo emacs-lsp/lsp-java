@@ -188,7 +188,7 @@
                 <resource>
                   <directory>${jdt.js.server.root}/java-test/server/</directory>
                   <includes>
-                    <include>com.microsoft.java.test.runner.jar</include>
+                    <include>com.microsoft.java.test.plugin-0.19.0.jar</include>
                   </includes>
                 </resource>
               </resources>

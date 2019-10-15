@@ -372,8 +372,8 @@
                    (lsp-workspace-root))
        :classPaths ,(apply #'vector
                            (cl-list*
-                            (f-join lsp-java-test-root  "com.microsoft.java.test.runner.jar")
-                            (f-join lsp-java-test-root  "/lib/")
+                            (f-join lsp-java-test-root "com.microsoft.java.test.runner.jar")
+                            (f-join lsp-java-test-root "/lib/")
                             (lsp-send-execute-command "vscode.java.test.runtime.classpath"
                                                       (->> test
                                                            (gethash "location")
