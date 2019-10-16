@@ -1,4 +1,4 @@
-;;; lsp-java-test.el --- java test support           -*- lexical-binding: t; -*-
+;;; lsp-jt.el --- java test support           -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Ivan Yonchovski
 
@@ -28,12 +28,12 @@
 (require 'lsp-java)
 (require 'treemacs)
 
-(defvar lsp-java-test--last-result nil)
-(defvar lsp-java-test--state (ht))
-(defvar lsp-java-test--last-run-state (ht))
+(defvar lsp-jt--last-result nil)
+(defvar lsp-jt--state (ht))
+(defvar lsp-jt--last-run-state (ht))
 
-(defcustom lsp-java-test-theme "Default"
-  "The `lsp-java-test' theme."
+(defcustom lsp-jt-theme "Default"
+  "The `lsp-jt' theme."
   :type 'string)
 
 (defvar lsp-test-java-browser-position-params
@@ -46,33 +46,31 @@
     (slot . 5)
     (window-width . ,treemacs-width)))
 
-
-
-(defun lsp-java-test--process-test-lens (lens)
+(defun lsp-jt--process-test-lens (lens)
   (-let [(test-data &as &hash "location" (&hash "range") "children") lens]
     (cons (-doto test-data
             (ht-set "range" range))
-          (-mapcat #'lsp-java-test--process-test-lens children))))
+          (-mapcat #'lsp-jt--process-test-lens children))))
 
-(defface lsp-java-test-error-face
+(defface lsp-jt-error-face
   '((t :height 1.0 :inherit error))
   "The face used for code lens overlays."
   :group 'lsp-faces)
 
-(defface lsp-java-test-success-face
+(defface lsp-jt-success-face
   '((t :height 1.0 :inherit success))
   "The face used for code lens overlays."
   :group 'lsp-faces)
 
-(defface lsp-java-test-in-progress-face
+(defface lsp-jt-in-progress-face
   '((t :height 1.0 :inherit warn))
   "The face used for code lens overlays."
   :group 'lsp-faces)
 
-(defvar-local lsp-java-test--last-callback nil)
+(defvar-local lsp-jt--last-callback nil)
 
-(defun lsp-java-test-lens-backend (modified? callback)
-  (setq-local lsp-java-test--last-callback callback)
+(defun lsp-jt-lens-backend (modified? callback)
+  (setq-local lsp-jt--last-callback callback)
   (lsp-request-async
    "workspace/executeCommand"
    (list :command "vscode.java.test.search.codelens"
@@ -80,7 +78,7 @@
                          lsp--path-to-uri
                          vector))
    (lambda (result)
-     (let* ((lenses (-mapcat #'lsp-java-test--process-test-lens result))
+     (let* ((lenses (-mapcat #'lsp-jt--process-test-lens result))
             (all-lenses (append
                          (-map
                           (lambda (lens)
@@ -88,7 +86,7 @@
                               (ht-set "command" (ht ("title" "Debug test")
                                                     ("command" (lambda ()
                                                                  (interactive)
-                                                                 (lsp-java-test--start-test lens nil)))))))
+                                                                 (lsp-jt--start-test lens nil)))))))
                           lenses)
                          (-map
                           (lambda (lens)
@@ -96,35 +94,35 @@
                               (ht-set "command" (ht ("title" "Run test")
                                                     ("command" (lambda ()
                                                                  (interactive)
-                                                                 (lsp-java-test--start-test lens t)))))))
+                                                                 (lsp-jt--start-test lens t)))))))
                           lenses)
                          (-keep
                           (-lambda ((lens &as &hash "fullName" full-name))
-                            (when-let (lens-properties (lsp-java-test--status full-name))
+                            (when-let (lens-properties (lsp-jt--status full-name))
                               (-let [(title . face) lens-properties]
                                 (-doto (ht-copy lens)
                                   (ht-set "command" (ht ("title" title)
                                                         ("face" face)
-                                                        ("command" #'lsp-java-test-show-report)))))))
+                                                        ("command" #'lsp-jt-show-report)))))))
                           lenses))))
        (funcall callback all-lenses lsp--cur-version)))
    :mode 'detached))
 
 ;;;###autoload
-(define-minor-mode lsp-java-test-lens-mode
+(define-minor-mode lsp-jt-lens-mode
   "Toggle code-lens overlays."
-  :group 'lsp-java-test
+  :group 'lsp-jt
   :global nil
   :init-value nil
   :lighter nil
   (cond
-   (lsp-java-test-lens-mode
-    (setq-local lsp-lens-backends (pushnew 'lsp-java-test-lens-backend lsp-lens-backends))
+   (lsp-jt-lens-mode
+    (setq-local lsp-lens-backends (pushnew 'lsp-jt-lens-backend lsp-lens-backends))
     (lsp--lens-refresh t))
-   (t (setq-local lsp-lens-backends (delete 'lsp-java-test-lens-backend lsp-lens-backends))
+   (t (setq-local lsp-lens-backends (delete 'lsp-jt-lens-backend lsp-lens-backends))
       (setq-local lsp-java-boot--callback nil))))
 
-(defun lsp-java-test-search (root level full-name)
+(defun lsp-jt-search (root level full-name)
   (lsp-java-with-jdtls
     (lsp-send-execute-command
      "vscode.java.test.search.items"
@@ -132,7 +130,7 @@
                                     :level ,level
                                     ,@(when full-name (list :fullName full-name))))))))
 
-(defun lsp-java-test-goto (&rest _)
+(defun lsp-jt-goto (&rest _)
   "Goto the symbol at point."
   (interactive)
   (-if-let ((&hash? "location" (&hash? "uri" "range" (&hash? "start"))) (-some-> (treemacs-node-at-point)
@@ -145,20 +143,20 @@
     (user-error "No test under point.")))
 
 (treemacs-define-expandable-node java-tests
-  :icon-open-form (lsp-java-test--icon (-some-> (treemacs-node-at-point)
+  :icon-open-form (lsp-jt--icon (-some-> (treemacs-node-at-point)
                                                 (treemacs-button-get :item))
                                        t)
-  :icon-closed-form (lsp-java-test--icon (-some-> (treemacs-node-at-point)
+  :icon-closed-form (lsp-jt--icon (-some-> (treemacs-node-at-point)
                                                   (treemacs-button-get :item))
                                          nil)
-  :query-function (lsp-java-test-search (treemacs-button-get node :key)
+  :query-function (lsp-jt-search (treemacs-button-get node :key)
                                         (or (treemacs-button-get node :level)
                                             1)
                                         (treemacs-button-get node :full-name))
-  :ret-action 'lsp-java-test-goto
+  :ret-action 'lsp-jt-goto
   :render-action
   (treemacs-render-node
-   :icon (lsp-java-test--icon item nil)
+   :icon (lsp-jt--icon item nil)
    :label-form (gethash "displayName" item)
    :state treemacs-java-tests-closed-state
    :key-form (->> item
@@ -184,7 +182,7 @@
     (treemacs-create-icon :file "refresh.png" :extensions (java-test-refresh) :fallback "-")
     (treemacs-create-icon :file "run.png" :extensions (java-test-run) :fallback "-")))
 
-(defun lsp-java-test-right-click (event)
+(defun lsp-jt-right-click (event)
   (interactive "e")
   (let* ((ec (event-start event))
          (p1 (posn-point ec))
@@ -202,14 +200,14 @@
                 (menu
                  (easy-menu-create-menu
                   nil
-                  `(["Run Test"   lsp-java-test-run]
-                    ["Debug Test" lsp-java-test-debug]
-                    ["Refresh"    lsp-java-test-refresh])))
+                  `(["Run Test"   lsp-jt-run]
+                    ["Debug Test" lsp-jt-debug]
+                    ["Refresh"    lsp-jt-refresh])))
                 (choice (x-popup-menu event menu)))
            (when choice (call-interactively (lookup-key menu (apply 'vector choice))))
            (hl-line-highlight)))))))
 
-(defun lsp-java-test--wrap-icon (icon open? has-children?)
+(defun lsp-jt--wrap-icon (icon open? has-children?)
   (concat
    (cond
     ((and open? has-children?) " ▾ ")
@@ -217,38 +215,38 @@
     (t "   "))
    icon))
 
-(defun lsp-java-test--icon (item open?)
-  (lsp-java-test--wrap-icon
+(defun lsp-jt--icon (item open?)
+  (lsp-jt--wrap-icon
    (if item
        (cl-case (gethash "level" item)
-         (1 (treemacs-get-icon-value 'java-test-package nil lsp-java-test-theme))
-         (2 (treemacs-get-icon-value 'java-test-package nil lsp-java-test-theme))
-         (3 (treemacs-get-icon-value 'java-test-class nil lsp-java-test-theme))
-         (4 (treemacs-get-icon-value 'java-test-method nil lsp-java-test-theme)))
-     (treemacs-get-icon-value 'root nil lsp-java-test-theme))
+         (1 (treemacs-get-icon-value 'java-test-package nil lsp-jt-theme))
+         (2 (treemacs-get-icon-value 'java-test-package nil lsp-jt-theme))
+         (3 (treemacs-get-icon-value 'java-test-class nil lsp-jt-theme))
+         (4 (treemacs-get-icon-value 'java-test-method nil lsp-jt-theme)))
+     (treemacs-get-icon-value 'root nil lsp-jt-theme))
    open?
    (or (not item)
        (not (eq (gethash "level" item) 4)))))
 
-(defvar lsp-java-test-mode-map
+(defvar lsp-jt-mode-map
   (-doto (make-sparse-keymap)
-    (define-key (kbd "x") #'lsp-java-test-run)
-    (define-key (kbd "d") #'lsp-java-test-debug)
-    (define-key (kbd "R") #'lsp-java-test-refresh)
+    (define-key (kbd "x") #'lsp-jt-run)
+    (define-key (kbd "d") #'lsp-jt-debug)
+    (define-key (kbd "R") #'lsp-jt-refresh)
     (define-key [mouse-1]  #'treemacs-TAB-action)
-    (define-key [mouse-3]  #'lsp-java-test-right-click)
+    (define-key [mouse-3]  #'lsp-jt-right-click)
     (define-key [double-mouse-1]  #'treemacs-RET-action))
-  "Keymap for `lsp-java-test-mode'.")
+  "Keymap for `lsp-jt-mode'.")
 
-(define-minor-mode lsp-java-test-mode "Java Test Mode"
-  nil nil lsp-java-test-mode-map)
+(define-minor-mode lsp-jt-mode "Java Test Mode"
+  nil nil lsp-jt-mode-map)
 
 (treemacs-define-variadic-node java-tests-list
   :query-function (java-tests--roots)
   :render-action
   (treemacs-render-node
    :icon
-   (lsp-java-test--icon (-some-> (treemacs-node-at-point)
+   (lsp-jt--icon (-some-> (treemacs-node-at-point)
                                  (treemacs-button-get :item))
                         nil)
    :label-form (f-filename item)
@@ -256,25 +254,25 @@
    :key-form (lsp--path-to-uri item))
   :root-key-form 'LSP-Java-Tests)
 
-(defun lsp-java-test--start-from-browser (no-debug)
+(defun lsp-jt--start-from-browser (no-debug)
   (if-let ((node (treemacs-node-at-point)))
-      (lsp-java-test--start-test (or (treemacs-button-get node :item)
+      (lsp-jt--start-test (or (treemacs-button-get node :item)
                                      (ht ("project" (treemacs-button-get node :key))
                                          ("level" 1)
                                          ("location" (ht ("uri" (treemacs-button-get node :key))))))
                                  t)
     (user-error "No test under point")))
 
-(defun lsp-java-test-run ()
+(defun lsp-jt-run ()
   "Run test under point."
   (interactive)
-  (lsp-java-test--start-from-browser nil))
+  (lsp-jt--start-from-browser nil))
 
-(defun lsp-java-test-debug ()
+(defun lsp-jt-debug ()
   (interactive)
-  (lsp-java-test--start-from-browser t))
+  (lsp-jt--start-from-browser t))
 
-(defun lsp-java-test-refresh ()
+(defun lsp-jt-refresh ()
   (interactive)
   (condition-case _err
       (let ((inhibit-read-only t))
@@ -282,7 +280,7 @@
           (treemacs-update-node '(:custom LSP-Java-Tests) t)))
     (error)))
 
-(defun lsp-java-test--update-test-content (test-data test-state)
+(defun lsp-jt--update-test-content (test-data test-state)
   (-let [(&alist 'name state 'attributes (&alist 'name test-name)) test-data]
     (when (and (-contains? '("testFailed"
                              "testFinished"
@@ -293,7 +291,7 @@
                          (string= (gethash test-name test-state)
                                   "testFailed"))))
       (when (string= "suiteTreeNode" state)
-        (setq test-name (concat (->> lsp-java-test--last-result
+        (setq test-name (concat (->> lsp-jt--last-result
                                      (-keep (-lambda ((&alist 'name 'attributes (&alist 'name test-name)))
                                               (when (string= name "suiteTreeStarted")
                                                 test-name)))
@@ -302,58 +300,58 @@
                                 test-name)))
       (puthash test-name state test-state))))
 
-(defun lsp-java-test--filter-function (line)
+(defun lsp-jt--filter-function (line)
   (let ((json (cl-second (s-match "@@<TestRunner-\\(.*\\)-TestRunner>" line))))
     (cond
      (json (-let [(test-data &as &alist 'name) (json-read-from-string json)]
              (when (string= name "testReporterAttached")
-               (setq lsp-java-test--last-result nil)
-               (setq lsp-java-test--last-run-state (ht)))
-             (push test-data lsp-java-test--last-result)
+               (setq lsp-jt--last-result nil)
+               (setq lsp-jt--last-run-state (ht)))
+             (push test-data lsp-jt--last-result)
 
-             (lsp-java-test--update-test-content test-data lsp-java-test--state)
-             (lsp-java-test--update-test-content test-data lsp-java-test--last-run-state)
+             (lsp-jt--update-test-content test-data lsp-jt--state)
+             (lsp-jt--update-test-content test-data lsp-jt--last-run-state)
 
-             (lsp-java-test--schedule-refresh-lens)
-             (lsp-java-test--update-report)
+             (lsp-jt--schedule-refresh-lens)
+             (lsp-jt--update-report)
              nil))
      ((s-equals? "\n" line) nil)
      (t line))))
 
-(defvar lsp-java-test--refresh-lens-timer nil)
+(defvar lsp-jt--refresh-lens-timer nil)
 
-(defun lsp-java-test--do-refresh-lenses ()
+(defun lsp-jt--do-refresh-lenses ()
   (->>
    (lsp-find-workspace 'jdtls nil)
    (lsp--workspace-buffers)
    (-map (lambda (buffer)
            (with-current-buffer buffer
-             (when (and lsp-java-test-lens-mode lsp-java-test--last-callback)
-               (lsp-java-test-lens-backend nil lsp-java-test--last-callback)))))))
+             (when (and lsp-jt-lens-mode lsp-jt--last-callback)
+               (lsp-jt-lens-backend nil lsp-jt--last-callback)))))))
 
-(defun lsp-java-test--schedule-refresh-lens ()
-  (when lsp-java-test--refresh-lens-timer
-    (cancel-timer lsp-java-test--refresh-lens-timer))
-  (setq lsp-java-test--refresh-lens-timer
-        (run-at-time 0.2 nil #'lsp-java-test--do-refresh-lenses)))
+(defun lsp-jt--schedule-refresh-lens ()
+  (when lsp-jt--refresh-lens-timer
+    (cancel-timer lsp-jt--refresh-lens-timer))
+  (setq lsp-jt--refresh-lens-timer
+        (run-at-time 0.2 nil #'lsp-jt--do-refresh-lenses)))
 
 
-(defconst lsp-java-test-kind-root 0)
-(defconst lsp-java-test-kind-folder 1)
-(defconst lsp-java-test-kind-package 2)
-(defconst lsp-java-test-kind-class 3)
-(defconst lsp-java-test-kind-method 4)
+(defconst lsp-jt-kind-root 0)
+(defconst lsp-jt-kind-folder 1)
+(defconst lsp-jt-kind-package 2)
+(defconst lsp-jt-kind-class 3)
+(defconst lsp-jt-kind-method 4)
 
-(defun lsp-java-test--get-tests  (test)
+(defun lsp-jt--get-tests  (test)
   (-let [(&hash "level" "location" (&hash? "uri") "fullName") test]
     (cond
-     ((or (eq level lsp-java-test-kind-method)
-          (eq level lsp-java-test-kind-class))
+     ((or (eq level lsp-jt-kind-method)
+          (eq level lsp-jt-kind-class))
       (gethash "fullName" test))
      (t
-      (s-join " " (-map #'lsp-java-test--get-tests (lsp-java-test-search uri level fullName)))))))
+      (s-join " " (-map #'lsp-jt--get-tests (lsp-jt-search uri level fullName)))))))
 
-(defun lsp-java-test--start-test (test no-debug)
+(defun lsp-jt--start-test (test no-debug)
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
     (dap-debug
      `(
@@ -361,10 +359,10 @@
        :name ,(format "Running %s" (gethash "displayName" test))
        :mainClass "com.microsoft.java.test.runner.Launcher"
        :projectName ,(gethash "project" test)
-       :output-filter-function lsp-java-test--filter-function
+       :output-filter-function lsp-jt--filter-function
        :args ,(format "%s %s"
                       "junit"
-                      (lsp-java-test--get-tests test))
+                      (lsp-jt--get-tests test))
        :cwd  ,(->> test
                    (gethash "location")
                    (gethash "uri")
@@ -372,8 +370,8 @@
                    (lsp-workspace-root))
        :classPaths ,(apply #'vector
                            (cl-list*
-                            (f-join lsp-java-test-root "com.microsoft.java.test.runner.jar")
-                            (f-join lsp-java-test-root "/lib/")
+                            (f-join lsp-jt-root "com.microsoft.java.test.runner.jar")
+                            (f-join lsp-jt-root "/lib/")
                             (lsp-send-execute-command "vscode.java.test.runtime.classpath"
                                                       (->> test
                                                            (gethash "location")
@@ -383,7 +381,8 @@
                                                            (vector)))))
        ,@(when no-debug `(:noDebug t))))))
 
-(defun lsp-java-test-browser ()
+;;;###autoload
+(defun lsp-jt-browser ()
   (interactive)
   (if-let ((buf (get-buffer "*Java Tests*")))
       (select-window (display-buffer-in-side-window buf lsp-test-java-browser-position-params))
@@ -393,16 +392,16 @@
       (set-window-dedicated-p window t)
       (treemacs-initialize)
       (treemacs-JAVA-TESTS-LIST-extension)
-      (lsp-java-test-mode)
+      (lsp-jt-mode)
       (setq-local header-line-format "TEST EXPLORER: "))))
 
-(defun lsp-java-test--test-kind (path)
+(defun lsp-jt--test-kind (path)
   (if (s-contains? "#" path)
       'java-test-method
     'java-test-class))
 
-(defun lsp-java-test--duration (test)
-  (->> lsp-java-test--last-result
+(defun lsp-jt--duration (test)
+  (->> lsp-jt--last-result
        (-keep (-lambda ((&alist 'name 'attributes (&alist 'duration 'name test-name)))
                 (when (and (or (string= name "testFinished")
                                (string= name "testFailed"))
@@ -410,15 +409,15 @@
                   duration)))
        cl-first))
 
-(defun lsp-java-test--trace (test)
-  (->> lsp-java-test--last-result
+(defun lsp-jt--trace (test)
+  (->> lsp-jt--last-result
        (-keep (-lambda ((&alist 'name 'attributes (&alist 'trace 'name test-name)))
                 (when (and (string= name "testFailed")
                            (string= test-name test))
                   trace)))
        cl-first))
 
-(defun lsp-java-test-report-open (&rest _rest)
+(defun lsp-jt-report-open (&rest _rest)
   (interactive)
   (when-let (test (-some-> (treemacs-node-at-point)
                            (treemacs-button-get :key)))
@@ -426,25 +425,25 @@
       (let ((inhibit-read-only t))
         (with-current-buffer buf
           (erase-buffer)
-          (insert (lsp-java-test--trace test))
+          (insert (lsp-jt--trace test))
           (view-mode t)
           (select-window (get-mru-window (selected-frame) nil :not-selected))
           (switch-to-buffer buf))))))
 
-(defun lsp-java-test--status (test-name &optional state)
-  (setq state (or state lsp-java-test--state))
+(defun lsp-jt--status (test-name &optional state)
+  (setq state (or state lsp-jt--state))
   (if (s-contains? "#" test-name)
       (pcase (gethash test-name state)
         ("testFailed"
-         (cons "❌" 'lsp-java-test-error-face))
+         (cons "❌" 'lsp-jt-error-face))
         ("testFinished"
-         (cons "✔" 'lsp-java-test-success-face))
+         (cons "✔" 'lsp-jt-success-face))
         ("testStarted"
-         (cons "⌛" 'lsp-java-test-in-progress-face))
+         (cons "⌛" 'lsp-jt-in-progress-face))
         ("suiteTreeNode"
-         (cons "⌚" 'lsp-java-test-in-progress-face))
+         (cons "⌚" 'lsp-jt-in-progress-face))
         (_
-         (cons "?" 'lsp-java-test-in-progress-face)))
+         (cons "?" 'lsp-jt-in-progress-face)))
     (let ((inner-test-status (-keep (-lambda ((method-name . test-status))
                                       (when (s-starts-with?
                                              (concat test-name "#")
@@ -453,34 +452,34 @@
                                     (ht->alist state))))
       (cond
        ((not inner-test-status) nil)
-       ((-contains? inner-test-status "testFailed") (cons "❌" 'lsp-java-test-error-face))
-       ((-contains? inner-test-status "testStarted") (cons "⌛" 'lsp-java-test-in-progress-face))
-       ((-contains? inner-test-status "suiteTreeNode") (cons "⌚" 'lsp-java-test-in-progress-face))
-       ((-contains? inner-test-status "testFinished") (cons "✔" 'lsp-java-test-success-face))))))
+       ((-contains? inner-test-status "testFailed") (cons "❌" 'lsp-jt-error-face))
+       ((-contains? inner-test-status "testStarted") (cons "⌛" 'lsp-jt-in-progress-face))
+       ((-contains? inner-test-status "suiteTreeNode") (cons "⌚" 'lsp-jt-in-progress-face))
+       ((-contains? inner-test-status "testFinished") (cons "✔" 'lsp-jt-success-face))))))
 
 (treemacs-define-expandable-node java-test-report-node
   :icon-open-form
-  (let ((kind (lsp-java-test--test-kind
+  (let ((kind (lsp-jt--test-kind
                (treemacs-button-get node :key))))
-    (lsp-java-test--wrap-icon
+    (lsp-jt--wrap-icon
      (treemacs-get-icon-value kind
                               nil
-                              lsp-java-test-theme)
+                              lsp-jt-theme)
      t
      (eq kind 'java-test-class)))
-  :ret-action 'lsp-java-test-report-open
+  :ret-action 'lsp-jt-report-open
   :icon-closed-form
-  (let ((kind (lsp-java-test--test-kind
+  (let ((kind (lsp-jt--test-kind
                (treemacs-button-get node :key))))
-    (lsp-java-test--wrap-icon
+    (lsp-jt--wrap-icon
      (treemacs-get-icon-value kind
                               nil
-                              lsp-java-test-theme)
+                              lsp-jt-theme)
      nil
      (eq kind 'java-test-class)))
   :query-function
   (let ((item (treemacs-button-get node :key)))
-    (->> lsp-java-test--last-result
+    (->> lsp-jt--last-result
          (reverse)
          (-drop-while (-lambda ((&alist 'name 'attributes (&alist 'name node-name)))
                         (not (and (string= name "suiteTreeStarted")
@@ -492,19 +491,19 @@
                  node-name))))
   :render-action
   (treemacs-render-node
-   :icon (lsp-java-test--wrap-icon
+   :icon (lsp-jt--wrap-icon
           (treemacs-get-icon-value 'java-test-method
                                    nil
-                                   lsp-java-test-theme)
+                                   lsp-jt-theme)
           nil
           nil)
    :label-form (-let* ((test (concat (treemacs-button-get (treemacs-node-at-point) :key) "#" item))
-                       ((content . face) (lsp-java-test--status test lsp-java-test--last-run-state)))
+                       ((content . face) (lsp-jt--status test lsp-jt--last-run-state)))
                  (concat (propertize item 'face 'default)
                          (propertize " " 'face 'default)
                          (propertize content 'face face)
                          (condition-case _
-                             (when-let (duration (lsp-java-test--duration test))
+                             (when-let (duration (lsp-jt--duration test))
                                (propertize (concat " " duration " ms")
                                            'face 'default))
                            (error (message (error-message-string _))))))
@@ -515,14 +514,14 @@
   :query-function (-keep (-lambda ((&alist 'name 'attributes (&alist 'name node-name)))
                            (when (string= name "suiteTreeStarted")
                              node-name))
-                         (reverse lsp-java-test--last-result))
+                         (reverse lsp-jt--last-result))
   :render-action
   (treemacs-render-node
-   :icon (lsp-java-test--wrap-icon
-          (treemacs-get-icon-value 'java-test-class nil lsp-java-test-theme)
+   :icon (lsp-jt--wrap-icon
+          (treemacs-get-icon-value 'java-test-class nil lsp-jt-theme)
           t
           nil)
-   :label-form (-let [(content . face) (lsp-java-test--status item lsp-java-test--last-run-state)]
+   :label-form (-let [(content . face) (lsp-jt--status item lsp-jt--last-run-state)]
                  (concat (propertize item 'face 'default)
                          (propertize " " 'face 'default)
                          (propertize content 'face face)))
@@ -530,47 +529,47 @@
    :key-form item)
   :root-key-form 'LSP-Java-Test-Report)
 
-(defun lsp-java-test--expand-recursively (root)
+(defun lsp-jt--expand-recursively (root)
   (-map
    (lambda (btn)
      (unless (treemacs-is-node-expanded? btn)
        (save-excursion
          (goto-char (marker-position btn))
          (funcall (alist-get (treemacs-button-get btn :state) treemacs-TAB-actions-config))))
-     (lsp-java-test--expand-recursively btn))
+     (lsp-jt--expand-recursively btn))
    (treemacs--get-children-of root)))
 
-(defun lsp-java-test--expand (root-key)
+(defun lsp-jt--expand (root-key)
   (-when-let (root (treemacs-dom-node->position (treemacs-find-in-dom root-key)))
     (treemacs-save-position
-     (lsp-java-test--expand-recursively root))))
+     (lsp-jt--expand-recursively root))))
 
-(defun lsp-java-test--update-report-modeline ()
+(defun lsp-jt--update-report-modeline ()
   (setq-local mode-line-format
-              (or (->> lsp-java-test--last-result
+              (or (->> lsp-jt--last-result
                        (-keep (-lambda ((&alist 'name 'attributes (&alist 'message)))
                                 (when (string= "testSummary" name)
                                   message)))
                        cl-first)
-                  (->> lsp-java-test--last-result
+                  (->> lsp-jt--last-result
                        (-keep (-lambda ((&alist 'name 'attributes (&alist 'message)))
                                 (when (string= "testSummary" name)
                                   message)))
                        cl-first)
                   "Running...")))
 
-(defun lsp-java-test--update-report ()
+(defun lsp-jt--update-report ()
   (when (buffer-live-p (get-buffer "*Java Tests Results*"))
     (condition-case _err
         (let ((inhibit-read-only t))
           (with-current-buffer "*Java Tests Results*"
-            ;; (lsp-java-test--update-report-modeline)
+            ;; (lsp-jt--update-report-modeline)
             (treemacs-update-node '(:custom LSP-Java-Test-Report) t)
-            (lsp-java-test--expand '(:custom LSP-Java-Test-Report))))
+            (lsp-jt--expand '(:custom LSP-Java-Test-Report))))
       (error))))
 
-
-(defun lsp-java-test-show-report ()
+;;;###autoload
+(defun lsp-jt-show-report ()
   (interactive)
   (let ((original-buffer (current-buffer)))
     (let* ((buf (get-buffer-create "*Java Tests Results*"))
@@ -580,11 +579,11 @@
       (treemacs-initialize)
       (treemacs-JAVA-TESTS-REPORT-extension)
       (setq-local header-line-format "TEST RESULTS:   ")
-      (lsp-java-test--update-report-modeline)
-      (lsp-java-test--expand '(:custom LSP-Java-Test-Report)))))
+      (lsp-jt--update-report-modeline)
+      (lsp-jt--expand '(:custom LSP-Java-Test-Report)))))
 
-(provide 'lsp-java-test)
-;;; lsp-java-test.el ends here
+(provide 'lsp-jt)
+;;; lsp-jt.el ends here
 
 ;; Local Variables:
 ;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
