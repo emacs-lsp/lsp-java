@@ -87,8 +87,8 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
   :type 'string
   :group 'lsp-java)
 
-(defcustom lsp-java-test-root (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/server/java-test/server"))
-  "The `lsp-java-test' root."
+(defcustom lsp-jt-root (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/server/java-test/server"))
+  "The `lsp-jt' root."
   :type 'string)
 
 (defcustom lsp-java-pop-buffer-function 'lsp-java-show-buffer

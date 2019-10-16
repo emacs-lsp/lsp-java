@@ -119,8 +119,7 @@
    (lsp-jt-lens-mode
     (setq-local lsp-lens-backends (pushnew 'lsp-jt-lens-backend lsp-lens-backends))
     (lsp--lens-refresh t))
-   (t (setq-local lsp-lens-backends (delete 'lsp-jt-lens-backend lsp-lens-backends))
-      (setq-local lsp-java-boot--callback nil))))
+   (t (setq-local lsp-lens-backends (delete 'lsp-jt-lens-backend lsp-lens-backends)))))
 
 (defun lsp-jt-search (root level full-name)
   (lsp-java-with-jdtls
@@ -195,7 +194,6 @@
      (lambda ()
        (cl-labels ((check (value) (not (null value))))
          (let* ((node    (treemacs-node-at-point))
-                (state   (-some-> node (treemacs-button-get :state)))
                 (project (treemacs-project-at-point))
                 (menu
                  (easy-menu-create-menu
@@ -260,7 +258,7 @@
                                      (ht ("project" (treemacs-button-get node :key))
                                          ("level" 1)
                                          ("location" (ht ("uri" (treemacs-button-get node :key))))))
-                                 t)
+                                 no-debug)
     (user-error "No test under point")))
 
 (defun lsp-jt-run ()
@@ -334,7 +332,6 @@
     (cancel-timer lsp-jt--refresh-lens-timer))
   (setq lsp-jt--refresh-lens-timer
         (run-at-time 0.2 nil #'lsp-jt--do-refresh-lenses)))
-
 
 (defconst lsp-jt-kind-root 0)
 (defconst lsp-jt-kind-folder 1)
@@ -502,11 +499,11 @@
                  (concat (propertize item 'face 'default)
                          (propertize " " 'face 'default)
                          (propertize content 'face face)
-                         (condition-case _
+                         (condition-case err
                              (when-let (duration (lsp-jt--duration test))
                                (propertize (concat " " duration " ms")
                                            'face 'default))
-                           (error (message (error-message-string _))))))
+                           (error (message (error-message-string err))))))
    :state treemacs-java-test-report-node-closed-state
    :key-form (concat (treemacs-button-get (treemacs-node-at-point) :key) "#" item)))
 
@@ -571,16 +568,15 @@
 ;;;###autoload
 (defun lsp-jt-show-report ()
   (interactive)
-  (let ((original-buffer (current-buffer)))
-    (let* ((buf (get-buffer-create "*Java Tests Results*"))
-           (window (display-buffer-in-side-window buf lsp-test-java-report-position-params)))
-      (select-window window)
-      (set-window-dedicated-p window t)
-      (treemacs-initialize)
-      (treemacs-JAVA-TESTS-REPORT-extension)
-      (setq-local header-line-format "TEST RESULTS:   ")
-      (lsp-jt--update-report-modeline)
-      (lsp-jt--expand '(:custom LSP-Java-Test-Report)))))
+  (let* ((buf (get-buffer-create "*Java Tests Results*"))
+         (window (display-buffer-in-side-window buf lsp-test-java-report-position-params)))
+    (select-window window)
+    (set-window-dedicated-p window t)
+    (treemacs-initialize)
+    (treemacs-JAVA-TESTS-REPORT-extension)
+    (setq-local header-line-format "TEST RESULTS:   ")
+    (lsp-jt--update-report-modeline)
+    (lsp-jt--expand '(:custom LSP-Java-Test-Report))))
 
 (provide 'lsp-jt)
 ;;; lsp-jt.el ends here
