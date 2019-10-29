@@ -1287,6 +1287,7 @@ current symbol."
                              (user-error "Unable to unzip tool - file %s cannot be extracted, extract it manually" temp-file))))
                      ('quit))))))))
 
+;;;###autoload(with-eval-after-load 'lsp-mode (require 'lsp-java))
 
 (provide 'lsp-java)
 ;;; lsp-java.el ends here
