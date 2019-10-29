@@ -1,4 +1,4 @@
-language: emacs-lisp
+language: bash
 sudo: required
 dist: trusty
 cache:
