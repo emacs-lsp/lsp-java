@@ -848,16 +848,19 @@ current symbol."
       (lsp-show-xrefs (lsp--locations-to-xref-items locations) nil nil)
     (user-error "No super implementations.")))
 
+(defvar lsp-java--helm-result nil)
+
 (defun lsp-java--completing-read-multiple (message items initial-selection)
   (if (functionp 'helm)
-      (let (result)
+      (progn
         (require 'helm-source)
         (helm :sources (helm-make-source
-                           message 'helm-source-sync :candidates items :action
-                           '(("Identity" lambda (_) (setq result (helm-marked-candidates)))))
+                           message 'helm-source-sync :candidates items
+                           :action '(("Identity" lambda (_)
+                                      (setq lsp-java--helm-result (helm-marked-candidates)))))
               :buffer "*lsp-java select*"
               :prompt message)
-        result)
+        lsp-java--helm-result)
     (if (functionp 'ivy-read)
         (let (result)
           (ivy-read message (mapcar #'car items)
@@ -883,9 +886,10 @@ current symbol."
 
 (defun lsp-java--apply-document-changes (response)
   "Apply document CHANGES."
-  (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
-             (lsp--apply-text-edits value))
-           (gethash "changes" response)))
+  (when response
+    (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
+               (lsp--apply-text-edits value))
+             (gethash "changes" response))))
 
 (defun lsp-java--action-generate-to-string (action)
   (lsp-java-with-jdtls
