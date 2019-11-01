@@ -67,6 +67,18 @@
           </execution>
           <execution>
             <phase>process-resources</phase>
+            <id>download-java-di</id>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://marketplace.visualstudio.com/_apis/public/gallery/publishers/dgileadi/vsextensions/java-decompiler/0.0.2/vspackage</url>
+              <outputFileName>java-decompiler.zip</outputFileName>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>process-resources</phase>
             <id>download-java-test-dependency</id>
             <goals>
               <goal>wget</goal>
@@ -93,6 +105,7 @@
                 <unzip src="${project.build.directory}/vscode-extension.zip" dest="${project.build.directory}/vscode-extension-extracted" />
                 <unzip src="${project.build.directory}/java-dependency.zip" dest="${project.build.directory}/java-dependency" />
                 <unzip src="${project.build.directory}/vscode-java-test.zip" dest="${jdt.js.server.root}/java-test" />
+                <unzip src="${project.build.directory}/java-decompiler.zip" dest="${jdt.js.server.root}/java-decompiler" />
               </tasks>
             </configuration>
             <goals>
@@ -171,6 +184,25 @@
                     <include>jdt-ls-commons.jar</include>
                     <include>org.reactivestreams.reactive-streams.jar</include>
                     <include>io.projectreactor.reactor-core.jar</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>copy-decompiler </id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jdt.js.server.root}/bundles/</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${jdt.js.server.root}/java-decompiler/extension/server</directory>
+                  <includes>
+                    <include>dg.jdt.ls.decompiler.*.jar</include>
                   </includes>
                 </resource>
               </resources>
