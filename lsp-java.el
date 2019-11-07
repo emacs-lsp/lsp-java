@@ -523,7 +523,7 @@ PARAMS the parameters for language status notifications."
   "Callback for java/applyWorkspaceEdit.
 
 ACTION is the action to execute."
-  (lsp--apply-workspace-edit (seq-first (gethash "arguments" action))))
+  (lsp--apply-workspace-edit (lsp-seq-first (gethash "arguments" action))))
 
 (defun lsp-java--actionable-notification-callback (_workspace params)
   "Handler for actionable notifications.
@@ -893,7 +893,7 @@ current symbol."
 
 (defun lsp-java--action-generate-to-string (action)
   (lsp-java-with-jdtls
-    (-let* ((context (seq-first (gethash "arguments" action)))
+    (-let* ((context (lsp-seq-first (gethash "arguments" action)))
             ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
             (fields-data (-map (-lambda ((field &as &hash "name" "type"))
                                  (cons (format "%s: %s" name type) field))
@@ -910,7 +910,7 @@ current symbol."
 
 (defun lsp-java--action-generate-equals-and-hash-code (action)
   (lsp-java-with-jdtls
-    (-let* ((context (seq-first (gethash "arguments" action)))
+    (-let* ((context (lsp-seq-first (gethash "arguments" action)))
             ((&hash "fields" "existingMethods" methods) (lsp-request "java/checkHashCodeEqualsStatus" context))
             (fields-data (-map (-lambda ((field &as &hash "name" "type"))
                                  (cons (format "%s: %s" name type) field))
@@ -926,7 +926,7 @@ current symbol."
 
 (defun lsp-java--action-organize-imports (action)
   (lsp-java-with-jdtls
-    (let ((context (seq-first (gethash "arguments" action))))
+    (let ((context (lsp-seq-first (gethash "arguments" action))))
       (lsp-request-async
        "java/organizeImports" context
        (lambda (result)
@@ -937,7 +937,7 @@ current symbol."
 
 (defun lsp-java--override-methods-prompt (action)
   (lsp-java-with-jdtls
-    (let* ((context (seq-first (gethash "arguments" action)))
+    (let* ((context (lsp-seq-first (gethash "arguments" action)))
            (result (lsp-request "java/listOverridableMethods" context))
            (methods-data (-map (-lambda ((field &as &hash "name" "parameters" "declaringClass" class))
                                  (cons (format "%s(%s) class: %s" name (s-join ", " parameters) class) field))
@@ -953,7 +953,7 @@ current symbol."
 
 (defun lsp-java--generate-accessors-prompt (action)
   (lsp-java-with-jdtls
-    (let* ((context (seq-first (gethash "arguments" action)))
+    (let* ((context (lsp-seq-first (gethash "arguments" action)))
            (result (lsp-request "java/resolveUnimplementedAccessors" context))
            (fields-data (-map (-lambda ((field &as &hash "fieldName" name
                                                "generateGetter" getter?
@@ -972,7 +972,7 @@ current symbol."
 
 (defun lsp-java--generate-constructors-prompt (action)
   (lsp-java-with-jdtls
-    (-let* ((context (seq-first (gethash "arguments" action)))
+    (-let* ((context (lsp-seq-first (gethash "arguments" action)))
             ((all &as &hash "constructors" "fields") (lsp-request "java/checkConstructorsStatus" context))
             (constructors (append constructors nil))
             (selection-constructors (-map (-lambda ((field &as &hash "name" "parameters"))
