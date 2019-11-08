@@ -116,7 +116,7 @@
   (cond
    (lsp-jt-lens-mode
     (setq-local lsp-lens-backends (pushnew 'lsp-jt-lens-backend lsp-lens-backends))
-    (lsp--lens-refresh t))
+    (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete 'lsp-jt-lens-backend lsp-lens-backends)))))
 
 (defun lsp-jt-search (root level full-name)
