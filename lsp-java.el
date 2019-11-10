@@ -517,7 +517,7 @@ PARAMS the parameters for language status notifications."
       (lsp-workspace-status (concat "::" status) workspace)
       (lsp-workspace-set-metadata "status" status workspace)
       (let ((inhibit-message lsp-java-inhibit-message))
-        (lsp-message "%s[%s]" (gethash "message" params) (gethash "type" params))))))
+        (lsp-log "%s[%s]" (gethash "message" params) (gethash "type" params))))))
 
 (defun lsp-java--apply-workspace-edit (action)
   "Callback for java/applyWorkspaceEdit.
