@@ -583,7 +583,12 @@ PARAMS progress report notification data."
           (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
           (let ((full-command (format
                                "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
-                               (or (executable-find "mvn") (lsp-java--prepare-mvnw))
+                               (or (let ((mvn-executable (executable-find "mvn")))
+                                     ;; Quote path to maven executable if it has spaces.
+                                     (if (string-match "\s" mvn-executable)
+                                         (format "\"%s\"" mvn-executable)
+                                       mvn-executable))
+                                   (lsp-java--prepare-mvnw))
                                (expand-file-name lsp-java-server-install-dir)
                                (expand-file-name
                                 (if (boundp 'dap-java-test-runner)
