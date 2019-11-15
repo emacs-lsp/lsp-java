@@ -585,7 +585,7 @@ PARAMS progress report notification data."
                                "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
                                (or (let ((mvn-executable (executable-find "mvn")))
                                      ;; Quote path to maven executable if it has spaces.
-                                     (if (string-match "\s" mvn-executable)
+                                     (if (and mvn-executable (string-match "\s" mvn-executable))
                                          (format "\"%s\"" mvn-executable)
                                        mvn-executable))
                                    (lsp-java--prepare-mvnw))
