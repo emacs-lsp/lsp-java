@@ -288,3 +288,7 @@ LSP UI by default sends current line bounds for action region which breaks force
 * LSP Java does not provide completion, go to definition for some of the files?
 
 When particular file is not part of imported project [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) could not calculate the current classpath.
+
+* How do I change the version of java used by LSP?
+
+Have a look at `~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml`. If you updated your local java path and want LSP to use the new version, try removing the `~/.emacs.d/workspace/` directory and relaunch LSP. Also see #114.
