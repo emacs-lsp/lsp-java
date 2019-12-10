@@ -1286,7 +1286,11 @@ current symbol."
                          (let ((download-url (format "%sstarter.zip?type=%s&language=%s&groupId=%s&artifactId=%s&packaging=%s&bootVersion=%s&baseDir=%s&dependencies=%s"
                                                      base-url type language group-id artifact-id packaging boot-version artifact-id (s-join "," deps))))
                            (message "Downloading template from %s" download-url)
-                           (url-copy-file download-url temp-file t)
+                           (if (executable-find "wget")
+                               (shell-command (format "wget  -O  %s  '%s' " temp-file download-url))
+                             (if (executable-find "curl")
+                                   (shell-command (format "curl  -o  %s  '%s' " temp-file download-url))
+                                 (url-copy-file download-url temp-file t)))
                            (if (executable-find "unzip")
                                (progn
                                  (shell-command (format "unzip %s -d %s" temp-file target-directory))
