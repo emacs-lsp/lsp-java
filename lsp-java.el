@@ -39,7 +39,7 @@
   :group 'applications
   :link '(url-link :tag "GitHub" "https://github.com/emacs-lisp/lsp-java"))
 
-(defcustom lsp-java-server-install-dir (locate-user-emacs-file "eclipse.jdt.ls/server/")
+(defcustom lsp-java-server-install-dir (f-join lsp-server-install-dir "eclipse.jdt.ls/")
   "Install directory for eclipse.jdt.ls-server.
 The slash is expected at the end."
   :group 'lsp-java
@@ -380,15 +380,11 @@ example 'java.awt.*' will hide all types from the awt packages."
   "Return the jar file location of the language server.
 
 The entry point of the language server is in `lsp-java-server-install-dir'/plugins/org.eclipse.equinox.launcher_`version'.jar."
-  (let ((plugindir (expand-file-name "plugins" lsp-java-server-install-dir)))
-    (unless (file-directory-p plugindir)
-      (if (yes-or-no-p "Server is not installed. Do you want to install it?")
-          (lsp-java--ensure-server)
-        (error "LSP Java cannot be started without JDT LS Server")))
-    (let ((server-jar-filenames (directory-files plugindir t "org.eclipse.equinox.launcher_.*.jar$")))
-      (if (not (= (length server-jar-filenames) 1))
-          (error (format "Unable to find single point of entry %s" server-jar-filenames))
-        (car server-jar-filenames)))))
+  (pcase (f-glob "org.eclipse.equinox.launcher_*.jar" (expand-file-name "plugins" lsp-java-server-install-dir))
+    (`(,single-entry) single-entry)
+    (`nil nil)
+    (server-jar-filenames
+     (error "Unable to find single point of entry %s" server-jar-filenames))))
 
 (defun lsp-java--locate-server-config ()
   "Return the server config based on OS."
@@ -514,7 +510,7 @@ PARAMS the parameters for language status notifications."
     (when (not (and (or (string= current-status "Error" )
                         (string= current-status "Started" ))
                     (string= "Starting" status)))
-      (lsp-workspace-status (concat "::" status) workspace)
+      (lsp-workspace-status status workspace)
       (lsp-workspace-set-metadata "status" status workspace)
       (let ((inhibit-message lsp-java-inhibit-message))
         (lsp-log "%s[%s]" (gethash "message" params) (gethash "type" params))))))
@@ -575,42 +571,37 @@ PARAMS progress report notification data."
   "Get default bundles dir."
   (concat (file-name-as-directory lsp-java-server-install-dir) "bundles"))
 
-(defun lsp-java--ensure-server (&optional async)
+(defun lsp-java--ensure-server (_client callback error-callback _update?)
   "Ensure that JDT server and the other configuration."
   (let* ((default-directory (make-temp-file "lsp-java-install" t)))
-    (unwind-protect
-        (progn
-          (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
-          (let ((full-command (format
-                               "%s -Djdt.js.server.root=%s -Djunit.runner.root=%s -Djunit.runner.fileName=%s -Djava.debug.root=%s clean package -Djdt.download.url=%s"
-                               (or (let ((mvn-executable (executable-find "mvn")))
-                                     ;; Quote path to maven executable if it has spaces.
-                                     (if (and mvn-executable (string-match "\s" mvn-executable))
-                                         (format "\"%s\"" mvn-executable)
-                                       mvn-executable))
-                                   (lsp-java--prepare-mvnw))
-                               (expand-file-name lsp-java-server-install-dir)
-                               (expand-file-name
-                                (if (boundp 'dap-java-test-runner)
-                                    (file-name-directory dap-java-test-runner)
-                                  (concat (file-name-directory lsp-java-server-install-dir) "test-runner")))
-                               (if (boundp 'dap-java-test-runner)
-                                   (file-name-nondirectory (directory-file-name dap-java-test-runner))
-                                 "junit-platform-console-standalone.jar")
-                               (expand-file-name (lsp-java--bundles-dir))
-                               lsp-java-jdt-download-url)))
-            (if async
-                (async-shell-command full-command)
-              (message "Running %s" full-command)
-              (unless (zerop (shell-command full-command))
-                (user-error "Failed to install lsp server using '%s'" full-command))
-              (delete-directory default-directory t)))))))
+    (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
+    (lsp-async-start-process
+     callback
+     error-callback
+     (or (let ((mvn-executable (executable-find "mvn")))
+           ;; Quote path to maven executable if it has spaces.
+           (if (and mvn-executable (string-match "\s" mvn-executable))
+               (format "\"%s\"" mvn-executable)
+             mvn-executable))
+         (lsp-java--prepare-mvnw))
+     (format "-Djdt.js.server.root=%s"
+             (expand-file-name lsp-java-server-install-dir))
+     (format "-Djunit.runner.root=%s"
+             (expand-file-name
+              (if (boundp 'dap-java-test-runner)
+                  (file-name-directory dap-java-test-runner)
+                (concat (file-name-directory lsp-java-server-install-dir) "test-runner"))))
+     (format "-Djunit.runner.fileName=%s"
+             (if (boundp 'dap-java-test-runner)
+                 (file-name-nondirectory (directory-file-name dap-java-test-runner))
+               "junit-platform-console-standalone.jar"))
+     (format "-Djava.debug.root=%s"
+             (expand-file-name (lsp-java--bundles-dir)))
+     "clean"
+     "package"
+     (format "-Djdt.download.url=%s" lsp-java-jdt-download-url))))
 
-(defun lsp-java-update-server ()
-  "Update LDT LS server."
-  (interactive)
-  (lsp--info "Server update started...")
-  (lsp-java--ensure-server t))
+(defalias 'lsp-java-update-server 'lsp-install-server)
 
 (defun lsp-java--workspace-notify (&rest _args)
   "Workspace notify handler.")
@@ -1183,7 +1174,8 @@ current symbol."
 
 (lsp-register-client
  (make-lsp--client
-  :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
+  :new-connection (lsp-stdio-connection #'lsp-java--ls-command
+                                        #'lsp-java--locate-server-jar)
   :major-modes '(java-mode)
   :server-id 'jdtls
   :multi-root t
@@ -1244,7 +1236,9 @@ current symbol."
                                                            (ht ("globPattern" "**/.project"))
                                                            (ht ("globPattern" "**/.classpath"))
                                                            (ht ("globPattern" "**/settings/*.prefs"))))))))))
-  :completion-in-comments? t))
+  :completion-in-comments? t
+
+  :download-server-fn #'lsp-java--ensure-server))
 
 (defun lsp-java-spring-initializr ()
   "Emacs frontend for https://start.spring.io/."
@@ -1252,53 +1246,53 @@ current symbol."
   (let ((base-url "https://start.spring.io/"))
     (message "Requesting spring initializr data...")
     (request
-     base-url
-     :type "GET"
-     :parser (lambda () (let ((json-array-type 'list)) (json-read)))
-     :headers '(("Accept" . "application/vnd.initializr.v2.1+json"))
-     :success (cl-function
-               (lambda (&key data &allow-other-keys)
-                 (cl-flet ((ask (message key) (alist-get 'id
-                                                         (lsp--completing-read message
-                                                                               (alist-get 'values (alist-get key data))
-                                                                               (-partial 'alist-get 'name)))))
-                   (condition-case _err
-                       (-let* ((group-id (read-string "Enter group name: " "com.example"))
-                               (artifact-id (read-string "Enter artifactId: " "demo"))
-                               (description (read-string "Enter description: " "Demo project for Spring Boot"))
-                               (boot-version (ask "Select boot-version: " 'bootVersion))
-                               (java-version (ask "Select java-version: " 'javaVersion))
-                               (language (ask "Select language: " 'language))
-                               (packaging (ask "Select packaging: " 'packaging))
-                               (base-url "https://start.spring.io/")
-                               (package-name (read-string "Select package name: " "com.example.demo"))
-                               (type (ask "Select type: " 'type))
-                               (target-directory (read-directory-name "Select project directory: " default-directory))
-                               (dependenciles-list (->> data
-                                                        (alist-get 'dependencies)
-                                                        (alist-get 'values)
-                                                        (-map (-lambda ((&alist 'name 'values))
-                                                                (-map (-lambda ((&alist 'id 'name dep-name 'description))
-                                                                        (cons (format "%s / %s (%s)" name dep-name description) id)) values)))
-                                                        (apply 'append)))
-                               (temp-file (make-temp-file "spring-project" nil ".zip"))
-                               (deps (lsp-java--completing-read-multiple "Select dependencies: " dependenciles-list nil)))
-                         (let ((download-url (format "%sstarter.zip?type=%s&language=%s&groupId=%s&artifactId=%s&packaging=%s&bootVersion=%s&baseDir=%s&dependencies=%s"
-                                                     base-url type language group-id artifact-id packaging boot-version artifact-id (s-join "," deps))))
-                           (message "Downloading template from %s" download-url)
-                           (if (executable-find "wget")
-                               (shell-command (format "wget  -O  %s  '%s' " temp-file download-url))
-                             (if (executable-find "curl")
-                                   (shell-command (format "curl  -o  %s  '%s' " temp-file download-url))
-                                 (url-copy-file download-url temp-file t)))
-                           (if (executable-find "unzip")
-                               (progn
-                                 (shell-command (format "unzip %s -d %s" temp-file target-directory))
-                                 (when (yes-or-no-p "Do you want to import the project?")
-                                   (lsp-workspace-folders-add (f-join target-directory artifact-id)))
-                                 (find-file (f-join target-directory artifact-id)))
-                             (user-error "Unable to unzip tool - file %s cannot be extracted, extract it manually" temp-file))))
-                     ('quit))))))))
+      base-url
+      :type "GET"
+      :parser (lambda () (let ((json-array-type 'list)) (json-read)))
+      :headers '(("Accept" . "application/vnd.initializr.v2.1+json"))
+      :success (cl-function
+                (lambda (&key data &allow-other-keys)
+                  (cl-flet ((ask (message key) (alist-get 'id
+                                                          (lsp--completing-read message
+                                                                                (alist-get 'values (alist-get key data))
+                                                                                (-partial 'alist-get 'name)))))
+                    (condition-case _err
+                        (-let* ((group-id (read-string "Enter group name: " "com.example"))
+                                (artifact-id (read-string "Enter artifactId: " "demo"))
+                                (description (read-string "Enter description: " "Demo project for Spring Boot"))
+                                (boot-version (ask "Select boot-version: " 'bootVersion))
+                                (java-version (ask "Select java-version: " 'javaVersion))
+                                (language (ask "Select language: " 'language))
+                                (packaging (ask "Select packaging: " 'packaging))
+                                (base-url "https://start.spring.io/")
+                                (package-name (read-string "Select package name: " "com.example.demo"))
+                                (type (ask "Select type: " 'type))
+                                (target-directory (read-directory-name "Select project directory: " default-directory))
+                                (dependenciles-list (->> data
+                                                         (alist-get 'dependencies)
+                                                         (alist-get 'values)
+                                                         (-map (-lambda ((&alist 'name 'values))
+                                                                 (-map (-lambda ((&alist 'id 'name dep-name 'description))
+                                                                         (cons (format "%s / %s (%s)" name dep-name description) id)) values)))
+                                                         (apply 'append)))
+                                (temp-file (make-temp-file "spring-project" nil ".zip"))
+                                (deps (lsp-java--completing-read-multiple "Select dependencies: " dependenciles-list nil)))
+                          (let ((download-url (format "%sstarter.zip?type=%s&language=%s&groupId=%s&artifactId=%s&packaging=%s&bootVersion=%s&baseDir=%s&dependencies=%s"
+                                                      base-url type language group-id artifact-id packaging boot-version artifact-id (s-join "," deps))))
+                            (message "Downloading template from %s" download-url)
+                            (if (executable-find "wget")
+                                (shell-command (format "wget  -O  %s  '%s' " temp-file download-url))
+                              (if (executable-find "curl")
+                                  (shell-command (format "curl  -o  %s  '%s' " temp-file download-url))
+                                (url-copy-file download-url temp-file t)))
+                            (if (executable-find "unzip")
+                                (progn
+                                  (shell-command (format "unzip %s -d %s" temp-file target-directory))
+                                  (when (yes-or-no-p "Do you want to import the project?")
+                                    (lsp-workspace-folders-add (f-join target-directory artifact-id)))
+                                  (find-file (f-join target-directory artifact-id)))
+                              (user-error "Unable to unzip tool - file %s cannot be extracted, extract it manually" temp-file))))
+                      ('quit))))))))
 
 ;;;###autoload(with-eval-after-load 'lsp-mode (require 'lsp-java))
 
