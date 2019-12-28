@@ -130,7 +130,7 @@
                 <artifactItem>
                   <groupId>com.microsoft.java</groupId>
                   <artifactId>com.microsoft.java.debug.plugin</artifactId>
-                  <version>0.20.0</version>
+                  <version>0.24.0</version>
                   <outputDirectory>${java.debug.root}</outputDirectory>
                   <destFileName>java.debug.plugin.jar</destFileName>
                 </artifactItem>
