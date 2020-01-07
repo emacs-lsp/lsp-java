@@ -607,7 +607,9 @@ PARAMS progress report notification data."
            error-callback
            (append mvn-command-and-options other-options))))
 
-(defalias 'lsp-java-update-server 'lsp-install-server)
+(defun lsp-java-update-server ()
+  (interactive)
+  (error "lsp-java-update-server is deprecated, use `C-u M-x lsp-install-server'"))
 
 (defun lsp-java--workspace-notify (&rest _args)
   "Workspace notify handler.")
