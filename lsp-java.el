@@ -551,7 +551,7 @@ PARAMS progress report notification data."
     (error str)))
 
 (defun lsp-java--prepare-mvnw ()
-  "Download mvnw."
+  "Download mvnw and return the invocation command."
   (let ((mvn-executable (if (string-equal system-type "windows-nt")
                             "mvnw.cmd"
                           "mvnw"))
@@ -564,8 +564,8 @@ PARAMS progress report notification data."
     (url-copy-file (concat lsp-java--download-root downloader) downloader t)
     (url-copy-file (concat lsp-java--download-root properties) properties t)
     (if (string= system-type "windows-nt")
-        mvn-executable
-      (concat "sh " mvn-executable))))
+        (list mvn-executable)
+      (list "sh" mvn-executable))))
 
 (defun lsp-java--bundles-dir ()
   "Get default bundles dir."
@@ -573,33 +573,39 @@ PARAMS progress report notification data."
 
 (defun lsp-java--ensure-server (_client callback error-callback _update?)
   "Ensure that JDT server and the other configuration."
-  (let* ((default-directory (make-temp-file "lsp-java-install" t)))
+  (let* ((default-directory (make-temp-file "lsp-java-install" t))
+         (installed-mvn (let ((mvn-executable (executable-find "mvn")))
+                          ;; Quote path to maven executable if it has spaces.
+                          (if (and mvn-executable
+                                   (string-match "\s" mvn-executable))
+                              (format "\"%s\"" mvn-executable)
+                            mvn-executable)))
+         (mvn-command-and-options (if installed-mvn
+                                      (list installed-mvn)
+                                    (lsp-java--prepare-mvnw)))
+         (other-options
+          (list (format "-Djdt.js.server.root=%s"
+                        (expand-file-name lsp-java-server-install-dir))
+                (format "-Djunit.runner.root=%s"
+                        (expand-file-name
+                         (if (boundp 'dap-java-test-runner)
+                             (file-name-directory dap-java-test-runner)
+                           (concat (file-name-directory lsp-java-server-install-dir)
+                                   "test-runner"))))
+                (format "-Djunit.runner.fileName=%s"
+                        (if (boundp 'dap-java-test-runner)
+                            (file-name-nondirectory (directory-file-name dap-java-test-runner))
+                          "junit-platform-console-standalone.jar"))
+                (format "-Djava.debug.root=%s"
+                        (expand-file-name (lsp-java--bundles-dir)))
+                "clean"
+                "package"
+                (format "-Djdt.download.url=%s" lsp-java-jdt-download-url))))
     (url-copy-file (concat lsp-java--download-root "pom.xml") "pom.xml" t)
-    (lsp-async-start-process
-     callback
-     error-callback
-     (or (let ((mvn-executable (executable-find "mvn")))
-           ;; Quote path to maven executable if it has spaces.
-           (if (and mvn-executable (string-match "\s" mvn-executable))
-               (format "\"%s\"" mvn-executable)
-             mvn-executable))
-         (lsp-java--prepare-mvnw))
-     (format "-Djdt.js.server.root=%s"
-             (expand-file-name lsp-java-server-install-dir))
-     (format "-Djunit.runner.root=%s"
-             (expand-file-name
-              (if (boundp 'dap-java-test-runner)
-                  (file-name-directory dap-java-test-runner)
-                (concat (file-name-directory lsp-java-server-install-dir) "test-runner"))))
-     (format "-Djunit.runner.fileName=%s"
-             (if (boundp 'dap-java-test-runner)
-                 (file-name-nondirectory (directory-file-name dap-java-test-runner))
-               "junit-platform-console-standalone.jar"))
-     (format "-Djava.debug.root=%s"
-             (expand-file-name (lsp-java--bundles-dir)))
-     "clean"
-     "package"
-     (format "-Djdt.download.url=%s" lsp-java-jdt-download-url))))
+    (apply #'lsp-async-start-process
+           callback
+           error-callback
+           (append mvn-command-and-options other-options))))
 
 (defalias 'lsp-java-update-server 'lsp-install-server)
 
