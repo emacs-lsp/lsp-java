@@ -1302,6 +1302,61 @@ current symbol."
                               (user-error "Unable to unzip tool - file %s cannot be extracted, extract it manually" temp-file))))
                       ('quit))))))))
 
+
+;; lsp-java run
+
+;;;###autoload
+(define-minor-mode lsp-java-lens-mode
+  "Toggle run/debug overlays."
+  :group 'lsp-java
+  :global nil
+  :init-value nil
+  :lighter nil
+  (cond
+   (lsp-java-lens-mode
+    (setq-local lsp-lens-backends (pushnew #'lsp-java-lens-backend lsp-lens-backends))
+    (lsp-lens-refresh t))
+   (t (setq-local lsp-lens-backends (delete #'lsp-java-lens-backend lsp-lens-backends)))))
+
+(defun lsp-java--start-main-class (lens no-debug?)
+  (-let [(&hash "mainClass" main-class
+                "projectName" project-name) lens]
+    (require 'dap-java)
+    (dap-debug (list :type "java"
+                     :mainClass main-class
+                     :projectName project-name
+                     :noDebug no-debug?))))
+
+(defun lsp-java-lens-backend (modified? callback)
+  (when (lsp--find-workspaces-for "workspace/executeCommand")
+    (lsp-request-async
+     "workspace/executeCommand"
+     (list :command "vscode.java.resolveMainMethod"
+           :arguments (vector (lsp--buffer-uri)))
+     (lambda (result)
+       (funcall callback
+                (append
+                 (-map
+                  (lambda (lens)
+                    (-doto lens
+                      (ht-set "command" (ht ("title" "Run")
+                                            ("command" (lambda ()
+                                                         (interactive)
+                                                         (lsp-java--start-main-class lens t)))))))
+                  result)
+                 (-map
+                  (lambda (lens)
+                    (-doto (ht-copy lens)
+                      (ht-set "command" (ht ("title" "Debug")
+                                            ("command" (lambda ()
+                                                         (interactive)
+                                                         (lsp-java--start-main-class lens nil)))))))
+                  result))
+                lsp--cur-version))
+     :mode 'tick)))
+
+
+
 ;;;###autoload(with-eval-after-load 'lsp-mode (require 'lsp-java))
 
 (provide 'lsp-java)
