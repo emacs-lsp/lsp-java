@@ -4,8 +4,6 @@
 
 Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
 
-__ANNOUNCEMENT__ `lsp-java` switching from Eclipse [eclipse.che.jdt](https://github.com/eclipse/che-ls-jdt) to directly using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) due to the fact that [che-ls-jdt](https://github.com/eclipse/che-ls-jdt) does not bump upstream components often enough. As a result all Che dependent methods(Treemacs integation and browse classpath) won't work. If you still want to use [eclipse.che.jdt](https://github.com/eclipse/che-ls-jdt) functionality you may set `lsp-java-jdt-download-url` to `http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz` and call `lsp-java-update-server`.
-
 ## Features
 LSP java mode supports the following JDT Features:
 * As you type reporting of parsing and compilation errors (via [flycheck](https://github.com/flycheck/flycheck)/[lsp-ui](https://github.com/emacs-lsp/lsp-ui))
@@ -23,6 +21,8 @@ LSP java mode supports the following JDT Features:
 * Test runner - [dap-mode](https://github.com/yyoncho/dap-mode/)
 * Project explorer integration - [treemacs](https://github.com/Alexander-Miller/treemacs)
 * Integration with [Spring Initializr](https://start.spring.io/)
+## Demo
+Here it is a demo from EmacsConf2019 https://www.youtube.com/watch?v=Bbjxn9yVNJ8
 ## Screenshot
 ![demo](images/demo.png)
 ## Installation
