@@ -574,12 +574,7 @@ PARAMS progress report notification data."
 (defun lsp-java--ensure-server (_client callback error-callback _update?)
   "Ensure that JDT server and the other configuration."
   (let* ((default-directory (make-temp-file "lsp-java-install" t))
-         (installed-mvn (let ((mvn-executable (executable-find "mvn")))
-                          ;; Quote path to maven executable if it has spaces.
-                          (if (and mvn-executable
-                                   (string-match "\s" mvn-executable))
-                              (format "\"%s\"" mvn-executable)
-                            mvn-executable)))
+         (installed-mvn (executable-find "mvn"))
          (mvn-command-and-options (if installed-mvn
                                       (list installed-mvn)
                                     (lsp-java--prepare-mvnw)))
