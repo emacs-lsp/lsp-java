@@ -8,19 +8,6 @@
     <root.install.dir>${user.home}/.emacs.d/eclipse.jdt.ls</root.install.dir>
   </properties>
   <packaging>pom</packaging>
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>codenvy-public-repo</id>
-      <name>codenvy public</name>
-      <url>https://maven.codenvycorp.com/content/groups/public/</url>
-    </repository>
-  </repositories>
   <build>
     <plugins>
       <plugin>
