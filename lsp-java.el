@@ -24,7 +24,7 @@
 
 ;;; Code:
 (require 'cc-mode)
-(require 'lsp)
+(require 'lsp-mode)
 (require 'markdown-mode)
 (require 'dash)
 (require 'ht)
