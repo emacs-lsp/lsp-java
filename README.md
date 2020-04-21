@@ -67,7 +67,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 (use-package hydra :ensure t)
 (use-package company-lsp :ensure t)
 (use-package lsp-ui :ensure t)
-(use-package lsp-java :ensure t :after lsp
+(use-package lsp-java :ensure t
   :config (add-hook 'java-mode-hook 'lsp))
 
 (use-package dap-mode
