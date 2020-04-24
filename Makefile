@@ -28,26 +28,6 @@ compile:
 		-f batch-byte-compile \
 		*.el
 
-checkdoc:
-	$(eval LOG := $(shell mktemp -d)/checklog.log)
-	@touch $(LOG)
-
-	@echo "checking doc..."
-
-	@for f in *.el ; do \
-		$(CASK) $(EMACS) -Q --batch \
-			-L . \
-			--eval "(checkdoc-file \"$$f\")" \
-			*.el 2>&1 | tee -a $(LOG); \
-	done
-
-	@if [ -s $(LOG) ]; then \
-		echo ''; \
-		exit 1; \
-	else \
-		echo 'checkdoc ok!'; \
-	fi
-
 lint:
 	@echo "package linting..."
 	@$(CASK) $(EMACS) -Q --batch \
