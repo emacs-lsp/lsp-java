@@ -6,5 +6,6 @@
 (depends-on "markdown-mode")
 
 (development
+ (depends-on "spinner")
  (depends-on "ecukes")
  (depends-on "espuds"))
