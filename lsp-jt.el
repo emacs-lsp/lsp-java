@@ -135,7 +135,7 @@
   (lsp-java-with-jdtls
     (lsp-send-execute-command
      "vscode.java.test.search.items"
-     (vector (json-serialize `(:uri ,root
+     (vector (lsp--json-serialize `(:uri ,root
                                     :level ,level
                                     ,@(when full-name (list :fullName full-name))))))))
 
