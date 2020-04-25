@@ -1,10 +1,9 @@
-;;; lsp-java.el --- Spring boot support for lsp-java               -*- lexical-binding: t; -*-
+;;; lsp-java-boot.el --- Spring boot support for lsp-java -*- lexical-binding: t; -*-
 
 ;; Version: 2.0
-;; Keywords: java
-;; URL: https://github.com/emacs-lsp/lsp-java
-
 ;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0"))
+;; Keywords: languague, tools
+;; URL: https://github.com/emacs-lsp/lsp-java
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,14 +18,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary: LSP Java support for Spring Boot.
+;;; Commentary:
+
+;; LSP Java support for Spring Boot.
 
 ;;; Code:
 
 (require 'dash)
+(require 'cl-lib)
 (require 'lsp-mode)
 (require 'lsp-java)
-(require 'cl)
 
 (defcustom lsp-java-boot-enabled t
   "If non-nil start the boot server when opening java files."
@@ -49,7 +50,7 @@
     tools-jar))
 
 (defun lsp-java-boot--sts-javadoc-hover-link (_workspace params)
-  "Handler for java doc hover."
+  "Handler with PARAMS data for java doc hover."
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
     (lsp-request "workspace/executeCommand"
                  (list :command "sts.java.addClasspathListener"
@@ -57,6 +58,7 @@
                  :no-wait t)))
 
 (defun lsp-java-boot--sts-add-classpath-listener (_workspace params)
+  "Add classpath listener for WORKSPACE with PARAMS data."
   (ignore
    (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
      (lsp-request "workspace/executeCommand"
@@ -78,16 +80,19 @@ Store CALLBACK to use it `sts/highlight'."
   :lighter "BLens"
   (cond
    (lsp-java-boot-lens-mode
-    (setq-local lsp-lens-backends (pushnew 'lsp-java-boot--lens-backend lsp-lens-backends))
+    (setq-local lsp-lens-backends (cl-pushnew 'lsp-java-boot--lens-backend lsp-lens-backends))
     (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete 'lsp-java-boot--lens-backend lsp-lens-backends))
       (setq-local lsp-java-boot--callback nil))))
 
 (cl-defmethod lsp-execute-command
-  (server (command (eql sts.open.url)) params)
+  (_server (_command (eql sts.open.url)) params)
+  "Execute open url command from PARAMS data."
   (browse-url (seq-first params)))
 
-(cl-defmethod lsp-execute-command (server (command (eql sts.showHoverAtPosition)) params)
+(cl-defmethod lsp-execute-command
+  (_server (_command (eql sts.showHoverAtPosition)) params)
+  "Execute show hover at position command with PARAMS data."
   (goto-char (lsp--position-to-point (seq-first params)))
   (lsp-describe-thing-at-point))
 
@@ -106,7 +111,7 @@ Store CALLBACK to use it `sts/highlight'."
           (expand-file-name)
           (f-join "boot-server")
           f-files
-          first)
+          cl-first)
       (lsp-log "Unable to find spring boot server jar.")))
 
 (defun lsp-java-boot--ls-command (port)
@@ -127,9 +132,9 @@ Store CALLBACK to use it `sts/highlight'."
 (lsp-register-client
  (make-lsp-client :new-connection
                   (lsp-tcp-server #'lsp-java-boot--ls-command)
-                  :activation-fn (lambda (filename major-mode)
+                  :activation-fn (lambda (_filename mode)
                                    (and lsp-java-boot-enabled
-                                        (memq major-mode '(java-mode conf-javaprop-mode yaml-mode))
+                                        (memq mode '(java-mode conf-javaprop-mode yaml-mode))
                                         (lsp-java-boot--server-jar)))
                   :request-handlers  (ht ("sts/addClasspathListener" #'lsp-java-boot--sts-add-classpath-listener)
                                          ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link))
