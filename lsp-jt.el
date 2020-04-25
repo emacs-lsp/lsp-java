@@ -1,9 +1,12 @@
-;;; lsp-jt.el --- java test support           -*- lexical-binding: t; -*-
+;;; lsp-jt.el --- Java test support -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Ivan Yonchovski
 
+;; Version: 2.0
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
-;; Keywords:
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0"))
+;; Keywords: language, tools
+;; URL: https://github.com/emacs-lsp/lsp-java
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,9 +27,12 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'lsp-mode)
 (require 'lsp-java)
 (require 'treemacs)
+
+(declare-function dap-debug "ext:dap-mode")
 
 (defvar lsp-jt--last-result nil)
 (defvar lsp-jt--state (ht))
@@ -34,14 +40,20 @@
 
 (defcustom lsp-jt-theme "Default"
   "The `lsp-jt' theme."
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
-(defvar lsp-test-java-browser-position-params
+(defcustom lsp-jt-root (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/server/java-test/server"))
+  "The `lsp-jt' root."
+  :type 'string
+  :group 'lsp-java)
+
+(defvar lsp-jt-browser-position-params
   `((side . ,treemacs-position)
     (slot . 4)
     (window-width . ,treemacs-width)))
 
-(defvar lsp-test-java-report-position-params
+(defvar lsp-jt-report-position-params
   `((side . right)
     (slot . 5)
     (window-width . ,treemacs-width)))
@@ -69,7 +81,7 @@
 
 (defvar-local lsp-jt--last-callback nil)
 
-(defun lsp-jt-lens-backend (modified? callback)
+(defun lsp-jt-lens-backend (_modified? callback)
   (setq-local lsp-jt--last-callback callback)
   (lsp-request-async
    "workspace/executeCommand"
@@ -115,7 +127,7 @@
   :lighter nil
   (cond
    (lsp-jt-lens-mode
-    (setq-local lsp-lens-backends (pushnew 'lsp-jt-lens-backend lsp-lens-backends))
+    (setq-local lsp-lens-backends (cl-pushnew 'lsp-jt-lens-backend lsp-lens-backends))
     (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete 'lsp-jt-lens-backend lsp-lens-backends)))))
 
@@ -164,7 +176,7 @@
                             :full-name (gethash "fullName" item)
                             :item item)))
 
-(defun java-tests--roots ()
+(defun lsp-jt--roots ()
   (-uniq (gethash 'jdtls (lsp-session-server-id->folders (lsp-session)))))
 
 (treemacs-modify-theme "Default"
@@ -191,9 +203,7 @@
      0.001 nil
      (lambda ()
        (cl-labels ((check (value) (not (null value))))
-         (let* ((node    (treemacs-node-at-point))
-                (project (treemacs-project-at-point))
-                (menu
+         (let* ((menu
                  (easy-menu-create-menu
                   nil
                   `(["Run Test"   lsp-jt-run]
@@ -238,7 +248,7 @@
   nil nil lsp-jt-mode-map)
 
 (treemacs-define-variadic-node java-tests-list
-  :query-function (java-tests--roots)
+  :query-function (lsp-jt--roots)
   :render-action
   (treemacs-render-node
    :icon
@@ -358,6 +368,7 @@
 
 (defun lsp-jt--start-test (test no-debug)
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
+    (require 'dap-java)
     (dap-debug
      `(
        :type "java"
@@ -390,9 +401,9 @@
 (defun lsp-jt-browser ()
   (interactive)
   (if-let ((buf (get-buffer "*Java Tests*")))
-      (select-window (display-buffer-in-side-window buf lsp-test-java-browser-position-params))
+      (select-window (display-buffer-in-side-window buf lsp-jt-browser-position-params))
     (let* ((buf (get-buffer-create "*Java Tests*"))
-           (window (display-buffer-in-side-window buf lsp-test-java-browser-position-params)))
+           (window (display-buffer-in-side-window buf lsp-jt-browser-position-params)))
       (select-window window)
       (set-window-dedicated-p window t)
       (treemacs-initialize)
@@ -542,7 +553,7 @@
          (goto-char (marker-position btn))
          (funcall (alist-get (treemacs-button-get btn :state) treemacs-TAB-actions-config))))
      (lsp-jt--expand-recursively btn))
-   (treemacs--get-children-of root)))
+   (treemacs-collect-child-nodes root)))
 
 (defun lsp-jt--expand (root-key)
   (-when-let (root (treemacs-dom-node->position (treemacs-find-in-dom root-key)))
@@ -577,7 +588,7 @@
 (defun lsp-jt-show-report ()
   (interactive)
   (let* ((buf (get-buffer-create "*Java Tests Results*"))
-         (window (display-buffer-in-side-window buf lsp-test-java-report-position-params)))
+         (window (display-buffer-in-side-window buf lsp-jt-report-position-params)))
     (select-window window)
     (set-window-dedicated-p window t)
     (treemacs-initialize)

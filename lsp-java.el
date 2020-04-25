@@ -2,7 +2,7 @@
 
 ;; Version: 2.0
 ;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0") (treemacs "2.5"))
-;; Keywords: java
+;; Keywords: languague, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -86,10 +86,6 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
   "Theme to use."
   :type 'string
   :group 'lsp-java)
-
-(defcustom lsp-jt-root (expand-file-name (locate-user-emacs-file "eclipse.jdt.ls/server/java-test/server"))
-  "The `lsp-jt' root."
-  :type 'string)
 
 (defcustom lsp-java-pop-buffer-function 'lsp-java-show-buffer
   "The function which will be used for showing the helper windows."
@@ -303,6 +299,11 @@ assist or quick fix proposals and when organizing imports. For
 example 'java.awt.*' will hide all types from the awt packages."
   :type 'vector)
 
+(declare-function dap-debug "ext:dap-mode")
+(declare-function projectile-project-p "ext:projectile")
+(declare-function projectile-project-root "ext:projectile")
+(declare-function helm-make-source "ext:helm-source")
+
 (lsp-register-custom-settings
  '(("java.codeGeneration.toString.limitElements" lsp-java-code-generation-to-string-limit-elements)
    ("java.codeGeneration.toString.listArrayContents" lsp-java-code-generation-to-string-list-array-contents t)
@@ -369,7 +370,7 @@ example 'java.awt.*' will hide all types from the awt packages."
                                             (or (-> buf
                                                     buffer-name
                                                     (assoc lsp-java-buffer-configurations)
-                                                    rest)
+                                                    cl-rest)
                                                 '((side . right)
                                                   (slot . 1)
                                                   (window-width . 0.20))))))
@@ -441,13 +442,13 @@ FULL specify whether full or incremental build will be performed."
     (make-directory path t)))
 
 (cl-defmethod lsp-execute-command
-  (_server (command (eql java.show.references)) params)
+  (_server (_command (eql java.show.references)) params)
   (if-let (refs (seq-elt params 2))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
-  (_server (command (eql java.show.implementations)) params)
+  (_server (_command (eql java.show.implementations)) params)
   (if-let (refs (seq-elt params 2))
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No implementations")))
@@ -759,7 +760,7 @@ current symbol."
     (append lsp-java-bundles (when (file-directory-p bundles-dir)
                                (apply 'vector (directory-files bundles-dir t "\\.jar$"))))))
 
-(defun lsp-java--workspace-folders (workspace)
+(defun lsp-java--workspace-folders (_workspace)
   "Return WORKSPACE folders."
   (lsp-session-folders (lsp-session)))
 
@@ -767,28 +768,14 @@ current symbol."
   "Return the workspace corresponding FILE-URI."
   (lsp-find-workspace 'jdtls (lsp--uri-to-path file-uri)))
 
-(defun lsp-java--find-project-uri (file-uri)
-  "Return the java project corresponding FILE-URI."
-  (let ((workspace (lsp-java--current-workspace-or-lose))
-        (session-folder (lsp-find-session-folder (lsp-session) (buffer-file-name))))
-    (with-lsp-workspace workspace
-      ;; look for a maven nested project or fallback to the session folder root.
-      (let ((project-folder (or (->> session-folder
-                                     lsp--path-to-uri
-                                     (lsp-send-execute-command "che.jdt.ls.extension.mavenProjects")
-                                     (--filter (f-ancestor-of? (lsp--uri-to-path (file-name-as-directory it)) buffer-file-name))
-                                     (--max-by (> (length it) (length other))))
-                                (lsp--path-to-uri (file-name-as-directory session-folder)))))
-        project-folder))))
-
 (cl-defmethod lsp-execute-command
-  (_server (command (eql java.show.references)) params)
+  (_server (_command (eql java.show.references)) params)
   (if-let (refs (cl-third (append params nil)))
       (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
     (user-error "No references")))
 
 (cl-defmethod lsp-execute-command
-  (_server (command (eql java.show.implementations)) params)
+  (_server (_command (eql java.show.implementations)) params)
   (if-let (refs (cl-third (append params nil)))
       (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
     (user-error "No implementations")))
@@ -804,7 +791,7 @@ current symbol."
          (with-current-buffer (find-file (lsp--uri-to-path file-uri))
            (->> imports
                 (seq-map (-lambda ((&hash "candidates" "range"))
-                           (-let (((beg .  end) (lsp--range-to-region range)))
+                           (-let (((beg .  _end) (lsp--range-to-region range)))
                              (goto-char beg)
                              (recenter nil))
                            (lsp--completing-read "Select class to import: "
@@ -959,10 +946,7 @@ current symbol."
   (lsp-java-with-jdtls
     (let* ((context (lsp-seq-first (gethash "arguments" action)))
            (result (lsp-request "java/resolveUnimplementedAccessors" context))
-           (fields-data (-map (-lambda ((field &as &hash "fieldName" name
-                                               "generateGetter" getter?
-                                               "generateSetter" setter?
-                                               "isStatic" static?))
+           (fields-data (-map (-lambda ((field &as &hash "fieldName" name))
                                 (cons (format "%s" name) field))
                               result))
            (to-generate (lsp-java--completing-read-multiple
@@ -1090,9 +1074,7 @@ current symbol."
    #'lsp-java--symbol-label))
 
 (defun lsp-java-move-static-member (context command-info)
-  (-let [(&hash? "displayName" display-name
-                 "enclosingTypeName" enclosing-type-name
-                 "memberType" member-type
+  (-let [(&hash? "enclosingTypeName" enclosing-type-name
                  "projectName" project-name) command-info]
     (lsp-java--apply-edit
      (lsp-request "java/move"
@@ -1225,7 +1207,7 @@ current symbol."
                                                          (-map #'lsp--path-to-uri)
                                                          (apply #'vector))))
   :library-folders-fn (lambda (_workspace) (list lsp-java-workspace-cache-dir))
-  :before-file-open-fn (lambda (workspace)
+  :before-file-open-fn (lambda (_workspace)
                          (let ((metadata-file-name (lsp-java--get-metadata-location buffer-file-name)))
                            (setq-local lsp-buffer-uri
                                        (when (file-exists-p metadata-file-name)
@@ -1267,13 +1249,13 @@ current symbol."
                     (condition-case _err
                         (-let* ((group-id (read-string "Enter group name: " "com.example"))
                                 (artifact-id (read-string "Enter artifactId: " "demo"))
-                                (description (read-string "Enter description: " "Demo project for Spring Boot"))
+                                (_description (read-string "Enter description: " "Demo project for Spring Boot"))
                                 (boot-version (ask "Select boot-version: " 'bootVersion))
-                                (java-version (ask "Select java-version: " 'javaVersion))
+                                (_java-version (ask "Select java-version: " 'javaVersion))
                                 (language (ask "Select language: " 'language))
                                 (packaging (ask "Select packaging: " 'packaging))
                                 (base-url "https://start.spring.io/")
-                                (package-name (read-string "Select package name: " "com.example.demo"))
+                                (_package-name (read-string "Select package name: " "com.example.demo"))
                                 (type (ask "Select type: " 'type))
                                 (target-directory (read-directory-name "Select project directory: " default-directory))
                                 (dependenciles-list (->> data
@@ -1314,7 +1296,7 @@ current symbol."
   :lighter nil
   (cond
    (lsp-java-lens-mode
-    (setq-local lsp-lens-backends (pushnew #'lsp-java-lens-backend lsp-lens-backends))
+    (setq-local lsp-lens-backends (cl-pushnew #'lsp-java-lens-backend lsp-lens-backends))
     (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete #'lsp-java-lens-backend lsp-lens-backends)))))
 
@@ -1327,7 +1309,7 @@ current symbol."
                      :projectName project-name
                      :noDebug no-debug?))))
 
-(defun lsp-java-lens-backend (modified? callback)
+(defun lsp-java-lens-backend (_modified? callback)
   (when (lsp--find-workspaces-for "workspace/executeCommand")
     (lsp-request-async
      "workspace/executeCommand"
