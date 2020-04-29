@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>lsp-java</groupId>
@@ -6,6 +6,10 @@
   <version>1.0.0-SNAPSHOT</version>
   <properties>
     <root.install.dir>${user.home}/.emacs.d/eclipse.jdt.ls</root.install.dir>
+    <vscode-java-test.version>0.22.3</vscode-java-test.version>
+    <vscode-spring-boot.version>1.17.0</vscode-spring-boot.version>
+    <vscode-java-dependency.version>0.9.0</vscode-java-dependency.version>
+    <vscode-java-decompiler.version>0.0.2</vscode-java-decompiler.version>
   </properties>
   <packaging>pom</packaging>
   <build>
@@ -35,7 +39,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/Pivotal.vscode-spring-boot-1.6.0.vsix</url>
+              <url>https://marketplace.visualstudio.com/_apis/public/gallery/publishers/Pivotal/vsextensions/vscode-spring-boot/${vscode-spring-boot.version}/vspackage</url>
               <outputFileName>vscode-extension.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
@@ -47,7 +51,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/vscjava.vscode-java-dependency-0.5.1.vsix</url>
+              <url>https://marketplace.visualstudio.com/_apis/public/gallery/publishers/vscjava/vsextensions/vscode-java-dependency/${vscode-java-dependency.version}/vspackage</url>
               <outputFileName>java-dependency.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
@@ -59,7 +63,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/dgileadi.java-decompiler-0.0.2.vsix</url>
+              <url>https://marketplace.visualstudio.com/_apis/public/gallery/publishers/dgileadi/vsextensions/java-decompiler/${vscode-java-decompiler.version}/vspackage</url>
               <outputFileName>java-decompiler.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
@@ -71,7 +75,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/vscode-java-test.zip</url>
+              <url>https://github.com/microsoft/vscode-java-test/releases/download/${vscode-java-test.version}/vscjava.vscode-java-test-${vscode-java-test.version}.vsix</url>
               <outputFileName>vscode-java-test.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
@@ -134,27 +138,31 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>3.1.0</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
         <executions>
           <execution>
-            <id>copy-boot-server</id>
+            <id>build-boot-jar</id>
             <phase>package</phase>
             <goals>
-              <goal>copy-resources</goal>
+              <goal>jar</goal>
             </goals>
             <configuration>
               <outputDirectory>${jdt.js.server.root}/boot-server/</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${project.build.directory}/vscode-extension-extracted/extension/jars/</directory>
-                  <includes>
-                    <include>spring-boot-language-server-*.jar</include>
-                  </includes>
-                </resource>
-              </resources>
+              <classesDirectory>${project.build.directory}/vscode-extension-extracted/extension/language-server/</classesDirectory>
+              <archive>
+                <compress>false</compress>
+                <manifestFile>${project.build.directory}/vscode-extension-extracted/extension/language-server/META-INF/MANIFEST.MF</manifestFile>
+              </archive>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
           <execution>
             <id>copy-bundles</id>
             <phase>package</phase>
@@ -176,9 +184,8 @@
               </resources>
             </configuration>
           </execution>
-
           <execution>
-            <id>copy-decompiler </id>
+            <id>copy-decompiler</id>
             <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
@@ -205,9 +212,9 @@
               <outputDirectory>${jdt.js.server.root}/bundles/</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${jdt.js.server.root}/java-test/server/</directory>
+                  <directory>${jdt.js.server.root}/java-test/extension/server/</directory>
                   <includes>
-                    <include>com.microsoft.java.test.plugin-0.19.0.jar</include>
+                    <include>com.microsoft.java.test.plugin-${vscode-java-test.version}.jar</include>
                   </includes>
                 </resource>
               </resources>
@@ -225,7 +232,7 @@
                 <resource>
                   <directory>${project.build.directory}/java-dependency/extension/server/</directory>
                   <includes>
-                    <include>com.microsoft.jdtls.ext.core-0.5.1.jar</include>
+                    <include>com.microsoft.jdtls.ext.core-*.jar</include>
                   </includes>
                 </resource>
               </resources>
