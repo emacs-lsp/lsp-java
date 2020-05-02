@@ -1,0 +1,37 @@
+site_name: LSP Java
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  name: material
+  logo: images/logo.png
+  favicon: images/logo.png
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/emacs-lsp
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/yonchovski
+    - icon: fontawesome/brands/gitter
+      link: https://gitter.im/emacs-lsp/lsp-mode
+
+repo_name: emacs-lsp/lsp-java
+repo_url: https://github.com/emacs-lsp/lsp-java
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - codehilite
+  - toc:
+      permalink: '#'
+
+plugins:
+  - search
+  - awesome-pages
+  - git-revision-date-localized

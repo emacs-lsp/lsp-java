@@ -2,10 +2,14 @@
 [![Build Status](https://github.com/emacs-lsp/lsp-java/workflows/CI/badge.svg?branch=master)](https://github.com/emacs-lsp/lsp-java/actions)
 [![Join the chat at https://gitter.im/emacs-lsp/lsp-mode](https://badges.gitter.im/emacs-lsp/lsp-mode.svg)](https://gitter.im/emacs-lsp/lsp-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+lsp-java
+========
+
 Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
 
 ## Features
 LSP java mode supports the following JDT Features:
+
 * As you type reporting of parsing and compilation errors (via [flycheck](https://github.com/flycheck/flycheck)/[lsp-ui](https://github.com/emacs-lsp/lsp-ui))
 * Code completion - using [company-lsp](https://github.com/tigersoldier/company-lsp) or builtin ```complete-at-point```
 * Javadoc hovers - using [lsp-ui](https://github.com/emacs-lsp/lsp-ui)
@@ -107,6 +111,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 #### Refactoring
 LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
+
 * `lsp-java-extract-to-constant` - Extract constant refactoring
 * `lsp-java-add-unimplemented-methods` - Extract constant refactoring
 * `lsp-java-create-parameter` - Create parameter refactoring
@@ -239,11 +244,10 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
 * `lsp-java-format-enabled` - Enable/disable default Java formatter
 * `lsp-java-save-actions-organize-imports ` - Enable/disable auto organize imports on save action
 * `lsp-java-import-exclusions` - Configure glob patterns for excluding folders
-* `lsp-java-content-provider-preferred` - Preferred content provider (a 3rd party decompiler id, usually). We support https://github.com/dgileadi/vscode-java-decompiler. To enable it set add
-```
-(setq lsp-java-content-provider-preferred "fernflower")
-```
-to your config. Refer to https://github.com/dgileadi/vscode-java-decompiler for the rest of the supported settings. You may register custom `lsp-register-custom-settings` settings.
+* `lsp-java-content-provider-preferred` - Preferred content provider (a 3rd party decompiler id, usually). We support https://github.com/dgileadi/vscode-java-decompiler. To enable it, add:
+    ```elisp
+    (setq lsp-java-content-provider-preferred "fernflower")
+    ```
 * `lsp-java-autobuild-enabled` - Enable/disable the 'auto build'
 * `lsp-java-max-concurrent-builds` - Max simultaneous project builds
 * `lsp-java-completion-enabled` - Enable/disable code completion support
