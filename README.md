@@ -62,10 +62,11 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
    (require 'use-package)))
 
 (use-package projectile :ensure t)
-(use-package yasnippet :ensure t)
+(use-package yasnippet
+  :ensure t
+  :config (yas-global-mode))
 (use-package lsp-mode :ensure t)
 (use-package hydra :ensure t)
-(use-package company-lsp :ensure t)
 (use-package lsp-ui :ensure t)
 (use-package lsp-java :ensure t
   :config (add-hook 'java-mode-hook 'lsp))
