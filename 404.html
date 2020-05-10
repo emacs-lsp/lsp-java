@@ -132,6 +132,39 @@
       
       
         
+          
+
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href="/lsp-java/." class="md-tabs__link md-tabs__link--active">
+        Home
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="https://emacs-lsp.github.io/lsp-mode" class="md-tabs__link">
+          LSP Mode
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
       
       <main class="md-main" data-md-component="main">
         <div class="md-main__inner md-grid">
@@ -298,7 +331,7 @@
       <script>
         app = initialize({
           base: "/lsp-java",
-          features: [],
+          features: ["tabs"],
           search: Object.assign({
             worker: "/lsp-java/assets/javascripts/worker/search.37585f48.min.js"
           }, typeof search !== "undefined" && search)
