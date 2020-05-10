@@ -1,4 +1,10 @@
 site_name: LSP Java
+site_url: https://emacs-lsp.github.io/lsp-java
+
+nav:
+  - Home: README.md
+  - LSP Mode:
+      - LSP Mode: https://emacs-lsp.github.io/lsp-mode
 
 extra_css:
   - stylesheets/extra.css
