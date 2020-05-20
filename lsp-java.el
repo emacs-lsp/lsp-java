@@ -139,6 +139,14 @@ server."
   "Enable/disable the Gradle importer."
   :type 'boolean)
 
+(defcustom lsp-java-import-gradle-version nil
+  "Gradle version, used if the gradle wrapper is missing or disabled."
+  :type 'string)
+
+(defcustom lsp-java-import-gradle-wrapper-enabled t
+  "Enable/disable using the Gradle wrapper distribution."
+  :type 'boolean)
+
 (defcustom lsp-java-import-maven-enabled t
   "Enable/disable the Maven importer."
   :type 'boolean)
@@ -339,6 +347,8 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.maven.downloadSources" lsp-java-maven-download-sources t)
    ("java.import.maven.enabled" lsp-java-import-maven-enabled t)
    ("java.import.gradle.enabled" lsp-java-import-gradle-enabled t)
+   ("java.import.gradle.version" lsp-java--get-gradle-version)
+   ("java.import.gradle.wrapper.enabled" lsp-java-import-gradle-wrapper-enabled t)
    ("java.trace.server" lsp-java-trace-server)
    ("java.configuration.updateBuildConfiguration" lsp-java-configuration-update-build-configuration)
    ("java.configuration.checkProjectSettingsExclusions" lsp-java-configuration-check-project-settings-exclusions t)
@@ -463,6 +473,23 @@ FULL specify whether full or incremental build will be performed."
   "Check if java version is greater than or equal to 9."
   (let ((java-version (lsp-java--get-java-version)))
     (>= java-version 9)))
+
+(defun lsp-java--get-gradle-version ()
+  "Return the gradle version to use if gradlew is disabled or absent."
+  (cond
+   ;; if gradlew distribution is used, then the gradle version is irrelevant
+   (lsp-java-import-gradle-wrapper-enabled nil)
+
+   ;; if the gradle version is set, then use it
+   (lsp-java-import-gradle-version lsp-java-import-gradle-version)
+
+   ;; otherwise, get the version from gradlew at the project root, if any
+   ;; this is also a workaround for when gradle-wrapper.properties is not at its default location
+   (t (let* ((project-gradlew (concat (lsp-java--get-root) "gradlew -v"))
+             (gradle-version-output (shell-command-to-string project-gradlew)))
+        (if (string-match "Revision" gradle-version-output)
+            (nth 2 (split-string gradle-version-output))
+          nil)))))
 
 (defun lsp-java--ls-command ()
   "LS startup command."
