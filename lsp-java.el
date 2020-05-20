@@ -485,11 +485,10 @@ FULL specify whether full or incremental build will be performed."
 
    ;; otherwise, get the version from gradlew at the project root, if any
    ;; this is also a workaround for when gradle-wrapper.properties is not at its default location
-   (t (let* ((project-gradlew (concat (lsp-java--get-root) "gradlew -v"))
+   (t (let* ((project-gradlew (f-join (lsp-java--get-root) "gradlew -v"))
              (gradle-version-output (shell-command-to-string project-gradlew)))
-        (if (string-match "Revision" gradle-version-output)
-            (nth 2 (split-string gradle-version-output))
-          nil)))))
+        (when (string-match "Revision" gradle-version-output)
+            (nth 2 (split-string gradle-version-output)))))))
 
 (defun lsp-java--ls-command ()
   "LS startup command."
