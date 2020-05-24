@@ -66,6 +66,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
    (require 'use-package)))
 
 (use-package projectile :ensure t)
+(use-package flycheck :ensure t)
 (use-package yasnippet
   :ensure t
   :config (yas-global-mode))
