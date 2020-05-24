@@ -418,10 +418,16 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
 FULL specify whether full or incremental build will be performed."
   (interactive "P" )
   (lsp-java-with-jdtls
+    (setf (lsp--workspace-status-string (cl-first (lsp-workspaces)))
+          (propertize "Building project..."
+                      'face 'success))
+    (force-mode-line-update)
     (lsp-request-async
      "java/buildWorkspace"
      (lsp-json-bool full)
      (lambda (result)
+       (setf (lsp--workspace-status-string (cl-first (lsp-workspaces))) nil)
+       (force-mode-line-update)
        (pcase result
          (1 (lsp--info "Successfully build project."))
          (2 (lsp--error "Failed to build project."))))
@@ -512,8 +518,6 @@ PARAMS the parameters for language status notifications."
     (when (not (and (or (string= current-status "Error" )
                         (string= current-status "Started" ))
                     (string= "Starting" status)))
-      (lsp-workspace-status status workspace)
-      (lsp-workspace-set-metadata "status" status workspace)
       (let ((inhibit-message lsp-java-inhibit-message))
         (lsp-log "%s[%s]" (gethash "message" params) (gethash "type" params))))))
 
