@@ -66,6 +66,11 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
   "face for activity message"
   :group 'lsp-java)
 
+(defcustom lsp-java-project-types '("pom.xml" "build.gradle" "build.gradle.kts" ".project")
+  "File names of possible project configuration files found at project root."
+  :group 'lsp-java
+  :type '(repeat file))
+
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
   :group 'lsp-java
@@ -528,9 +533,8 @@ The current directory is assumed to be the java project’s root otherwise."
    ((string= default-directory lsp-java-workspace-cache-dir) default-directory)
    ((and (featurep 'projectile) (projectile-project-p)) (projectile-project-root))
    ((vc-backend default-directory) (expand-file-name (vc-root-dir)))
-   (t (let ((project-types '("pom.xml" "build.gradle" ".project")))
-        (or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
-            default-directory)))))
+   (t (or (seq-some (lambda (file) (locate-dominating-file default-directory file)) lsp-java-project-types)
+          default-directory))))
 
 (defun lsp-java--language-status-callback (workspace params)
   "Callback for client initialized.
@@ -1253,7 +1257,7 @@ current symbol."
                            ("registerOptions" (ht ("watchers"
                                                    (vector (ht ("globPattern" "**/*.java"))
                                                            (ht ("globPattern" "**/pom.xml"))
-                                                           (ht ("globPattern" "**/*.gradle"))
+                                                           (ht ("globPattern" "**/*.gradle{,.kts}"))
                                                            (ht ("globPattern" "**/.project"))
                                                            (ht ("globPattern" "**/.classpath"))
                                                            (ht ("globPattern" "**/settings/*.prefs"))))))))))
