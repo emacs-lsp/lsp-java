@@ -144,6 +144,10 @@ server."
   "Gradle version, used if the gradle wrapper is missing or disabled."
   :type 'string)
 
+(defcustom lsp-java-import-gradle-jvm-arguments nil
+  "JVM arguments to pass to Gradle."
+  :type '(repeat string))
+
 (defcustom lsp-java-import-gradle-wrapper-enabled t
   "Enable/disable using the Gradle wrapper distribution."
   :type 'boolean)
@@ -349,6 +353,7 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.import.maven.enabled" lsp-java-import-maven-enabled t)
    ("java.import.gradle.enabled" lsp-java-import-gradle-enabled t)
    ("java.import.gradle.version" lsp-java--get-gradle-version)
+   ("java.import.gradle.jvmArguments" lsp-java-import-gradle-jvm-arguments)
    ("java.import.gradle.wrapper.enabled" lsp-java-import-gradle-wrapper-enabled t)
    ("java.trace.server" lsp-java-trace-server)
    ("java.configuration.updateBuildConfiguration" lsp-java-configuration-update-build-configuration)
