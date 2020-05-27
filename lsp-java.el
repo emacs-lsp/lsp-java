@@ -113,204 +113,252 @@ deduplication with the G1 Garbage collector"
 (defcustom lsp-java-errors-incomplete-classpath-severity "warning"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
-  :type '(choice (:tag "ignore" "info" "warning" "error")))
+  :type '(choice (:tag "ignore" "info" "warning" "error"))
+  :group 'lsp-java)
 
 (defcustom lsp-java-dependency-package-representation "flat"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
-  :type '(choice (:tag "flat" "hierarchical")))
+  :type '(choice (:tag "flat" "hierarchical"))
+  :group 'lsp-java)
 
 (defcustom lsp-java-configuration-check-project-settings-exclusions t
   "Checks if the extension-generated project settings
 files (.project, .classpath, .factorypath, .settings/) should be
 excluded from the file explorer."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-configuration-update-build-configuration "automatic"
   "Specifies how modifications on build files update the Java
 classpath/configuration"
-  :type '(choice (:tag "disabled" "interactive" "automatic")))
+  :type '(choice (:tag "disabled" "interactive" "automatic"))
+  :group 'lsp-java)
 
 (defcustom lsp-java-trace-server "off"
   "Traces the communication between VS Code and the Java language
 server."
-  :type '(choice (:tag "off" "messages" "verbose")))
+  :type '(choice (:tag "off" "messages" "verbose"))
+  :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-enabled t
   "Enable/disable the Gradle importer."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-version nil
   "Gradle version, used if the gradle wrapper is missing or disabled."
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-jvm-arguments nil
-  "JVM arguments to pass to Gradle."
-  :type '(repeat string))
+  "JVM arguments to pass to Gradle.
+
+If set manually, this variable has to be converted to a format
+that `json-serialize' can understand. For instance, you cannot
+pass a list, only a vector."
+  :type 'lsp-string-vector
+  :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-wrapper-enabled t
   "Enable/disable using the Gradle wrapper distribution."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-import-maven-enabled t
   "Enable/disable the Maven importer."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-maven-download-sources nil
   "Enable/disable eager download of Maven source artifacts."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-references-code-lens-enabled nil
   "Enable/disable the references code lens."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-signature-help-enabled t
   "Enable/disable the signature help."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-implementations-code-lens-enabled nil
   "Enable/disable the implementations code lens."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-configuration-maven-user-settings nil
   "Path to Maven's settings.xml"
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
 (defcustom lsp-java-format-enabled t
   "Enable/disable default Java formatter"
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-save-actions-organize-imports nil
   "Enable/disable auto organize imports on save action"
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-import-exclusions ["**/node_modules/**" "**/.metadata/**" "**/archetype-resources/**" "**/META-INF/maven/**"]
   "Configure glob patterns for excluding folders"
-  :type '(repeat string))
+  :type '(repeat string)
+  :group 'lsp-string-vector)
 
 (defcustom lsp-java-content-provider-preferred nil
   "Preferred content provider (a 3rd party decompiler id,
 usually)"
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
 (defcustom lsp-java-autobuild-enabled t
   "Enable/disable the 'auto build'"
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-selection-enabled t
   "Enable/disable the 'auto build'"
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-max-concurrent-builds 1
   "Max simultaneous project builds"
-  :type 'number)
+  :type 'number
+  :group 'lsp-java)
 
 (defcustom lsp-java-completion-enabled t
   "Enable/disable code completion support"
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-completion-overwrite t
   "When set to true, code completion overwrites the current text.
 When set to false, code is simply added instead."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-completion-guess-method-arguments t
   "When set to true, method arguments are guessed when a method
 is selected from as list of code assist proposals."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-completion-favorite-static-members ["org.junit.Assert.*" "org.junit.Assume.*" "org.junit.jupiter.api.Assertions.*" "org.junit.jupiter.api.Assumptions.*" "org.junit.jupiter.api.DynamicContainer.*" "org.junit.jupiter.api.DynamicTest.*" "org.mockito.Mockito.*" "org.mockito.ArgumentMatchers.*" "org.mockito.Answers.*"]
   "Defines a list of static members or types with static members.
 Content assist will propose those static members even if the
 import is missing."
-  :type '(repeat string))
+  :type 'lsp-string-vector
+  :group 'lsp-java)
 
 (defcustom lsp-java-completion-import-order ["java" "javax" "com" "org"]
   "Defines the sorting order of import statements. A package or
 type name prefix (e.g. 'org.eclipse') is a valid entry. An import
 is always added to the most specific group."
-  :type '(repeat string))
+  :type '(repeat string)
+  :group 'lsp-java)
 
 (defcustom lsp-java-folding-range-enabled t
   "Enable/disable smart folding range support. If disabled, it
 will use the default indentation-based folding range provided by
 VS Code."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-progress-reports-enabled t
   "[Experimental] Enable/disable progress reports from background
 processes on the server."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-format-settings-url nil
   "Specifies the url or file path to the [Eclipse formatter xml
 settings](https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings)."
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
 (defcustom lsp-java-format-settings-profile nil
   "Optional formatter profile name from the Eclipse formatter
 settings."
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
 (defcustom lsp-java-format-comments-enabled t
   "Includes the comments during code formatting."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-format-on-type-enabled t
   "Enable/disable automatic block formatting when typing `;`,
 `<enter>` or `}`"
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-bundles nil
   "List of bundles that will be loaded in the JDT server."
   :group 'lsp-java
   :type 'list)
+
 (defcustom lsp-java-code-generation-hash-code-equals-use-java7objects nil
   "Use Objects.hash and Objects.equals when generating the
 hashCode and equals methods. This setting only applies to Java 7
 and higher."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-hash-code-equals-use-instanceof nil
   "Use 'instanceof' to compare types when generating the hashCode
 and equals methods."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-use-blocks nil
   "Use blocks in 'if' statements when generating the methods."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-generate-comments nil
   "Generate method comments when generating the methods."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-to-string-template "${object.className} [${member.name()}=${member.value}, ${otherMembers}]"
   "The template for generating the toString method."
-  :type 'string)
+  :type 'string
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-to-string-code-style "STRING_CONCATENATION"
   "The code style for generating the toString method."
-  :type '(choice (:tag "STRING_CONCATENATION" "STRING_BUILDER" "STRING_BUILDER_CHAINED" "STRING_FORMAT")))
+  :type '(choice (:tag "STRING_CONCATENATION" "STRING_BUILDER" "STRING_BUILDER_CHAINED" "STRING_FORMAT"))
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-to-string-skip-null-values nil
   "Skip null values when generating the toString method."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-to-string-list-array-contents t
   "List contents of arrays instead of using native toString()."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-to-string-limit-elements 0
   "Limit number of items in arrays/collections/maps to list, if 0
 then list all."
-  :type 'number)
+  :type 'number
+  :group 'lsp-java)
 
 (defcustom lsp-java-completion-filtered-types ["java.awt.*" "com.sun.*"]
   "Defines the type filters. All types whose fully qualified name
 matches the selected filter strings will be ignored in content
 assist or quick fix proposals and when organizing imports. For
 example 'java.awt.*' will hide all types from the awt packages."
-  :type 'vector)
+  :type 'vector
+  :group 'lsp-string-vector)
 
 (declare-function dap-debug "ext:dap-mode")
 (declare-function projectile-project-p "ext:projectile")
