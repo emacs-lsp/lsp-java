@@ -357,8 +357,8 @@ then list all."
 matches the selected filter strings will be ignored in content
 assist or quick fix proposals and when organizing imports. For
 example 'java.awt.*' will hide all types from the awt packages."
-  :type 'vector
-  :group 'lsp-string-vector)
+  :type 'lsp-string-vector
+  :group 'lsp-java)
 
 (declare-function dap-debug "ext:dap-mode")
 (declare-function projectile-project-p "ext:projectile")
