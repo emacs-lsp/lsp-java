@@ -1006,24 +1006,22 @@ maintained repos - <a href="http://stable.melpa.org">MELPA Stable</a> and <a hre
    <span class="p">(</span><span class="nv">package-install</span> <span class="ss">&#39;use-package</span><span class="p">)</span>
    <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;use-package</span><span class="p">)))</span>
 
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">projectile</span> <span class="nb">:ensure</span> <span class="no">t</span><span class="p">)</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">flycheck</span> <span class="nb">:ensure</span> <span class="no">t</span><span class="p">)</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">yasnippet</span>
-  <span class="nb">:ensure</span> <span class="no">t</span>
-  <span class="nb">:config</span> <span class="p">(</span><span class="nv">yas-global-mode</span><span class="p">))</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-mode</span> <span class="nb">:ensure</span> <span class="no">t</span><span class="p">)</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">hydra</span> <span class="nb">:ensure</span> <span class="no">t</span><span class="p">)</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-ui</span> <span class="nb">:ensure</span> <span class="no">t</span><span class="p">)</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-java</span> <span class="nb">:ensure</span> <span class="no">t</span>
-  <span class="nb">:config</span> <span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;java-mode-hook</span> <span class="ss">&#39;lsp</span><span class="p">))</span>
+<span class="p">(</span><span class="k">setq</span> <span class="nv">use-package-always-ensure</span> <span class="no">t</span><span class="p">)</span>
 
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-mode</span>
-  <span class="nb">:ensure</span> <span class="no">t</span> <span class="nb">:after</span> <span class="nv">lsp-mode</span>
-  <span class="nb">:config</span>
-  <span class="p">(</span><span class="nv">dap-mode</span> <span class="no">t</span><span class="p">)</span>
-  <span class="p">(</span><span class="nv">dap-ui-mode</span> <span class="no">t</span><span class="p">))</span>
-
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-java</span> <span class="nb">:after</span> <span class="p">(</span><span class="nv">lsp-java</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">projectile</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">flycheck</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">yasnippet</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">yas-global-mode</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-mode</span> <span class="nb">:hook</span> <span class="p">((</span><span class="nv">lsp-mode</span> <span class="o">.</span> <span class="nv">lsp-enable-which-key-integration</span><span class="p">))</span>
+  <span class="nb">:config</span> <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-completion-enable-additional-text-edit</span> <span class="no">nil</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">hydra</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">company</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-ui</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">which-key</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">which-key-mode</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-java</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;java-mode-hook</span> <span class="ss">&#39;lsp</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-mode</span> <span class="nb">:after</span> <span class="nv">lsp-mode</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">dap-mode</span> <span class="no">t</span><span class="p">)</span> <span class="p">(</span><span class="nv">dap-ui-mode</span> <span class="no">t</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-java</span> <span class="nb">:ensure</span> <span class="no">nil</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">helm-lsp</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-treemacs</span><span class="p">)</span>
 </code></pre></div></p>
 <h2 id="supported-commands">Supported commands<a class="headerlink" href="#supported-commands" title="Permanent link">#</a></h2>
 <h3 id="lsp-mode-commands">LSP Mode commands<a class="headerlink" href="#lsp-mode-commands" title="Permanent link">#</a></h3>
