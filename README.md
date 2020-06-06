@@ -80,6 +80,8 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 (use-package dap-mode :after lsp-mode :config (dap-mode t) (dap-ui-mode t))
 (use-package dap-java :ensure nil)
 (use-package helm-lsp)
+(use-package helm
+  :config (helm-mode))
 (use-package lsp-treemacs)
 ```
 ## Supported commands
