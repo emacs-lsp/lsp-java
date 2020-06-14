@@ -48,6 +48,12 @@
   :type 'string
   :group 'lsp-java)
 
+(eval-when-compile
+  (lsp-interface
+   (jt:Lenses (:location :children))
+   (jt:Test (:location :displayName :fullName))
+   (jt:Node (:level :project :location :fullName :displayName))))
+
 (defvar lsp-jt-browser-position-params
   `((side . ,treemacs-position)
     (slot . 4)
@@ -59,9 +65,9 @@
     (window-width . ,treemacs-width)))
 
 (defun lsp-jt--process-test-lens (lens)
-  (-let [(test-data &as &hash "location" (&hash "range") "children") lens]
+  (-let [(test-data &as &jt:Lenses :location (&Location :range) :children) lens]
     (cons (-doto test-data
-            (ht-set "range" range))
+            (lsp-put :range range))
           (-mapcat #'lsp-jt--process-test-lens children))))
 
 (defface lsp-jt-error-face
@@ -93,27 +99,26 @@
                          (-map
                           (lambda (lens)
                             (-doto lens
-                              (ht-set "command" (ht ("title" "Debug test")
-                                                    ("command" (lambda ()
-                                                                 (interactive)
-                                                                 (lsp-jt--start-test lens nil)))))))
+                              (lsp-put :command (lsp-make-command :title "Debug test"
+                                                                  :command (lambda ()
+                                                                             (interactive)
+                                                                             (lsp-jt--start-test lens nil))))))
                           lenses)
                          (-map
                           (lambda (lens)
-                            (-doto (ht-copy lens)
-                              (ht-set "command" (ht ("title" "Run test")
-                                                    ("command" (lambda ()
-                                                                 (interactive)
-                                                                 (lsp-jt--start-test lens t)))))))
+                            (-doto (lsp-copy lens)
+                              (lsp-put :command (lsp-make-command :title "Run test"
+                                                                  :command (lambda ()
+                                                                             (interactive)
+                                                                             (lsp-jt--start-test lens t))))))
                           lenses)
                          (-keep
-                          (-lambda ((lens &as &hash "fullName" full-name))
+                          (-lambda ((lens &as &jt:Test :full-name))
                             (when-let (lens-properties (lsp-jt--status full-name))
                               (-let [(title . face) lens-properties]
-                                (-doto (ht-copy lens)
-                                  (ht-set "command" (ht ("title" title)
-                                                        ("face" face)
-                                                        ("command" #'lsp-jt-show-report)))))))
+                                (-doto (lsp-copy lens)
+                                  (lsp-put :command (lsp-make-command :title (propertize title 'face face)
+                                                                      :command #'lsp-jt-show-report))))))
                           lenses))))
        (funcall callback all-lenses lsp--cur-version)))
    :mode 'detached))
@@ -142,8 +147,8 @@
 (defun lsp-jt-goto (&rest _)
   "Goto the symbol at point."
   (interactive)
-  (-if-let ((&hash? "location" (&hash? "uri" "range" (&hash? "start"))) (-some-> (treemacs-node-at-point)
-                                                                                 (button-get :item)))
+  (-if-let ((&jt:Test :location (&Location :uri :range (&Range? :start))) (-some-> (treemacs-node-at-point)
+                                                                            (button-get :item)))
       (progn
         (select-window (get-mru-window (selected-frame) nil :not-selected))
         (find-file (lsp--uri-to-path uri))
@@ -153,27 +158,27 @@
 
 (treemacs-define-expandable-node java-tests
   :icon-open-form (lsp-jt--icon (-some-> (treemacs-node-at-point)
-                                                (treemacs-button-get :item))
-                                       t)
+                                  (treemacs-button-get :item))
+                                t)
   :icon-closed-form (lsp-jt--icon (-some-> (treemacs-node-at-point)
-                                                  (treemacs-button-get :item))
-                                         nil)
+                                    (treemacs-button-get :item))
+                                  nil)
   :query-function (lsp-jt-search (treemacs-button-get node :key)
-                                        (or (treemacs-button-get node :level)
-                                            1)
-                                        (treemacs-button-get node :full-name))
+                                 (or (treemacs-button-get node :level)
+                                     1)
+                                 (treemacs-button-get node :full-name))
   :ret-action 'lsp-jt-goto
   :render-action
   (treemacs-render-node
    :icon (lsp-jt--icon item nil)
-   :label-form (gethash "displayName" item)
+   :label-form (lsp:jt-test-display-name item)
    :state treemacs-java-tests-closed-state
    :key-form (->> item
-                  (gethash "location")
-                  (gethash "uri"))
+                  (lsp:jt-test-location)
+                  (lsp:location-uri))
    :more-properties (:level (1+  (or (treemacs-button-get node :level)
                                      1))
-                            :full-name (gethash "fullName" item)
+                            :full-name (lsp:jt-test-full-name item)
                             :item item)))
 
 (defun lsp-jt--roots ()
@@ -224,7 +229,7 @@
 (defun lsp-jt--icon (item open?)
   (lsp-jt--wrap-icon
    (if item
-       (cl-case (gethash "level" item)
+       (cl-case (lsp:jt-node-level item)
          (1 (treemacs-get-icon-value 'java-test-package nil lsp-jt-theme))
          (2 (treemacs-get-icon-value 'java-test-package nil lsp-jt-theme))
          (3 (treemacs-get-icon-value 'java-test-class nil lsp-jt-theme))
@@ -232,7 +237,7 @@
      (treemacs-get-icon-value 'root nil lsp-jt-theme))
    open?
    (or (not item)
-       (not (eq (gethash "level" item) 4)))))
+       (not (eq (lsp:jt-node-level item) 4)))))
 
 (defvar lsp-jt-mode-map
   (-doto (make-sparse-keymap)
@@ -263,10 +268,11 @@
 (defun lsp-jt--start-from-browser (no-debug)
   (if-let ((node (treemacs-node-at-point)))
       (lsp-jt--start-test (or (treemacs-button-get node :item)
-                                     (ht ("project" (treemacs-button-get node :key))
-                                         ("level" 1)
-                                         ("location" (ht ("uri" (treemacs-button-get node :key))))))
-                                 no-debug)
+                              (lsp-make-jt-node :project (treemacs-button-get node :key)
+                                                :level 1
+                                                :location (lsp-make-location
+                                                           :uri (treemacs-button-get node :key))))
+                          no-debug)
     (user-error "No test under point")))
 
 (defun lsp-jt-run ()
@@ -358,13 +364,13 @@
 (defconst lsp-jt-kind-method 4)
 
 (defun lsp-jt--get-tests  (test)
-  (-let [(&hash "level" "location" (&hash? "uri") "fullName") test]
+  (-let [(&jt:Node :level :location (&Location? :uri) :full-name) test]
     (cond
      ((or (eq level lsp-jt-kind-method)
           (eq level lsp-jt-kind-class))
-      (gethash "fullName" test))
+      (lsp:jt-node-full-name test))
      (t
-      (s-join " " (-map #'lsp-jt--get-tests (lsp-jt-search uri level fullName)))))))
+      (s-join " " (-map #'lsp-jt--get-tests (lsp-jt-search uri level full-name)))))))
 
 (defun lsp-jt--start-test (test no-debug)
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
@@ -372,16 +378,14 @@
     (dap-debug
      `(
        :type "java"
-       :name ,(format "Running %s" (gethash "displayName" test))
+       :name ,(format "Running %s" (lsp:jt-node-display-name test))
        :mainClass "com.microsoft.java.test.runner.Launcher"
-       :projectName ,(gethash "project" test)
+       :projectName ,(lsp:jt-node-project test)
        :output-filter-function lsp-jt--filter-function
-       :args ,(format "%s %s"
-                      "junit"
-                      (lsp-jt--get-tests test))
+       :args ,(format "%s %s" "junit" (lsp-jt--get-tests test))
        :cwd  ,(->> test
-                   (gethash "location")
-                   (gethash "uri")
+                   (lsp:jt-test-location)
+                   (lsp:location-uri)
                    (lsp--uri-to-path)
                    (lsp-workspace-root))
        :classPaths ,(apply #'vector
@@ -390,8 +394,8 @@
                             (f-join lsp-jt-root "/lib/")
                             (lsp-send-execute-command "vscode.java.test.runtime.classpath"
                                                       (->> test
-                                                           (gethash "location")
-                                                           (gethash "uri")
+                                                           (lsp:jt-test-location)
+                                                           (lsp:location-uri)
                                                            (lsp--uri-to-path)
                                                            (vector)
                                                            (vector)))))

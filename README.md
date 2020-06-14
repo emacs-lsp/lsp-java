@@ -53,19 +53,11 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 ### Quick start
 Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`
 ```elisp
-(require 'cc-mode)
+(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
-(condition-case nil
-    (require 'use-package)
-  (file-error
-   (require 'package)
-   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-   (package-initialize)
-   (package-refresh-contents)
-   (package-install 'use-package)
-   (require 'use-package)))
-
-(setq use-package-always-ensure t)
+(when (not (package-installed-p 'use-package))
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 (use-package projectile)
 (use-package flycheck)
@@ -77,7 +69,7 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 (use-package lsp-ui)
 (use-package which-key :config (which-key-mode))
 (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
-(use-package dap-mode :after lsp-mode :config (dap-mode t) (dap-ui-mode t))
+(use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
 (use-package dap-java :ensure nil)
 (use-package helm-lsp)
 (use-package helm

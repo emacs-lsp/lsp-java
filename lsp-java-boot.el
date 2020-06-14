@@ -41,6 +41,10 @@
 
 (defvar lsp-java-boot--callback nil)
 
+(eval-when-compile
+  (lsp-interface
+   (boot:Lenses (:doc :codeLenses))))
+
 (defun lsp-java-boot--find-tools-jar ()
   "Calculate the path to tools.jar."
   (let ((tools-jar (or lsp-java-boot-java-tools-jar
@@ -54,7 +58,7 @@
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
     (lsp-request "workspace/executeCommand"
                  (list :command "sts.java.addClasspathListener"
-                       :arguments (gethash "callbackCommandId" params))
+                       :arguments (lsp-get params :callbackCommandId))
                  :no-wait t)))
 
 (defun lsp-java-boot--sts-add-classpath-listener (_workspace params)
@@ -63,7 +67,7 @@
    (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
      (lsp-request "workspace/executeCommand"
                   (list :command "sts.java.addClasspathListener"
-                        :arguments (gethash "callbackCommandId" params))
+                        :arguments (lsp-get params :callbackCommandId))
                   :no-wait t))))
 
 (defun lsp-java-boot--lens-backend (_ callback)
@@ -99,19 +103,19 @@ Store CALLBACK to use it `sts/highlight'."
 (defun lsp-java-boot--sts-hightlight (workspace params)
   "WORKSPACE PARAMS."
   (with-lsp-workspace workspace
-    (-let (((&hash "doc" (&hash "uri" "version") "codeLenses" code-lenses) params))
+    (-let (((&boot:Lenses :doc (&VersionedTextDocumentIdentifier :uri :version?) :code-lenses) params))
       (when-let (buf (find-buffer-visiting (lsp--uri-to-path uri)))
         (with-current-buffer buf
           (when (and lsp-java-boot--callback lsp-java-boot-lens-mode)
-            (funcall lsp-java-boot--callback code-lenses version)))))))
+            (funcall lsp-java-boot--callback code-lenses version?)))))))
 
 (defun lsp-java-boot--server-jar ()
   "Return the spring boot jar."
   (or (-> lsp-java-server-install-dir
           (expand-file-name)
           (f-join "boot-server")
-          f-files
-          cl-first)
+          (f-files)
+          (cl-first))
       (lsp-log "Unable to find spring boot server jar.")))
 
 (defun lsp-java-boot--ls-command (port)
@@ -140,11 +144,6 @@ Store CALLBACK to use it `sts/highlight'."
                                          ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link))
                   :notification-handlers  (ht ("sts/highlight" #'lsp-java-boot--sts-hightlight)
                                               ("sts/progress" #'ignore))
-                  :initialized-fn (lambda (workspace)
-                                    (puthash
-                                     "triggerCharacters"
-                                     '("." "@" "#" "*")
-                                     (gethash "completionProvider" (lsp--workspace-server-capabilities workspace))))
                   :multi-root t
                   :add-on? t
                   :server-id 'boot-ls

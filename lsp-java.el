@@ -572,6 +572,34 @@ FULL specify whether full or incremental build will be performed."
       ,lsp-java-workspace-dir
       ,@java-9-args)))
 
+(eval-when-compile
+  (lsp-interface
+   (java:Status (:message :type))
+   (java:Progress (:status :complete))
+   (java:ActionbleNotification (:commands))
+   (java:OrganizeImports (:candidates :range))
+   (java:Import (:fullyQualifiedName))
+   (java:Import (:fullyQualifiedName))
+   (java:ToString (:fields :exists))
+   (java:Equals (:fields :existingMethods))
+   (java:ConstructorsStatus (:fields :constructors))
+   (java:Constructor (:name :parameters))
+   (java:Field (:name :type))
+   (java:Destination (:displayName :path))
+   (java:OverridableMethod (:name :parameters :declaringClass))
+   (java:MoveDestinations (:destinations))
+   (java:ListOverridableMethods (:methods))
+   (java:MoveTypeInfo (:enclosingTypeName :displayName :projectName :supportedDestinationKinds))
+   (java:MoveContext (:textDocument))
+   (java:MoveResult nil (:edit :message :command))
+   (java:ResolveMethods (:fieldName))
+   (java:MoveInstanceResult (:destinations :errorMessage))
+   (java:MoveInstanceCommandInfo (:methodName))
+   (java:MoveDestination (:name :type :isField))
+   (java:FieldCommandInfo (:initializedScopes))
+   (java:MainClassInfo (:mainClass :projectName))
+   (java:RenameParams (:uri :offset :length))))
+
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
 
@@ -585,12 +613,12 @@ The current directory is assumed to be the java project’s root otherwise."
         (or (seq-some (lambda (file) (locate-dominating-file default-directory file)) project-types)
             default-directory)))))
 
-(defun lsp-java--language-status-callback (workspace params)
+(lsp-defun lsp-java--language-status-callback (workspace (&java:Status :type :message))
   "Callback for client initialized.
 
 WORKSPACE is the currently active workspace.
 PARAMS the parameters for language status notifications."
-  (let ((status (gethash "type" params))
+  (let ((status type)
         (current-status (lsp-workspace-get-metadata "status" workspace)))
     ;; process the status message only if there is no status or if the status is
     ;; starting (workaround for bug https://github.com/eclipse/eclipse.jdt.ls/issues/651)
@@ -598,30 +626,29 @@ PARAMS the parameters for language status notifications."
                         (string= current-status "Started" ))
                     (string= "Starting" status)))
       (let ((inhibit-message lsp-java-inhibit-message))
-        (lsp-log "%s[%s]" (gethash "message" params) (gethash "type" params))))))
+        (lsp-log "%s[%s]" message type)))))
 
-(defun lsp-java--apply-workspace-edit (action)
+(lsp-defun lsp-java--apply-workspace-edit ((&Command :arguments?))
   "Callback for java/applyWorkspaceEdit.
 
 ACTION is the action to execute."
-  (lsp--apply-workspace-edit (lsp-seq-first (gethash "arguments" action))))
+  (lsp--apply-workspace-edit (lsp-seq-first arguments?)))
 
-(defun lsp-java--actionable-notification-callback (_workspace params)
+(lsp-defun lsp-java--actionable-notification-callback (_workspace (&java:Status :message))
   "Handler for actionable notifications.
 
 WORKSPACE is the currently active workspace.
 PARAMS the parameters for actionable notifications."
-  (lsp--warn (gethash "message" params)))
+  (lsp--warn message))
 
-(defun lsp-java--progress-report (_workspace params)
+(lsp-defun lsp-java--progress-report (_workspace (&java:Progress :complete :status))
   "Progress report handling.
 
 PARAMS progress report notification data."
-  (-let [(&hash "status" "complete") params]
-    (setq lsp-java-progress-string (propertize status 'face 'lsp-java-progress-face))
-    (when complete
-      (run-with-idle-timer 0.8 nil (lambda ()
-                                     (setq lsp-java-progress-string nil))))))
+  (setq lsp-java-progress-string (propertize status 'face 'lsp-java-progress-face))
+  (when complete
+    (run-with-idle-timer 0.8 nil (lambda ()
+                                   (setq lsp-java-progress-string nil)))))
 
 (put 'lsp-java-progress-string 'risky-local-variable t)
 
@@ -741,27 +768,11 @@ PARAMS progress report notification data."
             (insert uri)))))
     file-location))
 
-(defun lsp-java-actionable-notifications ()
-  "Lists current actionable notifications."
-  (interactive)
-  (when-let ((notifications (lsp-workspace-get-metadata "actionable-notifications"))
-             (selected-notification (completing-read
-                                     "Select notification to fix:"
-                                     notifications
-                                     nil
-                                     t))
-             (commands (gethash "commands"
-                                (gethash selected-notification notifications))))
-    (lsp-execute-code-action (lsp--select-action commands))
-    (remhash selected-notification notifications)
-    (when (= (hash-table-count notifications) 0)
-      (lsp-workspace-status (concat "::" (lsp-workspace-get-metadata "status"))))))
-
 (defun lsp-java-execute-matching-action (regexp &optional not-found-message)
   "Execute the code action which title match the REGEXP.
 NOT-FOUND-MESSAGE will be used if there is no matching action."
   (let ((actions (cl-remove-if-not
-                  (lambda (item) (string-match regexp (gethash "title" item)))
+                  (lambda (item) (string-match regexp (lsp:code-action-title item)))
                   (lsp-get-or-calculate-code-actions))))
     (pcase (length actions)
       (0 (error (or not-found-message "Unable to find action")))
@@ -868,25 +879,25 @@ current symbol."
 
 (defun lsp-java-boot--workspace-execute-client-command (_jdt-ls-workspace params)
   "PARAMS is the classpath info."
-  (-let (((&hash "command" "arguments") params))
+  (-let (((&ExecuteCommandParams :command :arguments?) params))
     (pcase command
       ("java.action.organizeImports.chooseImports"
-       (-let (([file-uri imports] (gethash "arguments" params)))
+       (-let (([file-uri imports] arguments?))
          (with-current-buffer (find-file (lsp--uri-to-path file-uri))
            (->> imports
-                (seq-map (-lambda ((&hash "candidates" "range"))
+                (seq-map (-lambda ((&java:OrganizeImports :candidates :range))
                            (-let (((beg .  _end) (lsp--range-to-region range)))
                              (goto-char beg)
                              (recenter nil))
                            (lsp--completing-read "Select class to import: "
                                                  candidates
-                                                 (-partial #'gethash "fullyQualifiedName"))))
+                                                 #'lsp:java-import-fully-qualified-name)))
                 (apply #'vector)))))
       (_ (ignore
           (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
-            (aset arguments 2 (if (seq-elt arguments 2) t :json-false))
+            (aset arguments? 2 (if (seq-elt arguments? 2) t :json-false))
             (lsp-request "workspace/executeCommand"
-                         (list :command command :arguments arguments))))))))
+                         (list :command command :arguments arguments?))))))))
 
 (defun lsp-java-generate-to-string ()
   "Generate `toString' method."
@@ -959,18 +970,18 @@ current symbol."
             (cl-pushnew dep deps)))
         deps))))
 
-(defun lsp-java--apply-document-changes (response)
+(lsp-defun lsp-java--apply-document-changes ((&WorkspaceEdit? :changes?))
   "Apply document CHANGES."
-  (when response
-    (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
-               (lsp--apply-text-edits value))
-             (gethash "changes" response))))
+  (lsp-map (lambda (uri edits)
+             (with-current-buffer (find-file-noselect (lsp--uri-to-path uri))
+               (lsp--apply-text-edits edits)))
+           changes?))
 
 (defun lsp-java--action-generate-to-string (action)
   (lsp-java-with-jdtls
-    (-let* ((context (lsp-seq-first (gethash "arguments" action)))
-            ((&hash "fields" "exists") (lsp-request "java/checkToStringStatus" context))
-            (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+    (-let* ((context (lsp-seq-first (lsp:command-arguments? action)))
+            ((&java:ToString :fields :exists) (lsp-request "java/checkToStringStatus" context))
+            (fields-data (-map (-lambda ((field &as &java:Field :name :type))
                                  (cons (format "%s: %s" name type) field))
                                fields)))
       (when (or (not exists) (y-or-n-p "The equals method already exists. Replace?") )
@@ -985,9 +996,9 @@ current symbol."
 
 (defun lsp-java--action-generate-equals-and-hash-code (action)
   (lsp-java-with-jdtls
-    (-let* ((context (lsp-seq-first (gethash "arguments" action)))
-            ((&hash "fields" "existingMethods" methods) (lsp-request "java/checkHashCodeEqualsStatus" context))
-            (fields-data (-map (-lambda ((field &as &hash "name" "type"))
+    (-let* ((context (lsp-seq-first (lsp:command-arguments? action)))
+            ((&java:Equals :fields :existing-methods methods) (lsp-request "java/checkHashCodeEqualsStatus" context))
+            (fields-data (-map (-lambda ((field &as &java:Field :name :type))
                                  (cons (format "%s: %s" name type) field))
                                fields)))
       (when (or (seq-empty-p methods) (y-or-n-p (format "The %s method already exists. Replace?" methods)) )
@@ -1001,22 +1012,22 @@ current symbol."
 
 (defun lsp-java--action-organize-imports (action)
   (lsp-java-with-jdtls
-    (let ((context (lsp-seq-first (gethash "arguments" action))))
+    (let ((context (lsp-seq-first (lsp:command-arguments? action))))
       (lsp-request-async
        "java/organizeImports" context
        (lambda (result)
          (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
                     (lsp--apply-text-edits value))
-                  (gethash "changes" result)))
+                  (lsp:workspace-edit-changes? result)))
        :mode 'detached))))
 
 (defun lsp-java--override-methods-prompt (action)
   (lsp-java-with-jdtls
-    (let* ((context (lsp-seq-first (gethash "arguments" action)))
+    (let* ((context (lsp-seq-first (lsp:command-arguments? action)))
            (result (lsp-request "java/listOverridableMethods" context))
-           (methods-data (-map (-lambda ((field &as &hash "name" "parameters" "declaringClass" class))
+           (methods-data (-map (-lambda ((field &as &java:OverridableMethod :name :parameters :declaring-class class))
                                  (cons (format "%s(%s) class: %s" name (s-join ", " parameters) class) field))
-                               (gethash "methods" result)))
+                               (lsp:java-list-overridable-methods-methods result)))
            (methods-to-override (lsp-java--completing-read-multiple
                                  "Select methods to override"
                                  methods-data
@@ -1028,9 +1039,9 @@ current symbol."
 
 (defun lsp-java--generate-accessors-prompt (action)
   (lsp-java-with-jdtls
-    (let* ((context (lsp-seq-first (gethash "arguments" action)))
+    (let* ((context (lsp-seq-first (lsp:command-arguments? action)))
            (result (lsp-request "java/resolveUnimplementedAccessors" context))
-           (fields-data (-map (-lambda ((field &as &hash "fieldName" name))
+           (fields-data (-map (-lambda ((field &as &java:ResolveMethods :field-name name))
                                 (cons (format "%s" name) field))
                               result))
            (to-generate (lsp-java--completing-read-multiple
@@ -1044,12 +1055,12 @@ current symbol."
 
 (defun lsp-java--generate-constructors-prompt (action)
   (lsp-java-with-jdtls
-    (-let* ((context (lsp-seq-first (gethash "arguments" action)))
-            ((all &as &hash "constructors" "fields") (lsp-request "java/checkConstructorsStatus" context))
+    (-let* ((context (lsp-seq-first (lsp:command-arguments? action)))
+            ((all &as &java:ConstructorsStatus :constructors :fields) (lsp-request "java/checkConstructorsStatus" context))
             (constructors (append constructors nil))
-            (selection-constructors (-map (-lambda ((field &as &hash "name" "parameters"))
-                                            (cons (format "%s(%s)" name (s-join ", " parameters)) field))
-                                          (append constructors nil)))
+            (selection-constructors (seq-map (-lambda ((field &as &java:Constructor :name :parameters))
+                                               (cons (format "%s(%s)" name (s-join ", " parameters)) field))
+                                             constructors))
 
             (to-generate (if (cl-rest selection-constructors)
                              (lsp-java--completing-read-multiple
@@ -1057,7 +1068,7 @@ current symbol."
                               selection-constructors
                               (-map #'cl-rest  selection-constructors))
                            (append  constructors nil)))
-            (fields-source (-map (-lambda ((field &as &hash "name" "type"))
+            (fields-source (-map (-lambda ((field &as &java:Field :name :type))
                                    (cons (format "%s: %s" name type) field))
                                  fields))
             (fields (when fields-source
@@ -1074,14 +1085,14 @@ current symbol."
 (defun lsp-java-move-file (move-uris)
   (-let [destination (lsp--completing-read
                       (format "Select destination for %s: " (buffer-name))
-                      (gethash "destinations"
-                               (lsp-request "java/getMoveDestinations"
-                                            (list :moveKind "moveResource"
-                                                  :sourceUris move-uris
-                                                  :params nil)))
-                      (-lambda ((&hash "displayName" display-name "path"))
+                      (lsp:java-move-destinations-destinations
+                       (lsp-request "java/getMoveDestinations"
+                                    (list :moveKind "moveResource"
+                                          :sourceUris move-uris
+                                          :params nil)))
+                      (-lambda ((&java:Destination :display-name :path))
                         (format "%s - %s" display-name path)))]
-    (when-let (move-uris (if-let (destination-folder (lsp--uri-to-path (gethash "uri" destination)))
+    (when-let (move-uris (if-let (destination-folder (lsp--uri-to-path (lsp:location-uri destination)))
                              (-let [(duplicated-files to-move)
                                     (--split-with
                                      (f-exists? (f-join destination-folder (f-filename it)))
@@ -1099,28 +1110,25 @@ current symbol."
                           :updateReferences t))))))
 
 (defun lsp-java--apply-edit (to-apply)
-  (-let [(&hash "edit" "message" "command") to-apply]
-    (when message
-      (lsp--error "%s" message))
+  (-let [(&java:MoveResult :edit? :message? :command?) to-apply]
+    (when message?
+      (lsp--error "%s" message?))
 
-    (when edit
-      (lsp--apply-workspace-edit edit))
+    (when edit?
+      (lsp--apply-workspace-edit edit?))
 
-    (when command
-      (lsp-execute-code-action command))))
+    (when command?
+      (lsp-execute-code-action command?))))
 
-(defun lsp-java--symbol-label (symbol)
-  (-let [(&hash "name" "containerName") symbol]
-    (format "%s.%s" containerName name)))
+(lsp-defun lsp-java--symbol-label ((&SymbolInformation :name :container-name?))
+  (format "%s.%s" container-name? name))
 
 (defun lsp-java--move-type (context command-info)
-  (-let ((document-uri (->> context
-                            (gethash "textDocument")
-                            (gethash "uri")))
-         ((&hash "enclosingTypeName" enclosing-type-name
-                 "displayName" display-name
-                 "projectName" project-name
-                 "supportedDestinationKinds" supported-destination-kinds) command-info))
+  (-let ((document-uri (-> context lsp:java-move-context-text-document lsp:location-uri))
+         ((&java:MoveTypeInfo :enclosing-type-name
+                              :display-name
+                              :project-name
+                              :supported-destination-kinds) command-info))
     (lsp-java--apply-edit
      (lsp-request "java/move"
                   (if (string= "newFile"
@@ -1151,31 +1159,30 @@ current symbol."
                      (list :query "*"
                            :projectName project-name
                            :sourceOnly t))
-        (-filter (-lambda ((&hash "name" "containerName" container-name))
-                   (not (-contains? excluded (format "%s.%s" container-name name)))))
-        (--sort (s-less? (gethash "name" it)
-                         (gethash "name" other))))
+        (-filter (-lambda ((&SymbolInformation :name :container-name?))
+                   (not (-contains? excluded (format "%s.%s" container-name? name)))))
+        (--sort (s-less? (lsp:java-field-name it)
+                         (lsp:java-field-name other))))
    #'lsp-java--symbol-label))
 
-(defun lsp-java-move-static-member (context command-info)
-  (-let [(&hash? "enclosingTypeName" enclosing-type-name
-                 "projectName" project-name) command-info]
-    (lsp-java--apply-edit
-     (lsp-request "java/move"
-                  (list :moveKind "moveStaticMember"
-                        :sourceUris (->> context
-                                         (gethash "textDocument")
-                                         (gethash "uri")
-                                         vector)
-                        :params context
-                        :destination (lsp-java--select-destination-class
-                                      (list enclosing-type-name) project-name))))))
+(lsp-defun lsp-java-move-static-member (context (&java:MoveTypeInfo :enclosing-type-name
+                                                                    :project-name))
+  (lsp-java--apply-edit
+   (lsp-request "java/move"
+                (list :moveKind "moveStaticMember"
+                      :sourceUris (->> context
+                                       (lsp:java-move-context-text-document)
+                                       (lsp:text-document-identifier-uri)
+                                       vector)
+                      :params context
+                      :destination (lsp-java--select-destination-class
+                                    (list enclosing-type-name) project-name)))))
 
 (defun lsp-java--move-instance-method (context command-info)
   (-let* ((document-uri (->> context
-                             (gethash "textDocument")
-                             (gethash "uri")))
-          ((&hash "destinations" "errorMessage" message)
+                             (lsp:java-move-context-text-document)
+                             (lsp:text-document-identifier-uri)))
+          ((&java:MoveInstanceResult :destinations :error-message message)
            (lsp-request "java/getMoveDestinations"
                         (list :moveKind "moveInstanceMethod"
                               :sourceUris (vector document-uri)
@@ -1195,10 +1202,10 @@ current symbol."
        :sourceUris (vector )
        :destination (lsp--completing-read
                      (format "Select the new class for the instance method %s"
-                             (gethash "methodName" command-info))
+                             (lsp:java-move-instance-command-info-method-name command-info))
                      destinations
-                     (-lambda ((&hash "name" "type" "isField" field?))
-                       (format "%s.%s (%s)" type name (if field?
+                     (-lambda ((&java:MoveDestination :name :type :is-field))
+                       (format "%s.%s (%s)" type name (if is-field
                                                           "Field"
                                                         "Method Parameter")))
                      nil
@@ -1206,7 +1213,7 @@ current symbol."
 
 (defun lsp-java--apply-refactoring-command (action)
   (lsp-java-with-jdtls
-    (-let [(command context command-info) (append (gethash "arguments" action) nil)]
+    (-let [(command context command-info) (append (lsp:command-arguments? action) nil)]
       (cond
        ((-contains? '("extractVariable"
                       "extractVariableAllOccurrence"
@@ -1218,7 +1225,8 @@ current symbol."
                       "convertAnonymousClassToNestedCommand")
                     command)
         (-let ((arguments (when (memq command '("extractField" "convertVariableToField"))
-                            (when-let (scope (pcase (append (gethash "initializedScopes" command-info) nil)
+                            (when-let (scope (pcase (append
+                                                     (lsp:java-field-command-info-initialized-scopes command-info) nil)
                                                (`nil nil)
                                                (`(,scope) scope)
                                                (scopes (or (completing-read "Initialize the field in: " scopes nil t)
@@ -1231,18 +1239,20 @@ current symbol."
                   :context context
                   :options (plist-get (lsp--make-document-formatting-params) :options)
                   :commandArguments arguments)))))
-       ((string= command "moveFile") (lsp-java-move-file (vector (gethash "uri" command-info))))
+       ((string= command "moveFile") (lsp-java-move-file (vector (lsp:location-uri command-info))))
        ((string= command "moveStaticMember") (lsp-java-move-static-member context command-info))
        ((string= command "moveInstanceMethod") (lsp-java--move-instance-method context command-info))
        ((string= command "moveType") (lsp-java--move-type context command-info))))))
 
 (defun lsp-java--action-rename (action)
-  (-let* (([(&hash "uri" "offset" "length")] (gethash "arguments" action)))
+  (-let* (([(&java:RenameParams :uri :offset :length)] (lsp:command-arguments? action)))
     (with-current-buffer (find-file (lsp--uri-to-path uri))
       (deactivate-mark)
       (goto-char (1+ offset))
       (set-mark (point))
       (goto-char (+ (point) length))
+      (exchange-point-and-mark)
+      (sit-for 0.5)
       (call-interactively 'lsp-rename)
       (deactivate-mark))))
 
@@ -1385,8 +1395,7 @@ current symbol."
    (t (setq-local lsp-lens-backends (delete #'lsp-java-lens-backend lsp-lens-backends)))))
 
 (defun lsp-java--start-main-class (lens no-debug?)
-  (-let [(&hash "mainClass" main-class
-                "projectName" project-name) lens]
+  (-let [(&java:MainClassInfo :main-class :project-name) lens]
     (require 'dap-java)
     (dap-debug (list :type "java"
                      :mainClass main-class
@@ -1405,18 +1414,22 @@ current symbol."
                  (-map
                   (lambda (lens)
                     (-doto lens
-                      (ht-set "command" (ht ("title" "Run")
-                                            ("command" (lambda ()
-                                                         (interactive)
-                                                         (lsp-java--start-main-class lens t)))))))
+                      (lsp-make-code-lens :command?
+                                          (lsp-make-command
+                                           :title "Run"
+                                           :command (lambda ()
+                                                      (interactive)
+                                                      (lsp-java--start-main-class lens t))))))
                   result)
                  (-map
                   (lambda (lens)
                     (-doto (ht-copy lens)
-                      (ht-set "command" (ht ("title" "Debug")
-                                            ("command" (lambda ()
-                                                         (interactive)
-                                                         (lsp-java--start-main-class lens nil)))))))
+                      (lsp-make-code-lens :command
+                                          (lsp-make-command
+                                           :title "Debug"
+                                           :command (lambda ()
+                                                      (interactive)
+                                                      (lsp-java--start-main-class lens nil))))))
                   result))
                 lsp--cur-version))
      :mode 'tick)))
