@@ -13,7 +13,7 @@
       
       
       <link rel="shortcut icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.2.2">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.3.0">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.a2408e81.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.6e35a1a6.min.css">
       
       
     
@@ -46,6 +46,7 @@
   
     <body dir="ltr">
   
+    
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
@@ -994,19 +995,11 @@ maintained repos - <a href="http://stable.melpa.org">MELPA Stable</a> and <a hre
 <p><a href="https://github.com/emacs-lsp/lsp-java">lsp-java</a> will automatically detect when the server is missing and it will download <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> before the first startup. The server installation will be in <code>lsp-java-server-install-dir</code>. It will detect whether <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a> is present and it will download the required server side plugins/components. If you want to update the server you can run <code>lsp-java-update-server</code>. To run specific version of <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> use <code>lsp-java-server-install-dir</code>.</p>
 <h3 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
 <p>Minimal configuration with <a href="https://github.com/tigersoldier/company-lsp">company-lsp</a> and <a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a> and <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a>. Now you can explore the methods under <code>lsp-java-*</code>, <code>dap-java-*</code>, <code>dap-*</code>, and <code>lsp-*</code>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;cc-mode</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">add-to-list</span> <span class="ss">&#39;package-archives</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;melpa&quot;</span> <span class="o">.</span> <span class="s">&quot;http://melpa.org/packages/&quot;</span><span class="p">))</span>
 
-<span class="p">(</span><span class="k">condition-case</span> <span class="no">nil</span>
-    <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;use-package</span><span class="p">)</span>
-  <span class="p">(</span><span class="nv">file-error</span>
-   <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;package</span><span class="p">)</span>
-   <span class="p">(</span><span class="nv">add-to-list</span> <span class="ss">&#39;package-archives</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;melpa&quot;</span> <span class="o">.</span> <span class="s">&quot;http://melpa.org/packages/&quot;</span><span class="p">))</span>
-   <span class="p">(</span><span class="nv">package-initialize</span><span class="p">)</span>
-   <span class="p">(</span><span class="nv">package-refresh-contents</span><span class="p">)</span>
-   <span class="p">(</span><span class="nv">package-install</span> <span class="ss">&#39;use-package</span><span class="p">)</span>
-   <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;use-package</span><span class="p">)))</span>
-
-<span class="p">(</span><span class="k">setq</span> <span class="nv">use-package-always-ensure</span> <span class="no">t</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nv">not</span> <span class="p">(</span><span class="nv">package-installed-p</span> <span class="ss">&#39;use-package</span><span class="p">))</span>
+  <span class="p">(</span><span class="nv">package-refresh-contents</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">package-install</span> <span class="ss">&#39;use-package</span><span class="p">))</span>
 
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">projectile</span><span class="p">)</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">flycheck</span><span class="p">)</span>
@@ -1018,7 +1011,7 @@ maintained repos - <a href="http://stable.melpa.org">MELPA Stable</a> and <a hre
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-ui</span><span class="p">)</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">which-key</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">which-key-mode</span><span class="p">))</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-java</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">add-hook</span> <span class="ss">&#39;java-mode-hook</span> <span class="ss">&#39;lsp</span><span class="p">))</span>
-<span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-mode</span> <span class="nb">:after</span> <span class="nv">lsp-mode</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">dap-mode</span> <span class="no">t</span><span class="p">)</span> <span class="p">(</span><span class="nv">dap-ui-mode</span> <span class="no">t</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-mode</span> <span class="nb">:after</span> <span class="nv">lsp-mode</span> <span class="nb">:config</span> <span class="p">(</span><span class="nv">dap-auto-configure-mode</span><span class="p">))</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">dap-java</span> <span class="nb">:ensure</span> <span class="no">nil</span><span class="p">)</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">helm-lsp</span><span class="p">)</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">helm</span>
@@ -1231,7 +1224,7 @@ LSP UI by default sends current line bounds for action region which breaks force
 <div class="md-source-date">
   <small>
     
-      Last update: June 6, 2020
+      Last update: June 17, 2020
     
   </small>
 </div>
@@ -1299,14 +1292,14 @@ LSP UI by default sends current line bounds for action region which breaks force
     </div>
     
       <script src="assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="assets/javascripts/bundle.5f27aba8.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="assets/javascripts/bundle.a14cc5fd.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: ".",
           features: ["tabs"],
           search: Object.assign({
-            worker: "assets/javascripts/worker/search.27c6a5e6.min.js"
+            worker: "assets/javascripts/worker/search.7a2ea5ba.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
