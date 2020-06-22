@@ -1311,15 +1311,17 @@ current symbol."
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "java"))
                       (lsp--server-register-capability
-                       (ht ("id" "test-id")
-                           ("method" "workspace/didChangeWatchedFiles")
-                           ("registerOptions" (ht ("watchers"
-                                                   (vector (ht ("globPattern" "**/*.java"))
-                                                           (ht ("globPattern" "**/pom.xml"))
-                                                           (ht ("globPattern" "**/*.gradle"))
-                                                           (ht ("globPattern" "**/.project"))
-                                                           (ht ("globPattern" "**/.classpath"))
-                                                           (ht ("globPattern" "**/settings/*.prefs"))))))))))
+                       (lsp-make-registration
+                        :id "test-id"
+                        :method "workspace/didChangeWatchedFiles"
+                        :register-options? (lsp-make-did-change-watched-files-registration-options
+                                            :watchers
+                                            (vector (lsp-make-file-system-watcher :glob-pattern "**/*.java")
+                                                    (lsp-make-file-system-watcher :glob-pattern "**/pom.xml")
+                                                    (lsp-make-file-system-watcher :glob-pattern "**/*.gradle")
+                                                    (lsp-make-file-system-watcher :glob-pattern "**/.project")
+                                                    (lsp-make-file-system-watcher :glob-pattern "**/.classpath")
+                                                    (lsp-make-file-system-watcher :glob-pattern "**/settings/*.prefs")))))))
   :completion-in-comments? t
 
   :download-server-fn #'lsp-java--ensure-server))
