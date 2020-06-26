@@ -579,7 +579,6 @@ FULL specify whether full or incremental build will be performed."
    (java:ActionbleNotification (:commands))
    (java:OrganizeImports (:candidates :range))
    (java:Import (:fullyQualifiedName))
-   (java:Import (:fullyQualifiedName))
    (java:ToString (:fields :exists))
    (java:Equals (:fields :existingMethods))
    (java:ConstructorsStatus (:fields :constructors))
