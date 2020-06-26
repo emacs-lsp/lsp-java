@@ -572,7 +572,7 @@ FULL specify whether full or incremental build will be performed."
       ,lsp-java-workspace-dir
       ,@java-9-args)))
 
-(eval-when-compile
+(eval-and-compile
   (lsp-interface
    (java:Status (:message :type))
    (java:Progress (:status :complete))

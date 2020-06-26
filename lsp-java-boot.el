@@ -41,7 +41,7 @@
 
 (defvar lsp-java-boot--callback nil)
 
-(eval-when-compile
+(eval-and-compile
   (lsp-interface
    (boot:Lenses (:doc :codeLenses))))
 

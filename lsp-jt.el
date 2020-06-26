@@ -48,7 +48,7 @@
   :type 'string
   :group 'lsp-java)
 
-(eval-when-compile
+(eval-and-compile
   (lsp-interface
    (jt:Lenses (:location :children))
    (jt:Test (:location :displayName :fullName))
