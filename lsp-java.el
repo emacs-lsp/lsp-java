@@ -1291,7 +1291,8 @@ current symbol."
                                         :generateToStringPromptSupport t
                                         :advancedGenerateAccessorsSupport t
                                         :advancedExtractRefactoringSupport t
-                                        :moveRefactoringSupport t)
+                                        :moveRefactoringSupport t
+                                        :resolveAdditionalTextEditsSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
                                                          lsp-session-server-id->folders
