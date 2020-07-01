@@ -11,7 +11,7 @@ Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/
 LSP java mode supports the following JDT Features:
 
 * As you type reporting of parsing and compilation errors (via [flycheck](https://github.com/flycheck/flycheck)/[lsp-ui](https://github.com/emacs-lsp/lsp-ui))
-* Code completion - using [company-lsp](https://github.com/tigersoldier/company-lsp) or builtin ```complete-at-point```
+* Code completion - using [company-capf](https://github.com/company-mode/company-mode) or builtin ```complete-at-point```
 * Javadoc hovers - using [lsp-ui](https://github.com/emacs-lsp/lsp-ui)
 * Code actions - using [lsp-ui](https://github.com/emacs-lsp/lsp-ui)
 * Code outline - using builtin [imenu](https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html)
@@ -51,7 +51,7 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 [lsp-java](https://github.com/emacs-lsp/lsp-java) will automatically detect when the server is missing and it will download [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) before the first startup. The server installation will be in `lsp-java-server-install-dir`. It will detect whether [dap-mode](https://github.com/yyoncho/dap-mode/) is present and it will download the required server side plugins/components. If you want to update the server you can run `lsp-java-update-server`. To run specific version of [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) use `lsp-java-server-install-dir`.
 
 ### Quick start
-Minimal configuration with [company-lsp](https://github.com/tigersoldier/company-lsp) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`
+Minimal configuration with [company-capf](https://github.com/company-mode/company-mode) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`
 ```elisp
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
@@ -268,7 +268,7 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
 
 ## Additional packages
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) : Flycheck, documentation and code actions support.
-* [company-lsp](https://github.com/tigersoldier/company-lsp) : LSP company backend.
+* [company-capf](https://github.com/company-mode/company-mode) : Company backend support.
 * [treemacs](https://github.com/Alexander-Miller/treemacs) : Project viewer.
 * [lsp-treemacs](https://github.com/emacs-lsp/lsp-treemacs) : `lsp-mode` GUI controls implemented using treemacs.
 ## FAQ
