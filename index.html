@@ -13,7 +13,7 @@
       
       
       <link rel="shortcut icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.3.3">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
     
     
       
@@ -959,7 +959,7 @@
 <p>LSP java mode supports the following JDT Features:</p>
 <ul>
 <li>As you type reporting of parsing and compilation errors (via <a href="https://github.com/flycheck/flycheck">flycheck</a>/<a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a>)</li>
-<li>Code completion - using <a href="https://github.com/tigersoldier/company-lsp">company-lsp</a> or builtin <code>complete-at-point</code></li>
+<li>Code completion - using <a href="https://github.com/company-mode/company-mode">company-capf</a> or builtin <code>complete-at-point</code></li>
 <li>Javadoc hovers - using <a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a></li>
 <li>Code actions - using <a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a></li>
 <li>Code outline - using builtin <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html">imenu</a></li>
@@ -994,7 +994,7 @@ maintained repos - <a href="http://stable.melpa.org">MELPA Stable</a> and <a hre
 <h3 id="eclipse-jdt-language-server"><a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a><a class="headerlink" href="#eclipse-jdt-language-server" title="Permanent link">#</a></h3>
 <p><a href="https://github.com/emacs-lsp/lsp-java">lsp-java</a> will automatically detect when the server is missing and it will download <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> before the first startup. The server installation will be in <code>lsp-java-server-install-dir</code>. It will detect whether <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a> is present and it will download the required server side plugins/components. If you want to update the server you can run <code>lsp-java-update-server</code>. To run specific version of <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> use <code>lsp-java-server-install-dir</code>.</p>
 <h3 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
-<p>Minimal configuration with <a href="https://github.com/tigersoldier/company-lsp">company-lsp</a> and <a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a> and <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a>. Now you can explore the methods under <code>lsp-java-*</code>, <code>dap-java-*</code>, <code>dap-*</code>, and <code>lsp-*</code>
+<p>Minimal configuration with <a href="https://github.com/company-mode/company-mode">company-capf</a> and <a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a> and <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a>. Now you can explore the methods under <code>lsp-java-*</code>, <code>dap-java-*</code>, <code>dap-*</code>, and <code>lsp-*</code>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">add-to-list</span> <span class="ss">&#39;package-archives</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;melpa&quot;</span> <span class="o">.</span> <span class="s">&quot;http://melpa.org/packages/&quot;</span><span class="p">))</span>
 
 <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nv">not</span> <span class="p">(</span><span class="nv">package-installed-p</span> <span class="ss">&#39;use-package</span><span class="p">))</span>
@@ -1195,7 +1195,7 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
 <h2 id="additional-packages">Additional packages<a class="headerlink" href="#additional-packages" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a> : Flycheck, documentation and code actions support.</li>
-<li><a href="https://github.com/tigersoldier/company-lsp">company-lsp</a> : LSP company backend.</li>
+<li><a href="https://github.com/company-mode/company-mode">company-capf</a> : Company backend support.</li>
 <li><a href="https://github.com/Alexander-Miller/treemacs">treemacs</a> : Project viewer.</li>
 <li><a href="https://github.com/emacs-lsp/lsp-treemacs">lsp-treemacs</a> : <code>lsp-mode</code> GUI controls implemented using treemacs.</li>
 </ul>
@@ -1224,7 +1224,7 @@ LSP UI by default sends current line bounds for action region which breaks force
 <div class="md-source-date">
   <small>
     
-      Last update: June 26, 2020
+      Last update: July 1, 2020
     
   </small>
 </div>
@@ -1292,14 +1292,14 @@ LSP UI by default sends current line bounds for action region which breaks force
     </div>
     
       <script src="assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="assets/javascripts/bundle.4a5ba8d6.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: ".",
           features: ["tabs"],
           search: Object.assign({
-            worker: "assets/javascripts/worker/search.9b3611bd.min.js"
+            worker: "assets/javascripts/worker/search.a68abb33.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
