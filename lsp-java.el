@@ -412,7 +412,6 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.project.importHint" lsp-java-project-import-hint t)
    ("java.project.importOnFirstTimeStartup" lsp-java-project-import-on-first-time-startup)
    ("java.imports.gradle.wrapper.checksums" lsp-java-imports-gradle-wrapper-checksums)
-   ("java.refactor.renameFromFileExplorer" lsp-java-refactor-rename-from-file-explorer)
    ("java.sources.organizeImports.staticStarThreshold" lsp-java-sources-organize-imports-static-star-threshold)
    ("java.sources.organizeImports.starThreshold" lsp-java-sources-organize-imports-star-threshold)
    ("java.server.launchMode" lsp-java-server-launch-mode)
