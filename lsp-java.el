@@ -1015,8 +1015,9 @@ current symbol."
       (lsp-request-async
        "java/organizeImports" context
        (lambda (result)
-         (ht-amap (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
-                    (lsp--apply-text-edits value))
+         (lsp-map (lambda (key value)
+                    (with-current-buffer (find-file-noselect (lsp--uri-to-path key))
+                      (lsp--apply-text-edits value)))
                   (lsp:workspace-edit-changes? result)))
        :mode 'detached))))
 
