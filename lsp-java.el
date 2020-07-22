@@ -408,12 +408,106 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.configuration.checkProjectSettingsExclusions" lsp-java-configuration-check-project-settings-exclusions t)
    ("java.errors.incompleteClasspath.severity" lsp-java-errors-incomplete-classpath-severity)
    ("java.dependency.packagePresentation" lsp-java-dependency-package-representation)
-   ("java.completion.filteredTypes" lsp-java-completion-filtered-types)))
+   ("java.completion.filteredTypes" lsp-java-completion-filtered-types)
+   ("java.project.importHint" lsp-java-project-import-hint t)
+   ("java.project.importOnFirstTimeStartup" lsp-java-project-import-on-first-time-startup)
+   ("java.imports.gradle.wrapper.checksums" lsp-java-imports-gradle-wrapper-checksums)
+   ("java.refactor.renameFromFileExplorer" lsp-java-refactor-rename-from-file-explorer)
+   ("java.sources.organizeImports.staticStarThreshold" lsp-java-sources-organize-imports-static-star-threshold)
+   ("java.sources.organizeImports.starThreshold" lsp-java-sources-organize-imports-star-threshold)
+   ("java.server.launchMode" lsp-java-server-launch-mode)
+   ("java.configuration.runtimes" lsp-java-configuration-runtimes)
+   ("java.showBuildStatusOnStart.enabled" lsp-java-show-build-status-on-start-enabled t)
+   ("java.selectionRange.enabled" lsp-java-selection-range-enabled t)
+   ("java.completion.maxResults" lsp-java-completion-max-results)
+   ("java.project.referencedLibraries" lsp-java-project-referenced-libraries)
+   ("java.maven.updateSnapshots" lsp-java-maven-update-snapshots t)
+   ("java.import.gradle.user.home" lsp-java-import-gradle-user-home)
+   ("java.import.gradle.arguments" lsp-java-import-gradle-arguments)
+   ("java.import.gradle.offline.enabled" lsp-java-import-gradle-offline-enabled t)
+   ("java.import.gradle.java.home" lsp-java-import-gradle-java-home)
+   ("java.import.gradle.home" lsp-java-import-gradle-home)))
 
 (defcustom lsp-java-inhibit-message t
   "If non-nil, inhibit java messages echo via `inhibit-message'."
   :type 'boolean
   :group 'lsp-mode)
+
+(defcustom lsp-java-import-gradle-home nil
+  "Use Gradle from the specified local installation directory or GRADLE_HOME if the Gradle wrapper is missing or disabled and no 'java.import.gradle.version' is specified."
+  :type 'string)
+
+(defcustom lsp-java-import-gradle-java-home nil
+  "The location to the JVM used to run the Gradle daemon."
+  :type 'string)
+
+(defcustom lsp-java-import-gradle-offline-enabled nil
+  "Enable/disable the Gradle offline mode."
+  :type 'boolean)
+
+(defcustom lsp-java-import-gradle-arguments nil
+  "Arguments to pass to Gradle."
+  :type 'string)
+
+(defcustom lsp-java-import-gradle-user-home nil
+  "Setting for GRADLE_USER_HOME."
+  :type 'string)
+
+(defcustom lsp-java-maven-update-snapshots nil
+  "Force update of Snapshots/Releases."
+  :type 'boolean)
+
+(defcustom lsp-java-project-referenced-libraries ["lib/**/*.jar"]
+  "Configure glob patterns for referencing local libraries to a
+Java project."
+  :type
+  '(repeat lsp-string-vector))
+
+(defcustom lsp-java-completion-max-results 0
+  "Maximum number of completion results (not including
+snippets).`0' (the default value) disables the limit, all results
+are returned. In case of performance problems, consider setting a
+sensible limit."
+  :type 'number)
+
+(defcustom lsp-java-selection-range-enabled t
+  "Enable/disable Smart Selection support for Java. Disabling
+this option will not affect the VS Code built-in word-based and
+bracket-based smart selection."
+  :type 'boolean)
+
+(defcustom lsp-java-show-build-status-on-start-enabled nil
+  "Automatically show build status on startup."
+  :type 'boolean)
+
+(defcustom lsp-java-configuration-runtimes nil
+  "Map Java Execution Environments to local JDKs."
+  :type 'lsp-string-vector)
+
+(defcustom lsp-java-server-launch-mode "Hybrid"
+  "The launch mode for the Java extension"
+  :type '(choice (:tag "Standard" "LightWeight" "Hybrid")))
+
+(defcustom lsp-java-sources-organize-imports-star-threshold 99
+  "Specifies the number of imports added before a star-import declaration is used."
+  :type 'number)
+
+(defcustom lsp-java-sources-organize-imports-static-star-threshold 99
+  "Specifies the number of static imports added before a star-import declaration is used."
+  :type 'number)
+
+(defcustom lsp-java-imports-gradle-wrapper-checksums nil
+  "Defines allowed/disallowed SHA-256 checksums of Gradle Wrappers"
+  :type 'lsp-string-vector)
+
+(defcustom lsp-java-project-import-on-first-time-startup "automatic"
+  "Specifies whether to import the Java projects, when opening the folder in Hybrid mode for the first time."
+  :type '(choice (:tag "disabled" "interactive" "automatic")))
+
+(defcustom lsp-java-project-import-hint t
+  "Enable/disable the server-mode switch information, when Java
+projects import is skipped on startup."
+  :type 'boolean)
 
 (defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
 
