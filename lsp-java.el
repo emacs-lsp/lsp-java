@@ -495,9 +495,25 @@ bracket-based smart selection."
   "Specifies the number of static imports added before a star-import declaration is used."
   :type 'number)
 
-(defcustom lsp-java-imports-gradle-wrapper-checksums nil
-  "Defines allowed/disallowed SHA-256 checksums of Gradle Wrappers"
-  :type 'lsp-string-vector)
+(defun lsp-java--checksum? (candidate)
+  "Returns true if CANDIDATE is a vector data structure and
+every element of it is of type list, else nil."
+  (and
+   (vectorp candidate)
+   (seq-every-p #'consp candidate)))
+
+(define-widget 'lsp-java-checksum-vector 'lazy
+  "A vector of zero or more elements, every element of which is a checksum object."
+  :offset 4
+  :tag "Checksum Vector"
+  :type '(restricted-sexp
+          :match-alternatives (lsp-java--checksum?)))
+
+(defcustom lsp-java-imports-gradle-wrapper-checksums []
+  "Defines allowed/disallowed SHA-256 checksums of Gradle Wrappers.
+
+Sample value: [(:sha256 \"504b..\" :allowed t)]"
+  :type 'lsp-java-checksum-vector)
 
 (defcustom lsp-java-project-import-on-first-time-startup "automatic"
   "Specifies whether to import the Java projects, when opening the folder in Hybrid mode for the first time."
