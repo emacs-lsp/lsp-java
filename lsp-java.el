@@ -1385,9 +1385,9 @@ current symbol."
                        ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt)
                        ("java.action.generateConstructorsPrompt" #'lsp-java--generate-constructors-prompt)
                        ("java.action.applyRefactoringCommand" #'lsp-java--apply-refactoring-command)
-                       ("java.action.rename" 'lsp-java--action-rename))
-  :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri)
-                    ("chelib" #'lsp-java--resolve-uri))
+                       ("java.action.rename" 'lsp-java--action-rename)
+                       ("language/eventNotification" #'ignore))
+  :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
                             (list :settings (lsp-configuration-section "java")
                                   :extendedClientCapabilities
