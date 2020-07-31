@@ -995,11 +995,16 @@ maintained repos - <a href="http://stable.melpa.org">MELPA Stable</a> and <a hre
 <p><a href="https://github.com/emacs-lsp/lsp-java">lsp-java</a> will automatically detect when the server is missing and it will download <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> before the first startup. The server installation will be in <code>lsp-java-server-install-dir</code>. It will detect whether <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a> is present and it will download the required server side plugins/components. If you want to update the server you can run <code>lsp-java-update-server</code>. To run specific version of <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> use <code>lsp-java-server-install-dir</code>.</p>
 <h3 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
 <p>Minimal configuration with <a href="https://github.com/company-mode/company-mode">company-capf</a> and <a href="https://github.com/emacs-lsp/lsp-ui">lsp-ui</a> and <a href="https://github.com/yyoncho/dap-mode/">dap-mode</a>. Now you can explore the methods under <code>lsp-java-*</code>, <code>dap-java-*</code>, <code>dap-*</code>, and <code>lsp-*</code>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nv">add-to-list</span> <span class="ss">&#39;package-archives</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;melpa&quot;</span> <span class="o">.</span> <span class="s">&quot;http://melpa.org/packages/&quot;</span><span class="p">))</span>
-
-<span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nv">not</span> <span class="p">(</span><span class="nv">package-installed-p</span> <span class="ss">&#39;use-package</span><span class="p">))</span>
-  <span class="p">(</span><span class="nv">package-refresh-contents</span><span class="p">)</span>
-  <span class="p">(</span><span class="nv">package-install</span> <span class="ss">&#39;use-package</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">condition-case</span> <span class="no">nil</span>
+    <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;use-package</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">file-error</span>
+   <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;package</span><span class="p">)</span>
+   <span class="p">(</span><span class="nv">add-to-list</span> <span class="ss">&#39;package-archives</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;melpa&quot;</span> <span class="o">.</span> <span class="s">&quot;http://melpa.org/packages/&quot;</span><span class="p">))</span>
+   <span class="p">(</span><span class="nv">package-initialize</span><span class="p">)</span>
+   <span class="p">(</span><span class="nv">package-refresh-contents</span><span class="p">)</span>
+   <span class="p">(</span><span class="nv">package-install</span> <span class="ss">&#39;use-package</span><span class="p">)</span>
+   <span class="p">(</span><span class="k">setq</span> <span class="nv">use-package-always-ensure</span> <span class="no">t</span><span class="p">)</span>
+   <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;use-package</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">projectile</span><span class="p">)</span>
 <span class="p">(</span><span class="nb">use-package</span> <span class="nv">flycheck</span><span class="p">)</span>
@@ -1224,7 +1229,7 @@ LSP UI by default sends current line bounds for action region which breaks force
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 30, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 31, 2020</span>
     
   </small>
 </div>
