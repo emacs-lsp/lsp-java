@@ -53,11 +53,16 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 ### Quick start
 Minimal configuration with [company-capf](https://github.com/company-mode/company-mode) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`
 ```elisp
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-
-(when (not (package-installed-p 'use-package))
-  (package-refresh-contents)
-  (package-install 'use-package))
+(condition-case nil
+    (require 'use-package)
+  (file-error
+   (require 'package)
+   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+   (package-initialize)
+   (package-refresh-contents)
+   (package-install 'use-package)
+   (setq use-package-always-ensure t)
+   (require 'use-package)))
 
 (use-package projectile)
 (use-package flycheck)
