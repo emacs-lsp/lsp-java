@@ -942,6 +942,11 @@ current symbol."
   (interactive)
   (lsp-java-execute-matching-action "Extract to method"))
 
+(defun lsp-java-inline ()
+  "Inline."
+  (interactive)
+  (lsp-java-execute-matching-action "Inline"))
+
 (defun lsp-java-assign-to-field ()
   "Assign to new field."
   (interactive)
