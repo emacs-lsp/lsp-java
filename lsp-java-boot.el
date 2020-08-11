@@ -85,7 +85,7 @@ Store CALLBACK to use it `sts/highlight'."
   (cond
    (lsp-java-boot-lens-mode
     (setq-local lsp-lens-backends (cl-pushnew 'lsp-java-boot--lens-backend lsp-lens-backends))
-    (lsp-lens-refresh t))
+    (lsp-lens--refresh t))
    (t (setq-local lsp-lens-backends (delete 'lsp-java-boot--lens-backend lsp-lens-backends))
       (setq-local lsp-java-boot--callback nil))))
 

@@ -1508,7 +1508,7 @@ current symbol."
   (cond
    (lsp-java-lens-mode
     (setq-local lsp-lens-backends (cl-pushnew #'lsp-java-lens-backend lsp-lens-backends))
-    (lsp-lens-refresh t))
+    (lsp-lens--refresh t))
    (t (setq-local lsp-lens-backends (delete #'lsp-java-lens-backend lsp-lens-backends)))))
 
 (defun lsp-java--start-main-class (lens no-debug?)
