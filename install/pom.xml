@@ -71,7 +71,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://github.com/emacs-lsp/lsp-java/releases/download/2.2/vscode-java-test.zip</url>
+                <url>https://github.com/emacs-lsp/lsp-java/releases/download/3.1/vscjava.vscode-java-test-0.24.1.vsix</url>
               <outputFileName>vscode-java-test.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
@@ -207,7 +207,7 @@
                 <resource>
                   <directory>${jdt.js.server.root}/java-test/server/</directory>
                   <includes>
-                    <include>com.microsoft.java.test.plugin-0.19.0.jar</include>
+                    <include>*</include>
                   </includes>
                 </resource>
               </resources>
