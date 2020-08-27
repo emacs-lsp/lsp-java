@@ -228,8 +228,6 @@ initiate `compile' and attach to the process."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
-(defvar testng-report-directory)
-
 (defun dap-java--run-unit-test-command (runner run-method?)
   "Run debug test with the following arguments.
 RUNNER is the test executor. RUN-METHOD? when t it will try to
@@ -248,7 +246,7 @@ test."
                          (cl-list* runner
                                     "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
                                     "org.testng.TestNG"
-                                    "-d" testng-report-directory
+                                    "-d" dap-java-testng-report-dir
                                     (if (and (s-contains? "#" to-run) run-method?) "-methods" "-testclass")
                                     (if run-method? (s-replace "#" "." to-run) test-class-name)
                                     dap-java-test-additional-args)
