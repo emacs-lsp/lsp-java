@@ -41,6 +41,8 @@
 ;; Set to non-nil to use TestNG instead of the default JUnit
 (defvar dap-java-use-testng nil)
 
+(defvar dap-java--run-prog-args-history nil)
+
 (defcustom dap-java-java-command "java"
   "Path of the java executable."
   :group 'dap-java
@@ -227,6 +229,15 @@ initiate `compile' and attach to the process."
   "Start debug session with DEBUG-ARGS."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
+
+(defun dap-java-run ()
+  "Run Java main.
+Prompts for the program's arguments, if any, before running it."
+  (interactive)
+  (let* ((prog-args (read-string "Program args: " nil 'dap-java--run-prog-args-history))
+         (debug-args (dap-java--populate-default-args `(:args ,prog-args :noDebug t))))
+    (dap-start-debugging debug-args)))
+
 
 (defun dap-java--run-unit-test-command (runner run-method?)
   "Run debug test with the following arguments.
