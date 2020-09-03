@@ -116,6 +116,13 @@ some of them are bound to Emacs commands:
 * `lsp-java-create-local` - Create local refactoring
 * `lsp-java-extract-method` - Extract method refactoring
 * `lsp-java-add-import` - Add missing import
+#### Testing support
+* `lsp-jt-browser` - Browse tests and run/debug them.
+** Use `x` to run the test(s) under point; `d` to debug the tests under point. `R` to refresh.
+** Support for GUI operations.
+* `lsp-jt-report-open` - open test report
+* `lsp-jt-lens-mode` - test lenses mode(requires `lsp-lens-mode` to be enabled.)
+
 #### Dependency viewer
 * `lsp-java-dependency-list` - View java dependencies
 

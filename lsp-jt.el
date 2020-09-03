@@ -310,7 +310,7 @@
   (-doto (make-sparse-keymap)
     (define-key (kbd "x") #'lsp-jt-run)
     (define-key (kbd "d") #'lsp-jt-debug)
-    (define-key (kbd "R") #'lsp-jt-browser))
+    (define-key (kbd "R") #'lsp-jt-browser-refresh))
   "Keymap for `lsp-jt-mode'.")
 
 (define-minor-mode lsp-jt-mode "Java Test Mode"
@@ -440,7 +440,6 @@
   (interactive)
   (with-current-buffer "*Java Tests*"
     (lsp-treemacs-generic-refresh)))
-
 
 ;;;###autoload
 (defun lsp-jt-browser ()
