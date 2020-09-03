@@ -205,7 +205,7 @@
               <outputDirectory>${jdt.js.server.root}/bundles/</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${jdt.js.server.root}/java-test/server/</directory>
+                    <directory>${jdt.js.server.root}/java-test/extension/server/</directory>
                   <includes>
                     <include>**</include>
                   </includes>
