@@ -207,7 +207,7 @@
                 <resource>
                   <directory>${jdt.js.server.root}/java-test/server/</directory>
                   <includes>
-                    <include>*</include>
+                    <include>**</include>
                   </includes>
                 </resource>
               </resources>
