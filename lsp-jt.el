@@ -523,7 +523,7 @@
      (format "%s@%s#%s" project class name))
    (when-let ((class (last (s-split "," item))))
      (format "%s@$%s#<TestError>" project class))
-   (lsp--warn "Unable to extract id from %s" (nth 2 ))
+   (lsp--warn "Unable to extract id from %s" item)
    ""))
 
 (defvar lsp-jt--junit-test-start "%TESTS")
