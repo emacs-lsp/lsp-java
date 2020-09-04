@@ -36,6 +36,14 @@
 
 (defvar lsp-jt--refresh-timer nil)
 
+(defconst lsp-jt-kind-root 0)
+(defconst lsp-jt-kind-folder 1)
+(defconst lsp-jt-kind-package 2)
+(defconst lsp-jt-kind-class 3)
+(defconst lsp-jt-kind-method 4)
+
+(defvar lsp-jt-results (ht))
+
 (defun lsp-jt-browser--scedule-refresh ()
   (when lsp-jt--refresh-timer
     (cancel-timer lsp-jt--refresh-timer))
@@ -78,7 +86,7 @@
     (window-width . ,treemacs-width)))
 
 (defun lsp-jt--process-test-lens (lens)
-  (-let [(test-data &as &jt:TestItem :location (&Location :range) :children) lens]
+  (-let [(test-data &as &jt:TestItem :location (&Location :range)) lens]
     (-doto test-data
       (lsp-put :range range))))
 
@@ -100,7 +108,7 @@
 (defvar-local lsp-jt--last-callback nil)
 
 (lsp-defun lsp-jt--start-test ((node &as &jt:TestItem :location (&Location :uri)
-                                     :full-name :level :project)
+                                     :full-name :level)
                                no-debug?)
   (lsp-java-with-jdtls
     (-let* ((full-name (if (>= level lsp-jt-kind-package) full-name ""))
@@ -315,18 +323,6 @@
 (define-minor-mode lsp-jt-mode "Java Test Mode"
   nil nil lsp-jt-mode-map)
 
-(treemacs-define-variadic-node java-tests-list
-  :query-function (lsp-jt--roots)
-  :render-action
-  (treemacs-render-node
-   :icon (lsp-jt--icon (-some-> (treemacs-node-at-point)
-                         (treemacs-button-get :data))
-                       nil)
-   :label-form (f-filename item)
-   :state treemacs-java-tests-closed-state
-   :key-form (lsp--path-to-uri item))
-  :root-key-form 'LSP-Java-Tests)
-
 (lsp-treemacs-define-action lsp-jt-run (:data)
   "Run test from browser."
   (lsp-jt--start-test data t))
@@ -352,28 +348,11 @@
   (setq lsp-jt--refresh-lens-timer
         (run-at-time 0.2 nil #'lsp-jt--do-refresh-lenses)))
 
-(defconst lsp-jt-kind-root 0)
-(defconst lsp-jt-kind-folder 1)
-(defconst lsp-jt-kind-package 2)
-(defconst lsp-jt-kind-class 3)
-(defconst lsp-jt-kind-method 4)
-
-(defun lsp-jt--get-tests  (test)
-  (-let [(&jt:Node :level :location (&Location? :uri) :full-name) test]
-    (cond
-     ((or (eq level lsp-jt-kind-method)
-          (eq level lsp-jt-kind-class))
-      (lsp:jt-node-full-name test))
-     (t
-      (s-join " " (-map #'lsp-jt--get-tests (lsp-jt-search uri level full-name)))))))
-
-(defvar lsp-jt-results (ht))
-
 (defun lsp-jt--create-launch-config (args no-debug? analyzer finished-function)
   (with-lsp-workspace (lsp-find-workspace 'jdtls nil)
     (require 'dap-java)
     (-let (((all &as &jt:JUnitLaunchArguments :working-directory :main-class
-                 :project-name :classpath :modulepath :vm-arguments :program-arguments) args)
+                 :project-name :classpath :vm-arguments :program-arguments) args)
            tcp-server-process)
       (list :type "java"
             :mainClass main-class
@@ -477,7 +456,7 @@
             nil t)
   (lsp-jt-mode 1))
 
-(lsp-defun lsp-jt--status ((&jt:TestItem :id :children :level))
+(lsp-defun lsp-jt--status ((&jt:TestItem :id :level))
   (if (eq level lsp-jt-kind-method)
       (pcase (plist-get (gethash id lsp-jt-results) :status)
         (:failed (cons "❌" 'lsp-jt-error-face))
@@ -489,20 +468,6 @@
       (:pass (cons "✔" 'lsp-jt-success-face))
       (:running (cons "⌛" 'lsp-jt-in-progress-face))
       (:pending (cons "⌚" 'lsp-jt-in-progress-face)))))
-
-(defun lsp-jt--update-report-modeline ()
-  (setq-local mode-line-format
-              (or (->> lsp-jt--last-result
-                       (-keep (-lambda ((&alist 'name 'attributes (&alist 'message)))
-                                (when (string= "testSummary" name)
-                                  message)))
-                       cl-first)
-                  (->> lsp-jt--last-result
-                       (-keep (-lambda ((&alist 'name 'attributes (&alist 'message)))
-                                (when (string= "testSummary" name)
-                                  message)))
-                       cl-first)
-                  "Running...")))
 
 (defun lsp-jt--update-report ()
   (when (buffer-live-p (get-buffer "*Java Tests Results*"))
@@ -599,17 +564,6 @@
 
 (defun lsp-jt--get-test-icon (id level)
   (cl-case (lsp-jt--get-test-status id)
-    (:running 'java-test-running)
-    (:pass 'java-test-pass)
-    (:failed 'java-test-error)
-    (:pending 'java-test-pending)
-    (t (alist-get level '((1 . java-test-package)
-                          (2 . java-test-package)
-                          (3 . java-test-class)
-                          (4 . java-test-method))))))
-
-(defun lsp-jt--get-test-icon (id level)
-  (cl-case (plist-get (gethash id lsp-jt-results) :status)
     (:running 'java-test-running)
     (:pass 'java-test-pass)
     (:failed 'java-test-error)
