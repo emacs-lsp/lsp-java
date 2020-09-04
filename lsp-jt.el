@@ -204,7 +204,6 @@
    (list :command "vscode.java.test.search.codelens"
          :arguments (vector (lsp--buffer-uri)))
    (lambda (result)
-     (setq my/result result)
      (let* ((lenses (-map #'lsp-jt--process-test-lens result))
             (all-lenses
              (append
