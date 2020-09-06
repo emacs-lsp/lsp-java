@@ -231,9 +231,8 @@ initiate `compile' and attach to the process."
 
 (defun dap-java--run-unit-test-command (runner run-method?)
   "Run debug test with the following arguments.
-RUNNER is the test executor. RUN-METHOD? when t it will try to
-run the surrounding method. Otherwise it will run the surronding
-test."
+RUNNER is the test executor.  RUN-METHOD? when t it will try to run the
+surrounding method.  Otherwise it will run the surronding test."
   (-let* ((to-run (if run-method?
                       (dap-java-test-method-at-point)
                     (dap-java-test-class)))
