@@ -1,4 +1,5 @@
 [![MELPA](https://melpa.org/packages/lsp-java-badge.svg)](https://melpa.org/#/lsp-java)
+[![MELPA Stable](https://stable.melpa.org/packages/lsp-java-badge.svg)](https://stable.melpa.org/#/lsp-java)
 [![Build Status](https://github.com/emacs-lsp/lsp-java/workflows/CI/badge.svg?branch=master)](https://github.com/emacs-lsp/lsp-java/actions)
 [![Join the chat at https://gitter.im/emacs-lsp/lsp-mode](https://badges.gitter.im/emacs-lsp/lsp-mode.svg)](https://gitter.im/emacs-lsp/lsp-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
