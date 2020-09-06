@@ -245,12 +245,12 @@ test."
                            (s-join dap-java--classpath-separator)))
           (prog-list (if dap-java-use-testng
                          (cl-list* runner
-                                    "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
-                                    "org.testng.TestNG"
-                                    "-d" dap-java-testng-report-dir
-                                    (if (and (s-contains? "#" to-run) run-method?) "-methods" "-testclass")
-                                    (if run-method? (s-replace "#" "." to-run) test-class-name)
-                                    dap-java-test-additional-args)
+                                   "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
+                                   "org.testng.TestNG"
+                                   "-d" dap-java-testng-report-dir
+                                   (if (and (s-contains? "#" to-run) run-method?) "-methods" "-testclass")
+                                   (if run-method? (s-replace "#" "." to-run) test-class-name)
+                                   dap-java-test-additional-args)
                        (cl-list* runner "-jar" dap-java-test-runner
                                  "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
                                  (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
