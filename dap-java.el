@@ -144,6 +144,7 @@ Please check whether the server is configured propertly"))
                                         (lsp-get it :projectName)))
                               nil
                               t)))))
+
 (defun dap-java--populate-launch-args (conf)
   "Populate CONF with launch related configurations."
   (when (not (and (plist-get conf :mainClass)
