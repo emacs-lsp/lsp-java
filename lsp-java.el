@@ -207,13 +207,13 @@ pass a list, only a vector."
 
 (defcustom lsp-java-import-exclusions ["**/node_modules/**" "**/.metadata/**" "**/archetype-resources/**" "**/META-INF/maven/**"]
   "Configure glob patterns for excluding folders when importing for the first time"
-  :type '(repeat string)
-  :group 'lsp-string-vector)
+  :type 'lsp-string-vector
+  :group 'lsp-java)
 
 (defcustom lsp-java-project-resource-filters ["node_modules" ".metadata" "archetype-resources" "META-INF/maven"]
   "Configure glob patterns for excluding folders whenever workspace is refreshed"
-  :type '(repeat string)
-  :group 'lsp-string-vector)
+  :type 'lsp-string-vector
+  :group 'lsp-java)
 
 (defcustom lsp-java-content-provider-preferred nil
   "Preferred content provider (a 3rd party decompiler id,
