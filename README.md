@@ -52,7 +52,8 @@ Then add the following lines to your `.emacs` and open a file from the any of th
 [lsp-java](https://github.com/emacs-lsp/lsp-java) will automatically detect when the server is missing and it will download [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) before the first startup. The server installation will be in `lsp-java-server-install-dir`. It will detect whether [dap-mode](https://github.com/yyoncho/dap-mode/) is present and it will download the required server side plugins/components. If you want to update the server you can run `lsp-java-update-server`. To run specific version of [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) use `lsp-java-server-install-dir`.
 
 ### Quick start
-Minimal configuration with [company-capf](https://github.com/company-mode/company-mode) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`
+Minimal configuration with [company-capf](https://github.com/company-mode/company-mode) and [lsp-ui](https://github.com/emacs-lsp/lsp-ui) and [dap-mode](https://github.com/yyoncho/dap-mode/). Set `lsp-java-workspace-dir` in case you have existing Java projects. Now you can explore the methods under `lsp-java-*`, `dap-java-*`, `dap-*`, and `lsp-*`.
+
 ```elisp
 (condition-case nil
     (require 'use-package)
