@@ -629,13 +629,13 @@ FULL specify whether full or incremental build will be performed."
 (lsp-defun lsp-java--show-references ((&Command :arguments? params))
   ;; (_server (_command (eql java.show.references)) params)
   (if-let (refs (seq-elt params 2))
-      (lsp-show-xrefs (lsp--locations-to-xref-items refs) t)
+      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
     (user-error "No references")))
 
 (lsp-defun lsp-java--show-implementations ((&Command :arguments? params))
   ;; (_server (_command (eql java.show.implementations)) params)
   (if-let (refs (seq-elt params 2))
-      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil)
+      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil nil)
     (user-error "No implementations")))
 
 (defun lsp-java--get-java-version ()
