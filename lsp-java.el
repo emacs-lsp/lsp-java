@@ -1489,6 +1489,8 @@ current symbol."
 
 ;; lsp-java run
 
+(defvar lsp-lens-backends)
+(declare-function lsp-lens-refresh "lsp-lens" (buffer-modified? &optional buffer))
 ;;;###autoload
 (define-minor-mode lsp-java-lens-mode
   "Toggle run/debug overlays."
@@ -1498,6 +1500,7 @@ current symbol."
   :lighter nil
   (cond
    (lsp-java-lens-mode
+    (require 'lsp-lens)
     (setq-local lsp-lens-backends (cl-pushnew #'lsp-java-lens-backend lsp-lens-backends))
     (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete #'lsp-java-lens-backend lsp-lens-backends)))))
