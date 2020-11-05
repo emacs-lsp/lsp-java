@@ -28,6 +28,8 @@ LSP java mode supports the following JDT Features:
 * Integration with [Spring Initializr](https://start.spring.io/)
 ## Demo
 Here it is a demo from EmacsConf2019 https://www.youtube.com/watch?v=Bbjxn9yVNJ8
+## Tutorial
+Here is a tutorial that covers setup and use https://xpressrazor.wordpress.com/2020/11/04/java-programming-in-emacs/
 ## Screenshot
 ![demo](images/demo.png)
 ## Installation
