@@ -92,15 +92,13 @@ Store CALLBACK to use it `sts/highlight'."
    (t (setq-local lsp-lens-backends (delete 'lsp-java-boot--lens-backend lsp-lens-backends))
       (setq-local lsp-java-boot--callback nil))))
 
-(cl-defmethod lsp-execute-command
-  (_server (_command (eql sts.open.url)) params)
+(lsp-defun lsp-java-boot--sts-open-url ((&Command :arguments?))
   "Execute open url command from PARAMS data."
-  (browse-url (lsp-seq-first params)))
+  (browse-url (lsp-seq-first arguments?)))
 
-(cl-defmethod lsp-execute-command
-  (_server (_command (eql sts.showHoverAtPosition)) params)
+(lsp-defun lsp-java-boot--sts-show-hover ((&Command :arguments?))
   "Execute show hover at position command with PARAMS data."
-  (goto-char (lsp--position-to-point (lsp-seq-first params)))
+  (goto-char (lsp--position-to-point (lsp-seq-first arguments?)))
   (lsp-describe-thing-at-point))
 
 (defun lsp-java-boot--sts-hightlight (workspace params)
@@ -147,6 +145,8 @@ Store CALLBACK to use it `sts/highlight'."
                                          ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link))
                   :notification-handlers  (ht ("sts/highlight" #'lsp-java-boot--sts-hightlight)
                                               ("sts/progress" #'ignore))
+                  :action-handlers (ht ("sts.showHoverAtPosition" #'lsp-java-boot--sts-show-hover)
+                                       ("sts.open.url" #'lsp-java-boot--sts-open-url))
                   :multi-root t
                   :add-on? t
                   :server-id 'boot-ls
