@@ -626,16 +626,16 @@ FULL specify whether full or incremental build will be performed."
   (unless (file-directory-p path)
     (make-directory path t)))
 
-(cl-defmethod lsp-execute-command
-  (_server (_command (eql java.show.references)) params)
+(lsp-defun lsp-java--show-references ((&Command :arguments? params))
+  ;; (_server (_command (eql java.show.references)) params)
   (if-let (refs (seq-elt params 2))
-      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
     (user-error "No references")))
 
-(cl-defmethod lsp-execute-command
-  (_server (_command (eql java.show.implementations)) params)
+(lsp-defun lsp-java--show-implementations ((&Command :arguments? params))
+  ;; (_server (_command (eql java.show.implementations)) params)
   (if-let (refs (seq-elt params 2))
-      (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
+      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil nil)
     (user-error "No implementations")))
 
 (defun lsp-java--get-java-version ()
@@ -976,18 +976,6 @@ current symbol."
 (defun lsp-java--find-workspace (file-uri)
   "Return the workspace corresponding FILE-URI."
   (lsp-find-workspace 'jdtls (lsp--uri-to-path file-uri)))
-
-(cl-defmethod lsp-execute-command
-  (_server (_command (eql java.show.references)) params)
-  (if-let (refs (cl-third (append params nil)))
-      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
-    (user-error "No references")))
-
-(cl-defmethod lsp-execute-command
-  (_server (_command (eql java.show.implementations)) params)
-  (if-let (refs (cl-third (append params nil)))
-      (lsp-show-xrefs (lsp--locations-to-xref-items refs) nil t)
-    (user-error "No implementations")))
 
 (add-to-list 'global-mode-string (list '(t lsp-java-progress-string)))
 
@@ -1392,7 +1380,9 @@ current symbol."
                        ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt)
                        ("java.action.generateConstructorsPrompt" #'lsp-java--generate-constructors-prompt)
                        ("java.action.applyRefactoringCommand" #'lsp-java--apply-refactoring-command)
-                       ("java.action.rename" 'lsp-java--action-rename))
+                       ("java.action.rename" #'lsp-java--action-rename)
+                       ("java.show.references" #'lsp-java--show-references)
+                       ("java.show.implementations" #'lsp-java--show-implementations))
   :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
                             (list :settings (lsp-configuration-section "java")
@@ -1499,6 +1489,8 @@ current symbol."
 
 ;; lsp-java run
 
+(defvar lsp-lens-backends)
+(declare-function lsp-lens-refresh "lsp-lens" (buffer-modified? &optional buffer))
 ;;;###autoload
 (define-minor-mode lsp-java-lens-mode
   "Toggle run/debug overlays."
@@ -1508,6 +1500,7 @@ current symbol."
   :lighter nil
   (cond
    (lsp-java-lens-mode
+    (require 'lsp-lens)
     (setq-local lsp-lens-backends (cl-pushnew #'lsp-java-lens-backend lsp-lens-backends))
     (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete #'lsp-java-lens-backend lsp-lens-backends)))))

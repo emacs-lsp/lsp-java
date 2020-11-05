@@ -75,6 +75,8 @@
 Store CALLBACK to use it `sts/highlight'."
   (setq-local lsp-java-boot--callback callback))
 
+(defvar lsp-lens-backends)
+(declare-function lsp-lens-refresh "lsp-lens" (buffer-modified? &optional buffer))
 ;;;###autoload
 (define-minor-mode lsp-java-boot-lens-mode
   "Toggle code-lens overlays."
@@ -84,6 +86,7 @@ Store CALLBACK to use it `sts/highlight'."
   :lighter "BLens"
   (cond
    (lsp-java-boot-lens-mode
+    (require 'lsp-lens)
     (setq-local lsp-lens-backends (cl-pushnew 'lsp-java-boot--lens-backend lsp-lens-backends))
     (lsp-lens-refresh t))
    (t (setq-local lsp-lens-backends (delete 'lsp-java-boot--lens-backend lsp-lens-backends))

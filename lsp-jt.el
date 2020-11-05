@@ -32,6 +32,9 @@
 (require 'lsp-java)
 (require 'treemacs)
 
+(eval-when-compile
+  (require 'lsp-treemacs))
+
 (declare-function dap-debug "ext:dap-mode")
 
 (defvar lsp-jt--refresh-timer nil)
@@ -248,6 +251,8 @@
        (funcall callback all-lenses lsp--cur-version)))
    :mode 'detached))
 
+(defvar lsp-lens-backends)
+(declare-function lsp-lens-refresh "lsp-lens" (buffer-modified? &optional buffer))
 ;;;###autoload
 (define-minor-mode lsp-jt-lens-mode
   "Toggle code-lens overlays."
@@ -258,6 +263,7 @@
   (let ((buffer (current-buffer)))
     (cond
      (lsp-jt-lens-mode
+      (require 'lsp-lens)
       (setq-local lsp-lens-backends (cl-pushnew 'lsp-jt-lens-backend lsp-lens-backends))
       (lsp-lens-refresh t)
       (add-hook 'lsp-jt-status-updated-hook
@@ -313,19 +319,18 @@
     (treemacs-create-icon :file "test-error.png" :extensions (java-test-error) :fallback "-")
     (treemacs-create-icon :file "history.png" :extensions (java-test-pending) :fallback "-")))
 
+(lsp-treemacs-define-action lsp-jt-run (:data)
+  "Run test from browser."
+  (lsp-jt--start-test data t))
+
 (defvar lsp-jt-mode-map
   (-doto (make-sparse-keymap)
     (define-key (kbd "x") #'lsp-jt-run)
     (define-key (kbd "d") #'lsp-jt-debug)
     (define-key (kbd "R") #'lsp-jt-browser-refresh))
   "Keymap for `lsp-jt-mode'.")
-
 (define-minor-mode lsp-jt-mode "Java Test Mode"
   nil nil lsp-jt-mode-map)
-
-(lsp-treemacs-define-action lsp-jt-run (:data)
-  "Run test from browser."
-  (lsp-jt--start-test data t))
 
 (lsp-treemacs-define-action lsp-jt-debug (:data)
   "Debug from browser."
@@ -393,35 +398,42 @@
 (lsp-defun lsp-jt--render-test-node ((test-item &as &jt:TestItem :display-name :level :id
                                                 :location (loc &as &Location :uri) :full-name))
   `(:key ,id
-         :label ,display-name
-         :icon ,(lsp-jt--get-test-icon id level)
-         ,@(unless (eq level 4)
-             (list :children-async (lambda (_ callback)
-                                     (lsp-jt-search
-                                      uri
-                                      level
-                                      full-name
-                                      (lambda (items)
-                                        (funcall callback
-                                                 (-map
-                                                  #'lsp-jt--render-test-node
-                                                  items)))))))
-         :ret-action ,(lambda ()
-                        (interactive)
-                        (lsp-goto-location loc))
-         :actions (["Run Test"   lsp-jt-run]
-                   ["Debug Test" lsp-jt-debug]
-                   ["Refresh"    lsp-jt-browser-refresh])
-         :data ,test-item))
+    :label ,display-name
+    :icon ,(lsp-jt--get-test-icon id level)
+    ,@(unless (eq level 4)
+        (list :children-async (lambda (_ callback)
+                                (lsp-jt-search
+                                 uri
+                                 level
+                                 full-name
+                                 (lambda (items)
+                                   (funcall callback
+                                            (-map
+                                             #'lsp-jt--render-test-node
+                                             items)))))))
+    :ret-action ,(lambda ()
+                   (interactive)
+                   (lsp-goto-location loc))
+    :actions (["Run Test"   lsp-jt-run]
+              ["Debug Test" lsp-jt-debug]
+              ["Refresh"    lsp-jt-browser-refresh])
+    :data ,test-item))
+
+(declare-function lsp-treemacs-generic-refresh "lsp-treemacs" ())
+(declare-function
+ lsp-treemacs-render "lsp-treemacs"
+ (tree title expand-depth &optional buffer-name right-click-actions))
 
 (defun lsp-jt-browser-refresh ()
   (interactive)
   (with-current-buffer "*Java Tests*"
+    (require 'lsp-treemacs)
     (lsp-treemacs-generic-refresh)))
 
 ;;;###autoload
 (defun lsp-jt-browser ()
   (interactive)
+  (require 'lsp-treemacs)
   (select-window
    (display-buffer-in-side-window
     (lsp-treemacs-render
