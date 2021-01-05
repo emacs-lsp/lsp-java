@@ -1017,7 +1017,7 @@ current symbol."
   (lsp-execute-code-action-by-kind "source.overrideMethods"))
 
 (defun lsp-java-organize-imports ()
-  "Generate `toString' method."
+  "Organize java imports."
   (interactive)
   (lsp-execute-code-action-by-kind "source.organizeImports"))
 
