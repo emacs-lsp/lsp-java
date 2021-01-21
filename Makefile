@@ -18,15 +18,26 @@ LINT="(progn \
 build:
 	cask install
 
-test: build compile checkdoc lint
+unix-ci: build unix-compile checkdoc lint
 
-compile:
+windows-ci: CASK=
+windows-ci: clean windows-compile checkdoc lint
+
+unix-compile:
 	@echo "Compiling..."
 	@$(CASK) $(EMACS) -Q --batch \
 		-L . \
 		--eval '(setq byte-compile-error-on-warn t)' \
 		-f batch-byte-compile \
 		*.el
+
+windows-compile:
+	@echo "Compiling..."
+	@$(CASK) $(EMACS) -Q --batch \
+		-l test/windows-bootstrap.el \
+		-L . -L clients \
+		--eval '(setq byte-compile-error-on-warn t)' \
+		-f batch-byte-compile $(LSP-FILES)
 
 lint:
 	@echo "package linting..."
