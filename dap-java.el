@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; Java specific adapter for DAP mode
+
 ;;; Code:
 
 (require 'lsp-java)

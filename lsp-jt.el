@@ -245,7 +245,7 @@
                             :command (lsp-put
                                       (lsp-make-command
                                        :title title
-                                       :command #'lsp-jt-show-report)
+                                       :command #'lsp-jt-report-open)
                                       :_face face))))
                (-map #'lsp-copy lenses)))))
        (funcall callback all-lenses lsp--cur-version)))
