@@ -2,7 +2,7 @@
 
 ;; Version: 3.0
 
-;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0") (treemacs "2.5") (dap-mode "0.5"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0") (treemacs "2.5") (dap-mode "0.5"))
 ;; Keywords: languague, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
