@@ -952,6 +952,16 @@ current symbol."
   (interactive)
   (lsp-java-execute-matching-action "Assign parameter to new field"))
 
+(defun lsp-java-assign-statement-to-local ()
+  "Assign statement to new local variable"
+  (interactive)
+  (lsp-java-execute-matching-action "Assign statement to new local variable"))
+
+(defun lsp-java-assign-statement-to-field ()
+  "Assign statement to new field"
+  (interactive)
+  (lsp-java-execute-matching-action "Assign statement to new field"))
+
 (defun lsp-java-assign-all ()
   "Assign to new field."
   (interactive)
@@ -1327,6 +1337,8 @@ current symbol."
                       "extractConstant"
                       "extractMethod"
                       "extractField"
+                      "assignField"
+                      "assignVariable"
                       "convertVariableToField"
                       "invertVariable"
                       "convertAnonymousClassToNestedCommand")
