@@ -71,7 +71,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-                <url>https://github.com/emacs-lsp/lsp-java/releases/download/3.1/vscjava.vscode-java-test-0.24.1.vsix</url>
+                <url>https://github.com/microsoft/vscode-java-test/releases/download/0.28.0/vscjava.vscode-java-test-0.28.0.vsix</url>
               <outputFileName>vscode-java-test.zip</outputFileName>
               <outputDirectory>${project.build.directory}</outputDirectory>
             </configuration>
@@ -117,7 +117,7 @@
                 <artifactItem>
                   <groupId>com.microsoft.java</groupId>
                   <artifactId>com.microsoft.java.debug.plugin</artifactId>
-                  <version>0.24.0</version>
+                  <version>0.30.0</version>
                   <outputDirectory>${java.debug.root}</outputDirectory>
                   <destFileName>java.debug.plugin.jar</destFileName>
                 </artifactItem>
