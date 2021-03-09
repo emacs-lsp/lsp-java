@@ -1379,7 +1379,7 @@ current symbol."
  (make-lsp--client
   :new-connection (lsp-stdio-connection #'lsp-java--ls-command
                                         #'lsp-java--locate-server-jar)
-  :major-modes '(java-mode)
+  :major-modes '(java-mode jdee-mode)
   :server-id 'jdtls
   :multi-root t
   :notification-handlers (ht ("language/status" #'lsp-java--language-status-callback)
@@ -1417,11 +1417,11 @@ current symbol."
                                         :resolveAdditionalTextEditsSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
-                                                         lsp-session-server-id->folders
-                                                         (gethash 'jdtls)
-                                                         (-uniq)
-                                                         (-map #'lsp--path-to-uri)
-                                                         (apply #'vector))))
+                                                      lsp-session-server-id->folders
+                                                      (gethash 'jdtls)
+                                                      (-uniq)
+                                                      (-map #'lsp--path-to-uri)
+                                                      (apply #'vector))))
   :library-folders-fn (lambda (_workspace) (list lsp-java-workspace-cache-dir))
   :before-file-open-fn (lambda (_workspace)
                          (let ((metadata-file-name (lsp-java--get-metadata-location buffer-file-name)))
