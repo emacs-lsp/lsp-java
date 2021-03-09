@@ -157,25 +157,27 @@ Please check whether the server is configured propertly"))
 
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
     (-> conf
-        (dap--put-if-absent :args "")
-        (dap--put-if-absent :cwd (lsp-java--get-root))
-        (dap--put-if-absent :stopOnEntry :json-false)
-        (dap--put-if-absent :host "localhost")
-        (dap--put-if-absent :console "internalConsole")
-        (dap--put-if-absent :request "launch")
-        (dap--put-if-absent :modulePaths (vector))
-        (dap--put-if-absent :classPaths
+      (dap--put-if-absent :args "")
+      (dap--put-if-absent :cwd (lsp-java--get-root))
+      (dap--put-if-absent :stopOnEntry :json-false)
+      (dap--put-if-absent :host "localhost")
+      (dap--put-if-absent :console "internalConsole")
+      (dap--put-if-absent :request "launch")
+      (dap--put-if-absent :modulePaths (vector))
+      (dap--put-if-absent :classPaths
+                          (vector
+                           (dap-java--wrap-java-classpath
                             (or (cl-second
                                  (with-lsp-workspace (lsp-find-workspace 'jdtls)
                                    (lsp-send-execute-command
                                     "vscode.java.resolveClasspath"
                                     (vector main-class project-name))))
-                                (error "Unable to resolve classpath")))
-        (dap--put-if-absent :name (format "%s (%s)"
-                                          (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
-                                              (match-string 1 main-class)
-                                            main-class)
-                                          project-name)))))
+                                (error "Unable to resolve classpath")))))
+      (dap--put-if-absent :name (format "%s (%s)"
+                                        (if (string-match ".*\\.\\([[:alnum:]_]*\\)$" main-class)
+                                            (match-string 1 main-class)
+                                          main-class)
+                                        project-name)))))
 
 (defun dap-java--populate-attach-args (conf)
   "Populate attach arguments.
@@ -231,6 +233,24 @@ initiate `compile' and attach to the process."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
+(defun dap-java--wrap-java-classpath (class-paths)
+  (let ((temp-file (make-temp-file "Manifest.txt"))
+        (temp-file-jar (make-temp-file "jar.wrapper")))
+    (f-write-text
+     (concat
+      "Class-Path: "
+      (s-join "\n  "
+              (cl-list*
+               dap-java-test-runner
+               (-map (lambda (f)
+                       (if (f-directory? f)
+                           (file-name-as-directory f)
+                         f))
+                     class-paths)))
+      "\n") 'utf-8 temp-file)
+    (shell-command-to-string (format "jar cfm %s %s" temp-file-jar temp-file))
+    temp-file-jar))
+
 (defun dap-java--run-unit-test-command (runner run-method?)
   "Run debug test with the following arguments.
 RUNNER is the test executor.  RUN-METHOD? when t it will try to run the
@@ -239,11 +259,9 @@ surrounding method.  Otherwise it will run the surronding test."
                       (dap-java-test-method-at-point)
                     (dap-java-test-class)))
           (test-class-name (cl-first (s-split "#" to-run)))
-          (class-path (->> (with-lsp-workspace (lsp-find-workspace 'jdtls)
-                             (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                       (vector test-class-name nil)))
-                           cl-second
-                           (s-join dap-java--classpath-separator)))
+          (class-paths (with-lsp-workspace (lsp-find-workspace 'jdtls)
+                         (cl-second (lsp-send-execute-command "vscode.java.resolveClasspath"
+                                                              (vector test-class-name nil)))))
           (prog-list (if dap-java-use-testng
                          (cl-list* runner
                                    "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
@@ -252,13 +270,14 @@ surrounding method.  Otherwise it will run the surronding test."
                                    (if (and (s-contains? "#" to-run) run-method?) "-methods" "-testclass")
                                    (if run-method? (s-replace "#" "." to-run) test-class-name)
                                    dap-java-test-additional-args)
-                       (cl-list* runner "-jar" dap-java-test-runner
-                                 "-cp" (format dap-java--var-format "JUNIT_CLASS_PATH")
-                                 (if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
-                                 (if run-method? to-run test-class-name)
-                                 dap-java-test-additional-args))))
+                       `(,runner "-cp" ,(dap-java--wrap-java-classpath class-paths)
+                                 "org.junit.platform.console.ConsoleLauncher"
+                                 ,(if (and (s-contains? "#" to-run) run-method?) "-m" "-c")
+                                 ,(if run-method? to-run test-class-name)
+                                 ,@dap-java-test-additional-args))))
     (list :program-to-start (s-join " " prog-list)
-          :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
+          :environment-variables `(("JUNIT_CLASS_PATH" . ,(s-join dap-java--classpath-separator
+                                                                  class-paths)))
           :name to-run
           :cwd (lsp-java--get-root))))
 
@@ -267,8 +286,8 @@ surrounding method.  Otherwise it will run the surronding test."
 If there is no method under cursor it will fallback to test class."
   (interactive)
   (-> (dap-java--run-unit-test-command dap-java-java-command t)
-      (plist-put :skip-debug-session t)
-      dap-start-debugging))
+    (plist-put :skip-debug-session t)
+    dap-start-debugging))
 
 (defun dap-java-debug-test-method (port)
   "Debug JUnit test.
@@ -292,8 +311,8 @@ attaching to the test."
   "Run JUnit test."
   (interactive)
   (-> (dap-java--run-unit-test-command dap-java-java-command nil)
-      (plist-put :skip-debug-session t)
-      dap-start-debugging))
+    (plist-put :skip-debug-session t)
+    dap-start-debugging))
 
 (defun dap-java-debug-test-class (port)
   "Debug JUnit test class.
