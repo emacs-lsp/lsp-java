@@ -304,4 +304,13 @@ When particular file is not part of imported project [Eclipse JDT Language Serve
 
 * How do I change the version of java used by LSP?
 
-Have a look at `~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml`. If you updated your local java path and want LSP to use the new version, try removing the `~/.emacs.d/workspace/` directory and relaunch LSP. Also see [#114](https://github.com/emacs-lsp/lsp-java/issues/114).
+Have a look at `~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml`. If you updated your local java path and want LSP to use the new version, try removing the `~/.emacs.d/workspace/` directory and relaunch LSP. Also see [#114](https://github.com/emacs-lsp/lsp-java/issues/114).  
+If you have multiple java JDK versions installed and want to change the version of java used by LSP, also need to set `lsp-java-configuration-runtimes`. An example for setting `lsp-java-configuration-runtimes`:
+
+```lisp
+(setq lsp-java-configuration-runtimes '[(:name "JavaSE-1.8"
+						:path "/home/kyoncho/jdk1.8.0_201.jdk/")
+					(:name "JavaSE-11"
+						:path "/home/kyoncho/jdk-11.0.1.jdk/"
+						:default t)])
+```
