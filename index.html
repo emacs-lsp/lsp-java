@@ -1236,7 +1236,14 @@ LSP UI by default sends current line bounds for action region which breaks force
 <ul>
 <li>How do I change the version of java used by LSP?</li>
 </ul>
-<p>Have a look at <code>~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml</code>. If you updated your local java path and want LSP to use the new version, try removing the <code>~/.emacs.d/workspace/</code> directory and relaunch LSP. Also see <a href="https://github.com/emacs-lsp/lsp-java/issues/114">#114</a>.</p>
+<p>Have a look at <code>~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml</code>. If you updated your local java path and want LSP to use the new version, try removing the <code>~/.emacs.d/workspace/</code> directory and relaunch LSP. Also see <a href="https://github.com/emacs-lsp/lsp-java/issues/114">#114</a>.<br />
+If you have multiple java JDK versions installed and want to change the version of java used by LSP, also need to set <code>lsp-java-configuration-runtimes</code>. An example for setting <code>lsp-java-configuration-runtimes</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-java-configuration-runtimes</span> <span class="ss">&#39;[</span><span class="p">(</span><span class="ss">:name</span> <span class="s">&quot;JavaSE-1.8&quot;</span>
+                        <span class="ss">:path</span> <span class="s">&quot;/home/kyoncho/jdk1.8.0_201.jdk/&quot;</span><span class="p">)</span>
+                    <span class="p">(</span><span class="ss">:name</span> <span class="s">&quot;JavaSE-11&quot;</span>
+                        <span class="ss">:path</span> <span class="s">&quot;/home/kyoncho/jdk-11.0.1.jdk/&quot;</span>
+                        <span class="ss">:default</span> <span class="no">t</span><span class="p">)</span><span class="nv">]</span><span class="p">)</span>
+</code></pre></div>
                 
                   
                     
@@ -1245,7 +1252,7 @@ LSP UI by default sends current line bounds for action region which breaks force
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 9, 2021</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 16, 2021</span>
     
   </small>
 </div>
