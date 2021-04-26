@@ -46,7 +46,7 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
-(defcustom lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz"
+(defcustom lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/milestones/1.0.0/jdt-language-server-1.0.0-202104151857.tar.gz"
   "JDT JS download url.
 Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz if you want to use Eclipse Che JDT LS."
   :group 'lsp-java
@@ -798,6 +798,7 @@ PARAMS progress report notification data."
 
 (defun lsp-java--ensure-server (_client callback error-callback _update?)
   "Ensure that JDT server and the other configuration."
+  (f-delete lsp-java-server-install-dir t)
   (let* ((default-directory (make-temp-file "lsp-java-install" t))
          (installed-mvn (executable-find "mvn"))
          (mvn-command-and-options (if installed-mvn
