@@ -799,6 +799,8 @@ PARAMS progress report notification data."
 (defun lsp-java--ensure-server (_client callback error-callback _update?)
   "Ensure that JDT server and the other configuration."
   (f-delete lsp-java-server-install-dir t)
+  (f-delete lsp-java-workspace-cache-dir t)
+  (f-delete lsp-java-workspace-dir t)
   (let* ((default-directory (make-temp-file "lsp-java-install" t))
          (installed-mvn (executable-find "mvn"))
          (mvn-command-and-options (if installed-mvn
