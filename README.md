@@ -109,6 +109,7 @@ Minimal configuration with [company-capf](https://github.com/company-mode/compan
 * `lsp-java-generate-equals-and-hash-code` - Generate `equals` and `hashCode` methods.
 * `lsp-java-generate-overrides` - Generate method `overrides`
 * `lsp-java-generate-getters-and-setters` - Generate getters and setters.
+* `lsp-java-type-hierarchy` - Open type hierarchy. Use prefix arg to specify the type of the hierarchy.
 #### Refactoring
 LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
@@ -304,7 +305,7 @@ When particular file is not part of imported project [Eclipse JDT Language Serve
 
 * How do I change the version of java used by LSP?
 
-Have a look at `~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml`. If you updated your local java path and want LSP to use the new version, try removing the `~/.emacs.d/workspace/` directory and relaunch LSP. Also see [#114](https://github.com/emacs-lsp/lsp-java/issues/114).  
+Have a look at `~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml`. If you updated your local java path and want LSP to use the new version, try removing the `~/.emacs.d/workspace/` directory and relaunch LSP. Also see [#114](https://github.com/emacs-lsp/lsp-java/issues/114).
 If you have multiple java JDK versions installed and want to change the version of java used by LSP, also need to set `lsp-java-configuration-runtimes`. An example for setting `lsp-java-configuration-runtimes`:
 
 ```lisp
