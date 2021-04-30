@@ -1058,6 +1058,7 @@ maintained repos - <a href="http://stable.melpa.org">MELPA Stable</a> and <a hre
 <li><code>lsp-java-generate-equals-and-hash-code</code> - Generate <code>equals</code> and <code>hashCode</code> methods.</li>
 <li><code>lsp-java-generate-overrides</code> - Generate method <code>overrides</code></li>
 <li><code>lsp-java-generate-getters-and-setters</code> - Generate getters and setters.</li>
+<li><code>lsp-java-type-hierarchy</code> - Open type hierarchy. Use prefix arg to specify the type of the hierarchy.</li>
 </ul>
 <h4 id="refactoring">Refactoring<a class="headerlink" href="#refactoring" title="Permanent link">#</a></h4>
 <p>LSP Java provides rich set of refactorings via <a href="https://projects.eclipse.org/projects/eclipse.jdt.ls">Eclipse JDT Language Server</a> code actions and
@@ -1236,7 +1237,7 @@ LSP UI by default sends current line bounds for action region which breaks force
 <ul>
 <li>How do I change the version of java used by LSP?</li>
 </ul>
-<p>Have a look at <code>~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml</code>. If you updated your local java path and want LSP to use the new version, try removing the <code>~/.emacs.d/workspace/</code> directory and relaunch LSP. Also see <a href="https://github.com/emacs-lsp/lsp-java/issues/114">#114</a>.<br />
+<p>Have a look at <code>~/.emacs.d/workspace/.metadata/.plugins/org.eclipse.jdt.launching/libraryInfos.xml</code>. If you updated your local java path and want LSP to use the new version, try removing the <code>~/.emacs.d/workspace/</code> directory and relaunch LSP. Also see <a href="https://github.com/emacs-lsp/lsp-java/issues/114">#114</a>.
 If you have multiple java JDK versions installed and want to change the version of java used by LSP, also need to set <code>lsp-java-configuration-runtimes</code>. An example for setting <code>lsp-java-configuration-runtimes</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-java-configuration-runtimes</span> <span class="ss">&#39;[</span><span class="p">(</span><span class="ss">:name</span> <span class="s">&quot;JavaSE-1.8&quot;</span>
                         <span class="ss">:path</span> <span class="s">&quot;/home/kyoncho/jdk1.8.0_201.jdk/&quot;</span><span class="p">)</span>
