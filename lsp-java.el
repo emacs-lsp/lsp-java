@@ -92,7 +92,7 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
   :type 'function
   :group 'lsp-java)
 
-(defcustom lsp-java-vmargs '("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication")
+(defcustom lsp-java-vmargs '("-XX:+UseParallelGC" "-XX:GCTimeRatio=4" "-XX:AdaptiveSizePolicyWeight=90" "-Dsun.zip.disableMemoryMapping=true" "-Xmx1G" "-Xms100m")
   "Specifies extra VM arguments used to launch the Java Language Server.
 
 Eg. use `-noverify -Xmx1G -XX:+UseG1GC
