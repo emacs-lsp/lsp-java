@@ -1245,6 +1245,13 @@ If you have multiple java JDK versions installed and want to change the version 
                         <span class="ss">:path</span> <span class="s">&quot;/home/kyoncho/jdk-11.0.1.jdk/&quot;</span>
                         <span class="ss">:default</span> <span class="no">t</span><span class="p">)</span><span class="nv">]</span><span class="p">)</span>
 </code></pre></div>
+<ul>
+<li>How do I change JVM args passed to JDT server?
+LSP slowness could be caused by slow JDT server, especially on large JAVA projects. Bump up the heap size maybe a good idea.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1">;; current VSCode defaults</span>
+<span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-java-vmargs</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;-XX:+UseParallelGC&quot;</span> <span class="s">&quot;-XX:GCTimeRatio=4&quot;</span> <span class="s">&quot;-XX:AdaptiveSizePolicyWeight=90&quot;</span> <span class="s">&quot;-Dsun.zip.disableMemoryMapping=true&quot;</span> <span class="s">&quot;-Xmx2G&quot;</span> <span class="s">&quot;-Xms100m&quot;</span><span class="p">))</span>
+</code></pre></div>
                 
                   
                     
