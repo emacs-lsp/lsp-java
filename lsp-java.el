@@ -1538,28 +1538,29 @@ current symbol."
      "workspace/executeCommand"
      (list :command "vscode.java.resolveMainMethod"
            :arguments (vector (lsp--buffer-uri)))
+
      (lambda (result)
        (funcall callback
                 (append
                  (-map
                   (lambda (lens)
-                    (-doto lens
-                      (lsp-make-code-lens :command?
-                                          (lsp-make-command
-                                           :title "Run"
-                                           :command (lambda ()
-                                                      (interactive)
-                                                      (lsp-java--start-main-class lens t))))))
+                    (lsp-make-code-lens :command?
+                                        (lsp-make-command
+                                         :title "Run"
+                                         :command (lambda ()
+                                                    (interactive)
+                                                    (lsp-java--start-main-class lens t)))
+                                        :range (lsp-get lens :range)))
                   result)
                  (-map
                   (lambda (lens)
-                    (-doto (ht-copy lens)
-                      (lsp-make-code-lens :command
-                                          (lsp-make-command
-                                           :title "Debug"
-                                           :command (lambda ()
-                                                      (interactive)
-                                                      (lsp-java--start-main-class lens nil))))))
+                    (lsp-make-code-lens :command
+                                        (lsp-make-command
+                                         :title "Debug"
+                                         :command (lambda ()
+                                                    (interactive)
+                                                    (lsp-java--start-main-class lens nil)))
+                                        :range (lsp-get lens :range)))
                   result))
                 lsp--cur-version))
      :mode 'tick)))
