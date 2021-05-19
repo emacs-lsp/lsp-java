@@ -370,7 +370,7 @@ example 'java.awt.*' will hide all types from the awt packages."
 (declare-function helm-make-source "ext:helm-source")
 
 (lsp-register-custom-settings
- '(("java.codeGeneration.toString.limitElements" lsp-java-code-generation-to-string-limit-elements)
+ `(("java.codeGeneration.toString.limitElements" lsp-java-code-generation-to-string-limit-elements)
    ("java.codeGeneration.toString.listArrayContents" lsp-java-code-generation-to-string-list-array-contents t)
    ("java.codeGeneration.toString.skipNullValues" lsp-java-code-generation-to-string-skip-null-values t)
    ("java.codeGeneration.toString.codeStyle" lsp-java-code-generation-to-string-code-style)
@@ -430,7 +430,9 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.import.gradle.offline.enabled" lsp-java-import-gradle-offline-enabled t)
    ("java.import.gradle.java.home" lsp-java-import-gradle-java-home)
    ("java.import.gradle.home" lsp-java-import-gradle-home)
-   ("java.project.resourceFilters" lsp-java-project-resource-filters)))
+   ("java.project.resourceFilters" lsp-java-project-resource-filters)
+   ("java.format.tabSize" c-basic-offset)
+   ("java.format.insertSpaces" ,(lambda () (not indent-tabs-mode)) t)))
 
 (defcustom lsp-java-inhibit-message t
   "If non-nil, inhibit java messages echo via `inhibit-message'."
