@@ -87,6 +87,11 @@ If the port is taken, DAP will try the next port."
                  (const 'externalTerminal)
                  (const 'internalConsole)))
 
+(defcustom dap-java-args []
+  "Default java args."
+  :group 'dap-java
+  :type 'lsp-string-vector)
+
 (defcustom dap-java-test-additional-args ()
   "Additional arguments for JUnit standalone runner."
   :group 'dap-java
@@ -164,7 +169,7 @@ Please check whether the server is configured propertly"))
 
   (-let [(&plist :mainClass main-class :projectName project-name) conf]
     (-> conf
-        (dap--put-if-absent :args "")
+        (dap--put-if-absent :args dap-java-args)
         (dap--put-if-absent :cwd (lsp-java--get-root))
         (dap--put-if-absent :stopOnEntry :json-false)
         (dap--put-if-absent :host "localhost")
