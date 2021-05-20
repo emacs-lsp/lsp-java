@@ -441,7 +441,9 @@ example 'java.awt.*' will hide all types from the awt packages."
   :group 'lsp-mode)
 
 (defcustom lsp-java-import-gradle-home nil
-  "Use Gradle from the specified local installation directory or GRADLE_HOME if the Gradle wrapper is missing or disabled and no 'java.import.gradle.version' is specified."
+  "Use Gradle from the specified local installation directory or
+GRADLE_HOME if the Gradle wrapper is missing or disabled and no
+'java.import.gradle.version' is specified."
   :type 'string)
 
 (defcustom lsp-java-import-gradle-java-home nil

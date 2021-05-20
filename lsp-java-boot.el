@@ -35,7 +35,8 @@
   :type 'boolean)
 
 (defcustom lsp-java-boot-java-tools-jar nil
-  "Path to tools jar. If it is not specified it will be calculated using `JAVA_HOME'."
+  "Path to tools jar. If it is not specified it will be
+calculated using `JAVA_HOME'."
   :group 'lsp-java-boot
   :type 'file)
 

@@ -329,8 +329,9 @@
     (define-key (kbd "d") #'lsp-jt-debug)
     (define-key (kbd "R") #'lsp-jt-browser-refresh))
   "Keymap for `lsp-jt-mode'.")
+
 (define-minor-mode lsp-jt-mode "Java Test Mode"
-  nil nil lsp-jt-mode-map)
+  :keymap lsp-jt-mode-map)
 
 (lsp-treemacs-define-action lsp-jt-debug (:data)
   "Debug from browser."
