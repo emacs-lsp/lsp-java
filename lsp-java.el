@@ -502,7 +502,8 @@ bracket-based smart selection."
   :type 'number)
 
 (defcustom lsp-java-sources-organize-imports-static-star-threshold 99
-  "Specifies the number of static imports added before a star-import declaration is used."
+  "Specifies the number of static imports added before a
+star-import declaration is used."
   :type 'number)
 
 (defun lsp-java--checksum? (candidate)
@@ -513,7 +514,8 @@ every element of it is of type list, else nil."
    (seq-every-p #'consp candidate)))
 
 (define-widget 'lsp-java-checksum-vector 'lazy
-  "A vector of zero or more elements, every element of which is a checksum object."
+  "A vector of zero or more elements, every element of which is a
+checksum object."
   :offset 4
   :tag "Checksum Vector"
   :type '(restricted-sexp
@@ -526,7 +528,8 @@ Sample value: [(:sha256 \"504b..\" :allowed t)]"
   :type 'lsp-java-checksum-vector)
 
 (defcustom lsp-java-project-import-on-first-time-startup "automatic"
-  "Specifies whether to import the Java projects, when opening the folder in Hybrid mode for the first time."
+  "Specifies whether to import the Java projects, when opening
+the folder in Hybrid mode for the first time."
   :type '(choice (:tag "disabled" "interactive" "automatic")))
 
 (defcustom lsp-java-project-import-hint t
