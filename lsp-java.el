@@ -27,6 +27,7 @@
 (require 'cc-mode)
 (require 'lsp-mode)
 (require 'markdown-mode)
+(require 'lsp-treemacs)
 (require 'dash)
 (require 'ht)
 (require 'f)
