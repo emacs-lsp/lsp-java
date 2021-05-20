@@ -1588,7 +1588,7 @@ current symbol."
                 :actions `(["Go to" lsp-treemacs-go-to])))
         nodes))
 
-(lsp-defun lsp-java--type-hierarchy-render ((item &as &TypeHierarchyItem :uri :range (&Range :start)) direction _ callback)
+(defun lsp-java--type-hierarchy-render (item direction _ callback)
   (lsp-request-async
    "workspace/executeCommand"
    (list :command "java.navigate.resolveTypeHierarchy"
