@@ -392,7 +392,7 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.completion.enabled" lsp-java-completion-enabled t)
    ("java.maxConcurrentBuilds" lsp-java-max-concurrent-builds)
    ("java.autobuild.enabled" lsp-java-autobuild-enabled t)
-   ("java.selection.enabled" lsp-java-autobuild-enabled t)
+   ("java.selection.enabled" lsp-java-selection-enabled t)
    ("java.contentProvider.preferred" lsp-java-content-provider-preferred)
    ("java.import.exclusions" lsp-java-import-exclusions)
    ("java.saveActions.organizeImports" lsp-java-save-actions-organize-imports t)
