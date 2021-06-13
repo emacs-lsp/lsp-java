@@ -226,7 +226,7 @@ usually)"
   :group 'lsp-java)
 
 (defcustom lsp-java-selection-enabled t
-  "Enable/disable the 'auto build'"
+  "Enable/disable the selection range"
   :type 'boolean
   :group 'lsp-java)
 
@@ -369,6 +369,7 @@ example 'java.awt.*' will hide all types from the awt packages."
 (declare-function projectile-project-root "ext:projectile")
 (declare-function helm-make-source "ext:helm-source")
 
+;; see https://github.com/eclipse/eclipse.jdt.ls/blob/v1.1.2/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/preferences/Preferences.java
 (lsp-register-custom-settings
  '(("java.codeGeneration.toString.limitElements" lsp-java-code-generation-to-string-limit-elements)
    ("java.codeGeneration.toString.listArrayContents" lsp-java-code-generation-to-string-list-array-contents t)
@@ -392,7 +393,7 @@ example 'java.awt.*' will hide all types from the awt packages."
    ("java.completion.enabled" lsp-java-completion-enabled t)
    ("java.maxConcurrentBuilds" lsp-java-max-concurrent-builds)
    ("java.autobuild.enabled" lsp-java-autobuild-enabled t)
-   ("java.selection.enabled" lsp-java-selection-enabled t)
+   ("java.selectionRange.enabled" lsp-java-selection-enabled t)
    ("java.contentProvider.preferred" lsp-java-content-provider-preferred)
    ("java.import.exclusions" lsp-java-import-exclusions)
    ("java.saveActions.organizeImports" lsp-java-save-actions-organize-imports t)
