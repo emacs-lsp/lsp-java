@@ -617,7 +617,7 @@
                                                             (gethash test-id lsp-jt-results)
                                                             :traces))
                                            :icon none)))))))))
-   "Java Test Results" nil "*Java Tests Resuls*"))
+   "Java Test Results" nil "*Java Tests Results*"))
 (defun lsp-jt--report-buffer-hook ()
   (remove-hook 'lsp-jt-status-updated-hook #'lsp-jt--update-report))
 
