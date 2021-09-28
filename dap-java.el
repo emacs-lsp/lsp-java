@@ -89,10 +89,10 @@ If the port is taken, DAP will try the next port."
                  (const 'externalTerminal)
                  (const 'internalConsole)))
 
-(defcustom dap-java-args []
+(defcustom dap-java-args ""
   "Default java args."
   :group 'dap-java
-  :type 'lsp-string-vector)
+  :type 'string)
 
 (defcustom dap-java-test-additional-args ()
   "Additional arguments for JUnit standalone runner."
