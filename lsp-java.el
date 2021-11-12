@@ -38,7 +38,7 @@
   "JDT emacs frontend."
   :prefix "lsp-java-"
   :group 'applications
-  :link '(url-link :tag "GitHub" "https://github.com/emacs-lisp/lsp-java"))
+  :link '(url-link :tag "GitHub" "https://github.com/emacs-lsp/lsp-java"))
 
 (defcustom lsp-java-server-install-dir (f-join lsp-server-install-dir "eclipse.jdt.ls/")
   "Install directory for eclipse.jdt.ls-server.
