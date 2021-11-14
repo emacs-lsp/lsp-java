@@ -147,7 +147,8 @@ Store CALLBACK to use it `sts/highlight'."
                   :request-handlers  (ht ("sts/addClasspathListener" #'lsp-java-boot--sts-add-classpath-listener)
                                          ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link))
                   :notification-handlers  (ht ("sts/highlight" #'lsp-java-boot--sts-hightlight)
-                                              ("sts/progress" #'ignore))
+                                              ("sts/progress" #'ignore)
+                                              ("sts/javaSuperTypes" #'ignore))
                   :multi-root t
                   :add-on? t
                   :server-id 'boot-ls
