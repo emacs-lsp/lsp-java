@@ -108,7 +108,7 @@ If the port is taken, DAP will try the next port."
   (lsp-interface
    (java:MainClass (:mainClass :projectName))))
 
-(defun dap-java-test-class ()
+(defun dap-java-test-class (&optional no-signal?)
   "Get class FDQN."
   (-if-let* ((symbols (lsp--get-document-symbols))
              (package-name (-some->> symbols
@@ -118,9 +118,10 @@ If the port is taken, DAP will try the next port."
                               (--first (= (lsp:document-symbol-kind it) lsp/symbol-kind-class))
                               lsp:document-symbol-name)))
       (concat package-name "." class-name)
-    (user-error "No class found")))
+    (unless no-signal?
+        (user-error "No class found"))))
 
-(defun dap-java-test-method-at-point ()
+(defun dap-java-test-method-at-point (&optional no-signal?)
   "Get method at point."
   (-let* ((symbols (lsp--get-document-symbols))
           (package-name (-some->> symbols
@@ -137,7 +138,8 @@ If the port is taken, DAP will try the next port."
                                              (lsp-region-text selection-range)))))
                             children?))))
              (cl-first))
-        (user-error "No method at point"))))
+        (unless no-signal?
+            (user-error "No method at point")))))
 
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
@@ -245,11 +247,12 @@ initiate `compile' and attach to the process."
   (interactive (list (dap-java--populate-default-args nil)))
   (dap-start-debugging debug-args))
 
-(defun dap-java--run-unit-test-command (runner run-method?)
+(defun dap-java--run-unit-test-command (runner dwim?)
   "Run debug test with the following arguments.
-RUNNER is the test executor.  RUN-METHOD? when t it will try to run the
-surrounding method.  Otherwise it will run the surronding test."
-  (-let* ((to-run (if run-method?
+RUNNER is the test executor.  DWIM? when t it will try to run the
+surrounding method.  Otherwise it will run the surrounding test."
+  (-let* ((run-method? (and dwim? (dap-java-test-method-at-point t)))
+          (to-run (if run-method?
                       (dap-java-test-method-at-point)
                     (dap-java-test-class)))
           (test-class-name (cl-first (s-split "#" to-run)))
