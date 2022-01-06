@@ -137,7 +137,8 @@ If the port is taken, DAP will try the next port."
                                              (lsp-region-text selection-range)))))
                             children?))))
              (cl-first))
-        (user-error "No method at point"))))
+	(let ((method (read-string "no method at point. Name:")))
+	  (concat (dap-java-test-class) "#" method)))))
 
 (defun dap-java--select-main-class ()
   "Select main class from the current workspace."
