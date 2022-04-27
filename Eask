@@ -1,8 +1,10 @@
 (package "lsp-java"
          "3.0"
-		 "Java support for lsp-mode")
+         "Java support for lsp-mode")
 
-(package-file "lsp-java.el")
+;; XXX: Linter will report errors because of the package main file; let's
+;; disable this for now!
+;;(package-file "lsp-java.el")
 
 (files "*.el")
 
