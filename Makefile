@@ -16,7 +16,7 @@ compile:
 # TODO: We cannot lint dap-mode
 lint:
 	@echo "package linting..."
-	@$(EASK) lint lsp-java.el lsp-java-boot.el
+	@$(EASK) lint
 
 clean:
 	$(EASK) clean-all
