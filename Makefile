@@ -1,53 +1,27 @@
 SHELL=/usr/bin/env bash
 
 EMACS ?= emacs
-CASK ?= cask
-
-INIT="(progn \
-  (require 'package) \
-  (push '(\"melpa\" . \"https://melpa.org/packages/\") package-archives) \
-  (package-initialize) \
-  (package-refresh-contents))"
-
-LINT="(progn \
-		(unless (package-installed-p 'package-lint) \
-		  (package-install 'package-lint)) \
-		(require 'package-lint) \
-		(package-lint-batch-and-exit))"
+EASK ?= eask
 
 build:
-	cask install
+	$(EASK) package
+	$(EASK) install
 
-unix-ci: build unix-compile checkdoc lint
+ci: build unix-compile checkdoc lint
 
-windows-ci: CASK=
-windows-ci: clean windows-compile checkdoc lint
-
-unix-compile:
+compile:
 	@echo "Compiling..."
-	@$(CASK) $(EMACS) -Q --batch \
-		-L . \
-		--eval '(setq byte-compile-error-on-warn t)' \
-		-f batch-byte-compile \
-		*.el
-
-windows-compile:
-	@echo "Compiling..."
-	@$(CASK) $(EMACS) -Q --batch \
-		-l test/windows-bootstrap.el \
-		-L . -L clients \
-		--eval '(setq byte-compile-error-on-warn t)' \
-		-f batch-byte-compile $(LSP-FILES)
+	@$(EASK) compile
 
 lint:
 	@echo "package linting..."
-	@$(CASK) $(EMACS) -Q --batch \
-		-L . \
-		--eval $(INIT) \
-		--eval $(LINT) \
-		*.el
+	@$(EASK) lint
 
 clean:
-	rm -rf .cask
+	$(EASK) clean-all
+
+# TODO: do we have tests?
+test:
+	$(EASK) install-deps --dev
 
 .PHONY: build test compile checkdoc lint
