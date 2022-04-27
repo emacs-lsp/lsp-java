@@ -1,4 +1,5 @@
-.cask
+.eask
+/dist
 *.elc
 tmp/
 /install/.mvn/wrapper/maven-wrapper.jar
