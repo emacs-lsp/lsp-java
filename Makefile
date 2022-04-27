@@ -7,7 +7,7 @@ build:
 	$(EASK) package
 	$(EASK) install
 
-ci: build unix-compile checkdoc lint
+ci: build compile checkdoc lint
 
 compile:
 	@echo "Compiling..."
