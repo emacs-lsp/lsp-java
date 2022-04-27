@@ -4,7 +4,6 @@
 
 ;; Version: 2.0
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
-;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0"))
 ;; Keywords: language, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
 

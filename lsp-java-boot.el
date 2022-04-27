@@ -1,7 +1,6 @@
 ;;; lsp-java-boot.el --- Spring boot support for lsp-java -*- lexical-binding: t; -*-
 
 ;; Version: 2.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0"))
 ;; Keywords: languague, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
