@@ -1,4 +1,6 @@
-
+(package "lsp-java"
+         "3.0"
+		 "Java support for lsp-mode")
 
 (package-file "lsp-java.el")
 
