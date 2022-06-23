@@ -1,5 +1,3 @@
-SHELL=/usr/bin/env bash
-
 EMACS ?= emacs
 EASK ?= eask
 
@@ -13,10 +11,9 @@ compile:
 	@echo "Compiling..."
 	@$(EASK) compile
 
-# TODO: We cannot lint dap-mode
 lint:
 	@echo "package linting..."
-	@$(EASK) lint
+	@$(EASK) lint package
 
 clean:
 	$(EASK) clean-all
