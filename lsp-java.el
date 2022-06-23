@@ -675,8 +675,8 @@ FULL specify whether full or incremental build will be performed."
 
 (defun lsp-java--ls-command ()
   "LS startup command."
-  (let ((server-jar (lsp-java--locate-server-jar))
-        (server-config (lsp-java--locate-server-config))
+  (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
+        (server-config (lsp-file-local-name (lsp-java--locate-server-config)))
         (java-9-args (when (lsp-java--java-9-plus-p)
                        lsp-java-9-args)))
     (lsp-java--ensure-dir lsp-java-workspace-dir)
@@ -692,7 +692,7 @@ FULL specify whether full or incremental build will be performed."
       "-configuration"
       ,server-config
       "-data"
-      ,lsp-java-workspace-dir
+      ,(lsp-file-local-name lsp-java-workspace-dir)
       ,@java-9-args)))
 
 (eval-and-compile
@@ -803,7 +803,7 @@ PARAMS progress report notification data."
 
 (defun lsp-java--bundles-dir ()
   "Get default bundles dir."
-  (concat (file-name-as-directory lsp-java-server-install-dir) "bundles"))
+  (concat (lsp-file-local-name (file-name-as-directory lsp-java-server-install-dir)) "bundles"))
 
 (defun lsp-java--ensure-server (_client callback error-callback _update?)
   "Ensure that JDT server and the other configuration."
