@@ -62,7 +62,7 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
   "Java progress status as reported by the language server.")
 
 (defface lsp-java-progress-face
-  '((t (:inherit 'success)))
+  '((t (:inherit success)))
   "face for activity message"
   :group 'lsp-java)
 
@@ -113,13 +113,17 @@ deduplication with the G1 Garbage collector"
 (defcustom lsp-java-errors-incomplete-classpath-severity "warning"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
-  :type '(choice (:tag "ignore" "info" "warning" "error"))
+  :type '(choice (const "ignore")
+                 (const "info")
+                 (const "warning")
+                 (const "error"))
   :group 'lsp-java)
 
 (defcustom lsp-java-dependency-package-representation "flat"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
-  :type '(choice (:tag "flat" "hierarchical"))
+  :type '(choice (const "flat")
+                 (const "hierarchical"))
   :group 'lsp-java)
 
 (defcustom lsp-java-configuration-check-project-settings-exclusions t
@@ -132,13 +136,17 @@ excluded from the file explorer."
 (defcustom lsp-java-configuration-update-build-configuration "automatic"
   "Specifies how modifications on build files update the Java
 classpath/configuration"
-  :type '(choice (:tag "disabled" "interactive" "automatic"))
+  :type '(choice (const "disabled")
+                 (const "interactive")
+                 (const "automatic"))
   :group 'lsp-java)
 
 (defcustom lsp-java-trace-server "off"
   "Traces the communication between VS Code and the Java language
 server."
-  :type '(choice (:tag "off" "messages" "verbose"))
+  :type '(choice (const "off")
+                 (const "messages")
+                 (const "verbose"))
   :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-enabled t
@@ -148,7 +156,8 @@ server."
 
 (defcustom lsp-java-import-gradle-version nil
   "Gradle version, used if the gradle wrapper is missing or disabled."
-  :type 'string
+  :type '(choice (string)
+                 (const nil))
   :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-jvm-arguments nil
@@ -157,7 +166,7 @@ server."
 If set manually, this variable has to be converted to a format
 that `json-serialize' can understand. For instance, you cannot
 pass a list, only a vector."
-  :type 'lsp-string-vector
+  :type '(lsp-repeatable-vector string)
   :group 'lsp-java)
 
 (defcustom lsp-java-import-gradle-wrapper-enabled t
@@ -192,7 +201,8 @@ pass a list, only a vector."
 
 (defcustom lsp-java-configuration-maven-user-settings nil
   "Path to Maven's settings.xml"
-  :type 'string
+  :type '(choice (string)
+                 (const nil))
   :group 'lsp-java)
 
 (defcustom lsp-java-format-enabled t
@@ -207,18 +217,19 @@ pass a list, only a vector."
 
 (defcustom lsp-java-import-exclusions ["**/node_modules/**" "**/.metadata/**" "**/archetype-resources/**" "**/META-INF/maven/**"]
   "Configure glob patterns for excluding folders when importing for the first time"
-  :type 'lsp-string-vector
+  :type '(lsp-repeatable-vector string)
   :group 'lsp-java)
 
 (defcustom lsp-java-project-resource-filters ["node_modules" ".metadata" "archetype-resources" "META-INF/maven"]
   "Configure glob patterns for excluding folders whenever workspace is refreshed"
-  :type 'lsp-string-vector
+  :type '(lsp-repeatable-vector string)
   :group 'lsp-java)
 
 (defcustom lsp-java-content-provider-preferred nil
   "Preferred content provider (a 3rd party decompiler id,
 usually)"
-  :type 'string
+  :type '(choice (string)
+                 (const nil))
   :group 'lsp-java)
 
 (defcustom lsp-java-autobuild-enabled t
@@ -257,14 +268,14 @@ is selected from as list of code assist proposals."
   "Defines a list of static members or types with static members.
 Content assist will propose those static members even if the
 import is missing."
-  :type 'lsp-string-vector
+  :type '(lsp-repeatable-vector string)
   :group 'lsp-java)
 
 (defcustom lsp-java-completion-import-order ["java" "javax" "com" "org"]
   "Defines the sorting order of import statements. A package or
 type name prefix (e.g. 'org.eclipse') is a valid entry. An import
 is always added to the most specific group."
-  :type '(repeat string)
+  :type '(lsp-repeatable-vector string)
   :group 'lsp-java)
 
 (defcustom lsp-java-folding-range-enabled t
@@ -283,13 +294,15 @@ processes on the server."
 (defcustom lsp-java-format-settings-url nil
   "Specifies the url or file path to the [Eclipse formatter xml
 settings](https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings)."
-  :type 'string
+  :type '(choice (string)
+                 (const nil))
   :group 'lsp-java)
 
 (defcustom lsp-java-format-settings-profile nil
   "Optional formatter profile name from the Eclipse formatter
 settings."
-  :type 'string
+  :type '(choice (string)
+                 (const nil))
   :group 'lsp-java)
 
 (defcustom lsp-java-format-comments-enabled t
@@ -306,7 +319,7 @@ settings."
 (defcustom lsp-java-bundles nil
   "List of bundles that will be loaded in the JDT server."
   :group 'lsp-java
-  :type 'list)
+  :type '(repeat string))
 
 (defcustom lsp-java-code-generation-hash-code-equals-use-java7objects nil
   "Use Objects.hash and Objects.equals when generating the
@@ -338,7 +351,10 @@ and equals methods."
 
 (defcustom lsp-java-code-generation-to-string-code-style "STRING_CONCATENATION"
   "The code style for generating the toString method."
-  :type '(choice (:tag "STRING_CONCATENATION" "STRING_BUILDER" "STRING_BUILDER_CHAINED" "STRING_FORMAT"))
+  :type '(choice (const "STRING_CONCATENATION")
+                 (const "STRING_BUILDER")
+                 (const "STRING_BUILDER_CHAINED")
+                 (const "STRING_FORMAT"))
   :group 'lsp-java)
 
 (defcustom lsp-java-code-generation-to-string-skip-null-values nil
@@ -362,7 +378,7 @@ then list all."
 matches the selected filter strings will be ignored in content
 assist or quick fix proposals and when organizing imports. For
 example 'java.awt.*' will hide all types from the awt packages."
-  :type 'lsp-string-vector
+  :type '(lsp-repeatable-vector string)
   :group 'lsp-java)
 
 (declare-function dap-debug "ext:dap-mode")
@@ -445,11 +461,13 @@ example 'java.awt.*' will hide all types from the awt packages."
   "Use Gradle from the specified local installation directory or
 GRADLE_HOME if the Gradle wrapper is missing or disabled and no
 'java.import.gradle.version' is specified."
-  :type 'string)
+  :type '(choice (string)
+                 (const nil)))
 
 (defcustom lsp-java-import-gradle-java-home nil
   "The location to the JVM used to run the Gradle daemon."
-  :type 'string)
+  :type '(choice (string)
+                 (const nil)))
 
 (defcustom lsp-java-import-gradle-offline-enabled nil
   "Enable/disable the Gradle offline mode."
@@ -457,11 +475,13 @@ GRADLE_HOME if the Gradle wrapper is missing or disabled and no
 
 (defcustom lsp-java-import-gradle-arguments nil
   "Arguments to pass to Gradle."
-  :type 'string)
+  :type '(choice (string)
+                 (const nil)))
 
 (defcustom lsp-java-import-gradle-user-home nil
   "Setting for GRADLE_USER_HOME."
-  :type 'string)
+  :type '(choice (string)
+                 (const nil)))
 
 (defcustom lsp-java-maven-update-snapshots nil
   "Force update of Snapshots/Releases."
@@ -470,8 +490,7 @@ GRADLE_HOME if the Gradle wrapper is missing or disabled and no
 (defcustom lsp-java-project-referenced-libraries ["lib/**/*.jar"]
   "Configure glob patterns for referencing local libraries to a
 Java project."
-  :type
-  '(repeat lsp-string-vector))
+  :type '(lsp-repeatable-vector string))
 
 (defcustom lsp-java-completion-max-results 0
   "Maximum number of completion results (not including
@@ -492,11 +511,13 @@ bracket-based smart selection."
 
 (defcustom lsp-java-configuration-runtimes nil
   "Map Java Execution Environments to local JDKs."
-  :type 'lsp-string-vector)
+  :type '(lsp-repeatable-vector string))
 
 (defcustom lsp-java-server-launch-mode "Hybrid"
   "The launch mode for the Java extension"
-  :type '(choice (:tag "Standard" "LightWeight" "Hybrid")))
+  :type '(choice (const "Standard")
+                 (const "LightWeight")
+                 (const "Hybrid")))
 
 (defcustom lsp-java-sources-organize-imports-star-threshold 99
   "Specifies the number of imports added before a star-import declaration is used."
@@ -507,31 +528,21 @@ bracket-based smart selection."
 star-import declaration is used."
   :type 'number)
 
-(defun lsp-java--checksum? (candidate)
-  "Returns true if CANDIDATE is a vector data structure and
-every element of it is of type list, else nil."
-  (and
-   (vectorp candidate)
-   (seq-every-p #'consp candidate)))
-
-(define-widget 'lsp-java-checksum-vector 'lazy
-  "A vector of zero or more elements, every element of which is a
-checksum object."
-  :offset 4
-  :tag "Checksum Vector"
-  :type '(restricted-sexp
-          :match-alternatives (lsp-java--checksum?)))
-
 (defcustom lsp-java-imports-gradle-wrapper-checksums []
   "Defines allowed/disallowed SHA-256 checksums of Gradle Wrappers.
 
 Sample value: [(:sha256 \"504b..\" :allowed t)]"
-  :type 'lsp-java-checksum-vector)
+  :type '(lsp-repeatable-vector
+          (plist :key-type (choice (const :tag "sha256" :sha256)
+                                   (const :tag "allowed" :allowed))
+                 :value-type (choice string boolean))))
 
 (defcustom lsp-java-project-import-on-first-time-startup "automatic"
   "Specifies whether to import the Java projects, when opening
 the folder in Hybrid mode for the first time."
-  :type '(choice (:tag "disabled" "interactive" "automatic")))
+  :type '(choice (const "disabled")
+                 (const "interactive")
+                 (const "automatic")))
 
 (defcustom lsp-java-project-import-hint t
   "Enable/disable the server-mode switch information, when Java
