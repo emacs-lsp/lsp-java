@@ -6,6 +6,7 @@
   <version>1.0.0-SNAPSHOT</version>
   <properties>
     <root.install.dir>${user.home}/.emacs.d/eclipse.jdt.ls</root.install.dir>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <packaging>pom</packaging>
   <build>
@@ -13,7 +14,7 @@
       <plugin>
         <groupId>com.googlecode.maven-download-plugin</groupId>
         <artifactId>download-maven-plugin</artifactId>
-        <version>1.6.7</version>
+        <version>1.6.8</version>
         <executions>
           <execution>
             <phase>process-resources</phase>
@@ -81,19 +82,19 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.6</version>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <id>prepare</id>
             <phase>process-resources</phase>
             <configuration>
-              <tasks>
+              <target>
                 <untar src="${project.build.directory}/jdt-language-server-latest.tar.gz" compression="gzip" dest="${jdt.js.server.root}" />
                 <unzip src="${project.build.directory}/vscode-extension.zip" dest="${project.build.directory}/vscode-extension-extracted" />
                 <unzip src="${project.build.directory}/java-dependency.zip" dest="${project.build.directory}/java-dependency" />
                 <unzip src="${project.build.directory}/vscode-java-test.zip" dest="${jdt.js.server.root}/java-test" />
                 <unzip src="${project.build.directory}/java-decompiler.zip" dest="${jdt.js.server.root}/java-decompiler" />
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -104,7 +105,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <id>copy</id>
@@ -117,14 +118,14 @@
                 <artifactItem>
                   <groupId>com.microsoft.java</groupId>
                   <artifactId>com.microsoft.java.debug.plugin</artifactId>
-                  <version>0.33.0</version>
+                  <version>0.39.0</version>
                   <outputDirectory>${java.debug.root}</outputDirectory>
                   <destFileName>java.debug.plugin.jar</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.junit.platform</groupId>
                   <artifactId>junit-platform-console-standalone</artifactId>
-                  <version>1.6.2</version>
+                  <version>1.9.0</version>
                   <outputDirectory>${junit.runner.root}</outputDirectory>
                   <destFileName>${junit.runner.fileName}</destFileName>
                 </artifactItem>
@@ -135,7 +136,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <id>copy-boot-server</id>
