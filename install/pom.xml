@@ -13,7 +13,7 @@
       <plugin>
         <groupId>com.googlecode.maven-download-plugin</groupId>
         <artifactId>download-maven-plugin</artifactId>
-        <version>1.6.7</version>
+        <version>1.6.8</version>
         <executions>
           <execution>
             <phase>process-resources</phase>
@@ -81,7 +81,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.6</version>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <id>prepare</id>
@@ -104,7 +104,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <id>copy</id>
@@ -117,14 +117,14 @@
                 <artifactItem>
                   <groupId>com.microsoft.java</groupId>
                   <artifactId>com.microsoft.java.debug.plugin</artifactId>
-                  <version>0.33.0</version>
+                  <version>0.39.0</version>
                   <outputDirectory>${java.debug.root}</outputDirectory>
                   <destFileName>java.debug.plugin.jar</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.junit.platform</groupId>
                   <artifactId>junit-platform-console-standalone</artifactId>
-                  <version>1.6.2</version>
+                  <version>1.9.0</version>
                   <outputDirectory>${junit.runner.root}</outputDirectory>
                   <destFileName>${junit.runner.fileName}</destFileName>
                 </artifactItem>
@@ -135,7 +135,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <id>copy-boot-server</id>
