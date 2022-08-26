@@ -87,13 +87,13 @@
             <id>prepare</id>
             <phase>process-resources</phase>
             <configuration>
-              <tasks>
+              <target>
                 <untar src="${project.build.directory}/jdt-language-server-latest.tar.gz" compression="gzip" dest="${jdt.js.server.root}" />
                 <unzip src="${project.build.directory}/vscode-extension.zip" dest="${project.build.directory}/vscode-extension-extracted" />
                 <unzip src="${project.build.directory}/java-dependency.zip" dest="${project.build.directory}/java-dependency" />
                 <unzip src="${project.build.directory}/vscode-java-test.zip" dest="${jdt.js.server.root}/java-test" />
                 <unzip src="${project.build.directory}/java-decompiler.zip" dest="${jdt.js.server.root}/java-decompiler" />
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
