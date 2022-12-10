@@ -16,7 +16,7 @@ lint:
 	@$(EASK) lint package
 
 clean:
-	$(EASK) clean-all
+	$(EASK) clean all
 
 # TODO: do we have tests?
 test:
