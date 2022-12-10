@@ -2,11 +2,16 @@
          "3.0"
          "Java support for lsp-mode")
 
+(website-url "https://github.com/emacs-lsp/lsp-java")
+(keywords "languages" "tools")
+
 ;; XXX: Linter will report errors because of the package main file; let's
 ;; disable this for now!
 ;;(package-file "lsp-java.el")
 
 (files "*.el")
+
+(script "test" "echo \"Error: no test specified\" && exit 1")
 
 (source "gnu")
 (source "melpa")
