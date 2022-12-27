@@ -142,7 +142,7 @@ Store CALLBACK to use it `sts/highlight'."
                   (lsp-tcp-server #'lsp-java-boot--ls-command)
                   :activation-fn (lambda (_filename mode)
                                    (and lsp-java-boot-enabled
-                                        (memq mode '(java-mode conf-javaprop-mode yaml-mode))
+                                        (memq mode '(java-mode java-ts-mode conf-javaprop-mode yaml-mode))
                                         (lsp-java-boot--server-jar)))
                   :request-handlers  (ht ("sts/addClasspathListener" #'lsp-java-boot--sts-add-classpath-listener)
                                          ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link)
