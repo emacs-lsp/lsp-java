@@ -8,9 +8,6 @@ lsp-java
 
 Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
 
-## Requirements
-- JDK 17
-
 ## Features
 LSP java mode supports the following JDT Features:
 
