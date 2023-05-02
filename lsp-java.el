@@ -43,19 +43,16 @@
 (defcustom lsp-java-server-install-dir (f-join lsp-server-install-dir "eclipse.jdt.ls/")
   "Install directory for eclipse.jdt.ls-server.
 The slash is expected at the end."
-  :group 'lsp-java
   :risky t
   :type 'directory)
 
-(defcustom lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz"
+(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.22.0/jdt-language-server-1.22.0-202304131553.tar.gz"
   "JDT JS download url.
-Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server-latest.tar.gz if you want to use Eclipse Che JDT LS."
-  :group 'lsp-java
+Use https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz if you want to use older java version."
   :type 'string)
 
 (defcustom lsp-java-java-path "java"
   "Path of the java executable."
-  :group 'lsp-java
   :type 'string)
 
 (defvar lsp-java-progress-string ""
@@ -68,13 +65,11 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
 
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
-  :group 'lsp-java
   :risky t
   :type 'directory)
 
 (defcustom lsp-java-workspace-cache-dir (expand-file-name ".cache/" lsp-java-workspace-dir)
   "LSP java workspace cache directory."
-  :group 'lsp-java
   :risky t
   :type 'directory)
 
@@ -100,59 +95,57 @@ Eg. use `-noverify -Xmx1G -XX:+UseG1GC
 -XX:+UseStringDeduplication` to bypass class
 verification,increase the heap size to 1GB and enable String
 deduplication with the G1 Garbage collector"
-  :group 'lsp-java
   :risky t
   :type '(repeat string))
 
 (defcustom lsp-java-9-args '("--add-modules=ALL-SYSTEM" "--add-opens java.base/java.util=ALL-UNNAMED" "--add-opens java.base/java.lang=ALL-UNNAMED")
   "Specifies arguments specific to java 9 and later."
-  :group 'lsp-java
   :risky t
   :type '(repeat string))
 
-(defcustom lsp-java-errors-incomplete-classpath-severity "warning"
+(lsp-defcustom lsp-java-errors-incomplete-classpath-severity "warning"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
   :type '(choice (const "ignore")
                  (const "info")
                  (const "warning")
                  (const "error"))
-  :group 'lsp-java)
+  :lsp-path "java.errors.incompleteClasspath.severity")
 
-(defcustom lsp-java-dependency-package-representation "flat"
+(lsp-defcustom lsp-java-dependency-package-representation "flat"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
   :type '(choice (const "flat")
                  (const "hierarchical"))
-  :group 'lsp-java)
+  :lsp-path "java.dependency.packagePresentation")
 
-(defcustom lsp-java-configuration-check-project-settings-exclusions t
+(lsp-defcustom lsp-java-configuration-check-project-settings-exclusions t
   "Checks if the extension-generated project settings
 files (.project, .classpath, .factorypath, .settings/) should be
 excluded from the file explorer."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.configuration.checkProjectSettingsExclusions")
 
-(defcustom lsp-java-configuration-update-build-configuration "automatic"
+(lsp-defcustom lsp-java-configuration-update-build-configuration "automatic"
   "Specifies how modifications on build files update the Java
 classpath/configuration"
   :type '(choice (const "disabled")
                  (const "interactive")
                  (const "automatic"))
-  :group 'lsp-java)
+  :lsp-path "java.configuration.updateBuildConfiguration")
 
-(defcustom lsp-java-trace-server "off"
+(lsp-defcustom lsp-java-trace-server "off"
   "Traces the communication between VS Code and the Java language
 server."
   :type '(choice (const "off")
                  (const "messages")
                  (const "verbose"))
-  :group 'lsp-java)
+  :lsp-path "java.trace.server")
 
-(defcustom lsp-java-import-gradle-enabled t
+(lsp-defcustom lsp-java-import-gradle-enabled t
   "Enable/disable the Gradle importer."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.import.gradle.enabled")
 
 (defcustom lsp-java-import-gradle-version nil
   "Gradle version, used if the gradle wrapper is missing or disabled."
@@ -160,394 +153,376 @@ server."
                  (const nil))
   :group 'lsp-java)
 
-(defcustom lsp-java-import-gradle-jvm-arguments nil
+(lsp-defcustom lsp-java-import-gradle-jvm-arguments nil
   "JVM arguments to pass to Gradle.
 
 If set manually, this variable has to be converted to a format
 that `json-serialize' can understand. For instance, you cannot
 pass a list, only a vector."
   :type '(lsp-repeatable-vector string)
-  :group 'lsp-java)
+  :lsp-path "java.import.gradle.jvmArguments")
 
-(defcustom lsp-java-import-gradle-wrapper-enabled t
+(lsp-defcustom lsp-java-import-gradle-wrapper-enabled t
   "Enable/disable using the Gradle wrapper distribution."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.import.gradle.wrapper.enabled")
 
-(defcustom lsp-java-import-maven-enabled t
+(lsp-defcustom lsp-java-import-maven-enabled t
   "Enable/disable the Maven importer."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.import.maven.enabled")
 
-(defcustom lsp-java-maven-download-sources nil
+(lsp-defcustom lsp-java-maven-download-sources nil
   "Enable/disable eager download of Maven source artifacts."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.maven.downloadSources")
 
-(defcustom lsp-java-references-code-lens-enabled nil
+(lsp-defcustom lsp-java-references-code-lens-enabled nil
   "Enable/disable the references code lens."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.referencesCodeLens.enabled")
 
-(defcustom lsp-java-signature-help-enabled t
+(lsp-defcustom lsp-java-signature-help-enabled t
   "Enable/disable the signature help."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.signatureHelp.enabled")
 
-(defcustom lsp-java-implementations-code-lens-enabled nil
+(lsp-defcustom lsp-java-implementations-code-lens-enabled nil
   "Enable/disable the implementations code lens."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.implementationsCodeLens.enabled")
 
-(defcustom lsp-java-configuration-maven-user-settings nil
+(lsp-defcustom lsp-java-configuration-maven-user-settings nil
   "Path to Maven's settings.xml"
   :type '(choice (string)
                  (const nil))
-  :group 'lsp-java)
+  :lsp-path "java.configuration.maven.userSettings")
 
-(defcustom lsp-java-format-enabled t
+(lsp-defcustom lsp-java-format-enabled t
   "Enable/disable default Java formatter"
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.format.enabled")
 
-(defcustom lsp-java-save-actions-organize-imports nil
+(lsp-defcustom lsp-java-save-actions-organize-imports nil
   "Enable/disable auto organize imports on save action"
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.saveActions.organizeImports")
 
-(defcustom lsp-java-import-exclusions ["**/node_modules/**" "**/.metadata/**" "**/archetype-resources/**" "**/META-INF/maven/**"]
+(lsp-defcustom lsp-java-import-exclusions ["**/node_modules/**" "**/.metadata/**" "**/archetype-resources/**" "**/META-INF/maven/**"]
   "Configure glob patterns for excluding folders when importing for the first time"
   :type '(lsp-repeatable-vector string)
-  :group 'lsp-java)
+  :lsp-path "java.import.exclusions")
 
-(defcustom lsp-java-project-resource-filters ["node_modules" ".metadata" "archetype-resources" "META-INF/maven"]
+(lsp-defcustom lsp-java-project-resource-filters ["node_modules" ".metadata" "archetype-resources" "META-INF/maven"]
   "Configure glob patterns for excluding folders whenever workspace is refreshed"
   :type '(lsp-repeatable-vector string)
-  :group 'lsp-java)
+  :lsp-path "java.project.resourceFilters")
 
-(defcustom lsp-java-content-provider-preferred nil
+(lsp-defcustom lsp-java-content-provider-preferred nil
   "Preferred content provider (a 3rd party decompiler id,
 usually)"
   :type '(choice (string)
                  (const nil))
-  :group 'lsp-java)
+  :lsp-path "java.contentProvider.preferred")
 
-(defcustom lsp-java-autobuild-enabled t
+(lsp-defcustom lsp-java-autobuild-enabled t
   "Enable/disable the 'auto build'"
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.autobuild.enabled")
 
-(defcustom lsp-java-selection-enabled t
+(lsp-defcustom lsp-java-selection-enabled t
   "Enable/disable the selection range"
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.selectionRange.enabled")
 
-(defcustom lsp-java-max-concurrent-builds 1
+(lsp-defcustom lsp-java-max-concurrent-builds 1
   "Max simultaneous project builds"
   :type 'number
-  :group 'lsp-java)
+  :lsp-path "java.maxConcurrentBuilds")
 
-(defcustom lsp-java-completion-enabled t
+(lsp-defcustom lsp-java-completion-enabled t
   "Enable/disable code completion support"
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.completion.enabled")
 
-(defcustom lsp-java-completion-overwrite t
+(lsp-defcustom lsp-java-completion-overwrite t
   "When set to true, code completion overwrites the current text.
 When set to false, code is simply added instead."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.completion.overwrite")
 
-(defcustom lsp-java-completion-guess-method-arguments t
+(lsp-defcustom lsp-java-completion-guess-method-arguments t
   "When set to true, method arguments are guessed when a method
 is selected from as list of code assist proposals."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.completion.guessMethodArguments")
 
-(defcustom lsp-java-completion-favorite-static-members ["org.junit.Assert.*" "org.junit.Assume.*" "org.junit.jupiter.api.Assertions.*" "org.junit.jupiter.api.Assumptions.*" "org.junit.jupiter.api.DynamicContainer.*" "org.junit.jupiter.api.DynamicTest.*" "org.mockito.Mockito.*" "org.mockito.ArgumentMatchers.*" "org.mockito.Answers.*"]
+(lsp-defcustom lsp-java-completion-favorite-static-members ["org.junit.Assert.*" "org.junit.Assume.*" "org.junit.jupiter.api.Assertions.*" "org.junit.jupiter.api.Assumptions.*" "org.junit.jupiter.api.DynamicContainer.*" "org.junit.jupiter.api.DynamicTest.*" "org.mockito.Mockito.*" "org.mockito.ArgumentMatchers.*" "org.mockito.Answers.*"]
   "Defines a list of static members or types with static members.
 Content assist will propose those static members even if the
 import is missing."
   :type '(lsp-repeatable-vector string)
-  :group 'lsp-java)
+  :lsp-path "java.completion.favoriteStaticMembers")
 
-(defcustom lsp-java-completion-import-order ["java" "javax" "com" "org"]
+(lsp-defcustom lsp-java-completion-import-order ["java" "javax" "com" "org"]
   "Defines the sorting order of import statements. A package or
 type name prefix (e.g. 'org.eclipse') is a valid entry. An import
 is always added to the most specific group."
   :type '(lsp-repeatable-vector string)
-  :group 'lsp-java)
+  :lsp-path "java.completion.importOrder")
 
-(defcustom lsp-java-folding-range-enabled t
+(lsp-defcustom lsp-java-folding-range-enabled t
   "Enable/disable smart folding range support. If disabled, it
 will use the default indentation-based folding range provided by
 VS Code."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.foldingRange.enabled")
 
-(defcustom lsp-java-progress-reports-enabled t
+(lsp-defcustom lsp-java-progress-reports-enabled t
   "[Experimental] Enable/disable progress reports from background
 processes on the server."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.progressReports.enabled")
 
-(defcustom lsp-java-format-settings-url nil
+(lsp-defcustom lsp-java-format-settings-url nil
   "Specifies the url or file path to the [Eclipse formatter xml
 settings](https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings)."
   :type '(choice (string)
                  (const nil))
-  :group 'lsp-java)
+  :lsp-path "java.format.settings.url")
 
-(defcustom lsp-java-format-settings-profile nil
+(lsp-defcustom lsp-java-format-settings-profile nil
   "Optional formatter profile name from the Eclipse formatter
 settings."
   :type '(choice (string)
                  (const nil))
-  :group 'lsp-java)
+  :lsp-path "java.format.settings.profile")
 
-(defcustom lsp-java-format-comments-enabled t
+(lsp-defcustom lsp-java-format-comments-enabled t
   "Includes the comments during code formatting."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.format.comments.enabled")
 
-(defcustom lsp-java-format-on-type-enabled t
+(lsp-defcustom lsp-java-format-on-type-enabled t
   "Enable/disable automatic block formatting when typing `;`,
 `<enter>` or `}`"
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.format.onType.enabled")
 
 (defcustom lsp-java-bundles nil
   "List of bundles that will be loaded in the JDT server."
   :group 'lsp-java
   :type '(repeat string))
 
-(defcustom lsp-java-code-generation-hash-code-equals-use-java7objects nil
+(lsp-defcustom lsp-java-code-generation-hash-code-equals-use-java7objects nil
   "Use Objects.hash and Objects.equals when generating the
 hashCode and equals methods. This setting only applies to Java 7
 and higher."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.hashCodeEquals.useJava7Objects")
 
-(defcustom lsp-java-code-generation-hash-code-equals-use-instanceof nil
+(lsp-defcustom lsp-java-code-generation-hash-code-equals-use-instanceof nil
   "Use 'instanceof' to compare types when generating the hashCode
 and equals methods."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.hashCodeEquals.useInstanceof")
 
-(defcustom lsp-java-code-generation-use-blocks nil
+(lsp-defcustom lsp-java-code-generation-use-blocks nil
   "Use blocks in 'if' statements when generating the methods."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.useBlocks")
 
-(defcustom lsp-java-code-generation-generate-comments nil
+(lsp-defcustom lsp-java-code-generation-generate-comments nil
   "Generate method comments when generating the methods."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.generateComments")
 
-(defcustom lsp-java-code-generation-to-string-template "${object.className} [${member.name()}=${member.value}, ${otherMembers}]"
+(lsp-defcustom lsp-java-code-generation-to-string-template "${object.className} [${member.name()}=${member.value}, ${otherMembers}]"
   "The template for generating the toString method."
   :type 'string
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.toString.template")
 
-(defcustom lsp-java-code-generation-to-string-code-style "STRING_CONCATENATION"
+(lsp-defcustom lsp-java-code-generation-to-string-code-style "STRING_CONCATENATION"
   "The code style for generating the toString method."
   :type '(choice (const "STRING_CONCATENATION")
                  (const "STRING_BUILDER")
                  (const "STRING_BUILDER_CHAINED")
                  (const "STRING_FORMAT"))
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.toString.codeStyle")
 
-(defcustom lsp-java-code-generation-to-string-skip-null-values nil
+(lsp-defcustom
+  lsp-java-code-generation-to-string-skip-null-values nil
   "Skip null values when generating the toString method."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.toString.skipNullValues")
 
-(defcustom lsp-java-code-generation-to-string-list-array-contents t
+(lsp-defcustom lsp-java-code-generation-to-string-list-array-contents t
   "List contents of arrays instead of using native toString()."
   :type 'boolean
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.toString.listArrayContents")
 
-(defcustom lsp-java-code-generation-to-string-limit-elements 0
+(lsp-defcustom lsp-java-code-generation-to-string-limit-elements 0
   "Limit number of items in arrays/collections/maps to list, if 0
 then list all."
   :type 'number
-  :group 'lsp-java)
+  :lsp-path "java.codeGeneration.toString.limitElements")
 
-(defcustom lsp-java-completion-filtered-types ["java.awt.*" "com.sun.*"]
+(lsp-defcustom lsp-java-completion-filtered-types ["java.awt.*" "com.sun.*"]
   "Defines the type filters. All types whose fully qualified name
 matches the selected filter strings will be ignored in content
 assist or quick fix proposals and when organizing imports. For
 example 'java.awt.*' will hide all types from the awt packages."
   :type '(lsp-repeatable-vector string)
-  :group 'lsp-java)
+  :lsp-path "java.completion.filteredTypes")
 
+(lsp-defcustom
+  lsp-java-format-tab-size 'c-basic-offset
+  "The basic offset"
+  :type 'symbol
+  :lsp-path "java.format.tabSize")
+
+(lsp-defcustom lsp-java-format-tab-size 'c-basic-offset
+  "The basic offset"
+  :type 'symbol
+  :lsp-path "java.format.tabSize")
+
+(lsp-register-custom-settings
+ `(("" c-basic-offset)
+   ("java.format.insertSpaces" ,(lambda () (not indent-tabs-mode)) t)))
 (declare-function dap-debug "ext:dap-mode")
 (declare-function projectile-project-p "ext:projectile")
 (declare-function projectile-project-root "ext:projectile")
 (declare-function helm-make-source "ext:helm-source")
 
-;; see https://github.com/eclipse/eclipse.jdt.ls/blob/v1.1.2/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/preferences/Preferences.java
-(lsp-register-custom-settings
- `(("java.codeGeneration.toString.limitElements" lsp-java-code-generation-to-string-limit-elements)
-   ("java.codeGeneration.toString.listArrayContents" lsp-java-code-generation-to-string-list-array-contents t)
-   ("java.codeGeneration.toString.skipNullValues" lsp-java-code-generation-to-string-skip-null-values t)
-   ("java.codeGeneration.toString.codeStyle" lsp-java-code-generation-to-string-code-style)
-   ("java.codeGeneration.toString.template" lsp-java-code-generation-to-string-template)
-   ("java.codeGeneration.generateComments" lsp-java-code-generation-generate-comments t)
-   ("java.codeGeneration.useBlocks" lsp-java-code-generation-use-blocks t)
-   ("java.codeGeneration.hashCodeEquals.useInstanceof" lsp-java-code-generation-hash-code-equals-use-instanceof t)
-   ("java.codeGeneration.hashCodeEquals.useJava7Objects" lsp-java-code-generation-hash-code-equals-use-java7objects t)
-   ("java.format.onType.enabled" lsp-java-format-on-type-enabled t)
-   ("java.format.comments.enabled" lsp-java-format-comments-enabled t)
-   ("java.format.settings.profile" lsp-java-format-settings-profile)
-   ("java.format.settings.url" lsp-java-format-settings-url)
-   ("java.progressReports.enabled" lsp-java-progress-reports-enabled t)
-   ("java.foldingRange.enabled" lsp-java-folding-range-enabled t)
-   ("java.completion.importOrder" lsp-java-completion-import-order)
-   ("java.completion.favoriteStaticMembers" lsp-java-completion-favorite-static-members)
-   ("java.completion.guessMethodArguments" lsp-java-completion-guess-method-arguments t)
-   ("java.completion.overwrite" lsp-java-completion-overwrite t)
-   ("java.completion.enabled" lsp-java-completion-enabled t)
-   ("java.maxConcurrentBuilds" lsp-java-max-concurrent-builds)
-   ("java.autobuild.enabled" lsp-java-autobuild-enabled t)
-   ("java.selectionRange.enabled" lsp-java-selection-enabled t)
-   ("java.contentProvider.preferred" lsp-java-content-provider-preferred)
-   ("java.import.exclusions" lsp-java-import-exclusions)
-   ("java.saveActions.organizeImports" lsp-java-save-actions-organize-imports t)
-   ("java.format.enabled" lsp-java-format-enabled t)
-   ("java.configuration.maven.userSettings" lsp-java-configuration-maven-user-settings)
-   ("java.implementationsCodeLens.enabled" lsp-java-implementations-code-lens-enabled t)
-   ("java.signatureHelp.enabled" lsp-java-signature-help-enabled t)
-   ("java.referencesCodeLens.enabled" lsp-java-references-code-lens-enabled t)
-   ("java.maven.downloadSources" lsp-java-maven-download-sources t)
-   ("java.import.maven.enabled" lsp-java-import-maven-enabled t)
-   ("java.import.gradle.enabled" lsp-java-import-gradle-enabled t)
-   ("java.import.gradle.version" lsp-java--get-gradle-version)
-   ("java.import.gradle.jvmArguments" lsp-java-import-gradle-jvm-arguments)
-   ("java.import.gradle.wrapper.enabled" lsp-java-import-gradle-wrapper-enabled t)
-   ("java.trace.server" lsp-java-trace-server)
-   ("java.configuration.updateBuildConfiguration" lsp-java-configuration-update-build-configuration)
-   ("java.configuration.checkProjectSettingsExclusions" lsp-java-configuration-check-project-settings-exclusions t)
-   ("java.errors.incompleteClasspath.severity" lsp-java-errors-incomplete-classpath-severity)
-   ("java.dependency.packagePresentation" lsp-java-dependency-package-representation)
-   ("java.completion.filteredTypes" lsp-java-completion-filtered-types)
-   ("java.project.importHint" lsp-java-project-import-hint t)
-   ("java.project.importOnFirstTimeStartup" lsp-java-project-import-on-first-time-startup)
-   ("java.imports.gradle.wrapper.checksums" lsp-java-imports-gradle-wrapper-checksums)
-   ("java.sources.organizeImports.staticStarThreshold" lsp-java-sources-organize-imports-static-star-threshold)
-   ("java.sources.organizeImports.starThreshold" lsp-java-sources-organize-imports-star-threshold)
-   ("java.server.launchMode" lsp-java-server-launch-mode)
-   ("java.configuration.runtimes" lsp-java-configuration-runtimes)
-   ("java.showBuildStatusOnStart.enabled" lsp-java-show-build-status-on-start-enabled t)
-   ("java.selectionRange.enabled" lsp-java-selection-range-enabled t)
-   ("java.completion.maxResults" lsp-java-completion-max-results)
-   ("java.project.referencedLibraries" lsp-java-project-referenced-libraries)
-   ("java.maven.updateSnapshots" lsp-java-maven-update-snapshots t)
-   ("java.import.gradle.user.home" lsp-java-import-gradle-user-home)
-   ("java.import.gradle.arguments" lsp-java-import-gradle-arguments)
-   ("java.import.gradle.offline.enabled" lsp-java-import-gradle-offline-enabled t)
-   ("java.import.gradle.java.home" lsp-java-import-gradle-java-home)
-   ("java.import.gradle.home" lsp-java-import-gradle-home)
-   ("java.project.resourceFilters" lsp-java-project-resource-filters)
-   ("java.format.tabSize" c-basic-offset)
-   ("java.format.insertSpaces" ,(lambda () (not indent-tabs-mode)) t)))
 
 (defcustom lsp-java-inhibit-message t
   "If non-nil, inhibit java messages echo via `inhibit-message'."
   :type 'boolean
   :group 'lsp-mode)
 
-(defcustom lsp-java-import-gradle-home nil
+(lsp-defcustom lsp-java-import-gradle-home nil
   "Use Gradle from the specified local installation directory or
 GRADLE_HOME if the Gradle wrapper is missing or disabled and no
 'java.import.gradle.version' is specified."
   :type '(choice (string)
-                 (const nil)))
+                 (const nil))
+  :lsp-path "java.import.gradle.home")
 
-(defcustom lsp-java-import-gradle-java-home nil
+(lsp-defcustom lsp-java-import-gradle-java-home nil
   "The location to the JVM used to run the Gradle daemon."
   :type '(choice (string)
-                 (const nil)))
+                 (const nil))
+  :lsp-path "java.import.gradle.java.home")
 
-(defcustom lsp-java-import-gradle-offline-enabled nil
+(lsp-defcustom lsp-java-import-gradle-offline-enabled nil
   "Enable/disable the Gradle offline mode."
-  :type 'boolean)
+  :type 'boolean
+  :lsp-path "java.import.gradle.offline.enabled")
 
-(defcustom lsp-java-import-gradle-arguments nil
+(lsp-defcustom lsp-java-import-gradle-arguments nil
   "Arguments to pass to Gradle."
   :type '(choice (string)
-                 (const nil)))
+                 (const nil))
+  :lsp-path "java.import.gradle.arguments")
 
-(defcustom lsp-java-import-gradle-user-home nil
+(lsp-defcustom lsp-java-import-gradle-user-home nil
   "Setting for GRADLE_USER_HOME."
   :type '(choice (string)
-                 (const nil)))
+                 (const nil))
+  :lsp-path "java.import.gradle.user.home")
 
-(defcustom lsp-java-maven-update-snapshots nil
+(lsp-defcustom lsp-java-maven-update-snapshots nil
   "Force update of Snapshots/Releases."
-  :type 'boolean)
+  :type 'boolean
+  :lsp-path "java.maven.updateSnapshots")
 
-(defcustom lsp-java-project-referenced-libraries ["lib/**/*.jar"]
+(lsp-defcustom lsp-java-project-referenced-libraries ["lib/**/*.jar"]
   "Configure glob patterns for referencing local libraries to a
 Java project."
-  :type '(lsp-repeatable-vector string))
+  :type '(lsp-repeatable-vector string)
+  :lsp-path "java.project.referencedLibraries")
 
-(defcustom lsp-java-completion-max-results 0
+(lsp-defcustom lsp-java-completion-max-results 0
   "Maximum number of completion results (not including
 snippets).`0' (the default value) disables the limit, all results
 are returned. In case of performance problems, consider setting a
 sensible limit."
-  :type 'number)
+  :type 'number
+  :lsp-path "java.completion.maxResults")
 
-(defcustom lsp-java-selection-range-enabled t
+(lsp-defcustom lsp-java-selection-range-enabled t
   "Enable/disable Smart Selection support for Java. Disabling
 this option will not affect the VS Code built-in word-based and
 bracket-based smart selection."
-  :type 'boolean)
+  :type 'boolean
+  :lsp-path "java.selectionRange.enabled")
 
-(defcustom lsp-java-show-build-status-on-start-enabled nil
+(lsp-defcustom lsp-java-show-build-status-on-start-enabled nil
   "Automatically show build status on startup."
-  :type 'boolean)
+  :type 'boolean
+  :lsp-path "java.showBuildStatusOnStart.enabled")
 
-(defcustom lsp-java-configuration-runtimes nil
+(lsp-defcustom lsp-java-configuration-runtimes nil
   "Map Java Execution Environments to local JDKs."
-  :type '(lsp-repeatable-vector string))
+  :type '(lsp-repeatable-vector string)
+  :lsp-path "java.configuration.runtimes")
 
-(defcustom lsp-java-server-launch-mode "Hybrid"
+(lsp-defcustom lsp-java-server-launch-mode "Hybrid"
   "The launch mode for the Java extension"
   :type '(choice (const "Standard")
                  (const "LightWeight")
-                 (const "Hybrid")))
+                 (const "Hybrid"))
+  :lsp-path "java.server.launchMode")
 
-(defcustom lsp-java-sources-organize-imports-star-threshold 99
+(lsp-defcustom lsp-java-sources-organize-imports-star-threshold 99
   "Specifies the number of imports added before a star-import declaration is used."
-  :type 'number)
+  :type 'number
+  :lsp-path "java.sources.organizeImports.starThreshold")
 
-(defcustom lsp-java-sources-organize-imports-static-star-threshold 99
+(lsp-defcustom lsp-java-sources-organize-imports-static-star-threshold 99
   "Specifies the number of static imports added before a
 star-import declaration is used."
-  :type 'number)
+  :type 'number
+  :lsp-path "java.sources.organizeImports.staticStarThreshold")
 
-(defcustom lsp-java-imports-gradle-wrapper-checksums []
+(defun lsp-java--checksum? (candidate)
+  "Returns true if CANDIDATE is a vector data structure and
+every element of it is of type list, else nil."
+  (and
+   (vectorp candidate)
+   (seq-every-p #'consp candidate)))
+
+(define-widget 'lsp-java-checksum-vector 'lazy
+  "A vector of zero or more elements, every element of which is a
+checksum object."
+  :offset 4
+  :tag "Checksum Vector"
+  :type '(restricted-sexp
+          :match-alternatives (lsp-java--checksum?)))
+
+(lsp-defcustom lsp-java-imports-gradle-wrapper-checksums []
   "Defines allowed/disallowed SHA-256 checksums of Gradle Wrappers.
 
 Sample value: [(:sha256 \"504b..\" :allowed t)]"
   :type '(lsp-repeatable-vector
           (plist :key-type (choice (const :tag "sha256" :sha256)
                                    (const :tag "allowed" :allowed))
-                 :value-type (choice string boolean))))
+                 :value-type (choice string boolean)))
+  :lsp-path "java.imports.gradle.wrapper.checksums")
 
-(defcustom lsp-java-project-import-on-first-time-startup "automatic"
+(lsp-defcustom lsp-java-project-import-on-first-time-startup "automatic"
   "Specifies whether to import the Java projects, when opening
 the folder in Hybrid mode for the first time."
   :type '(choice (const "disabled")
                  (const "interactive")
-                 (const "automatic")))
+                 (const "automatic"))
+  :lsp-path "java.project.importOnFirstTimeStartup")
 
-(defcustom lsp-java-project-import-hint t
+(lsp-defcustom lsp-java-project-import-hint t
   "Enable/disable the server-mode switch information, when Java
 projects import is skipped on startup."
-  :type 'boolean)
+  :type 'boolean
+  :lsp-path "java.project.importHint")
 
 (defvar lsp-java--download-root "https://raw.githubusercontent.com/emacs-lsp/lsp-java/master/install/")
 
@@ -718,7 +693,7 @@ FULL specify whether full or incremental build will be performed."
    (java:ConstructorsStatus (:fields :constructors))
    (java:Constructor (:name :parameters))
    (java:Field (:name :type))
-   (java:Destination (:displayName :path))
+   (java:Destination (:displayName :lsp-path))
    (java:OverridableMethod (:name :parameters :declaringClass))
    (java:MoveDestinations (:destinations))
    (java:ListOverridableMethods (:methods))
@@ -1032,6 +1007,7 @@ current symbol."
                                                  candidates
                                                  #'lsp:java-import-fully-qualified-name)))
                 (apply #'vector)))))
+      ("_java.reloadBundles.command" [])
       (_ (ignore
           (with-lsp-workspace (lsp-find-workspace 'boot-ls nil)
             (aset arguments? 2 (if (seq-elt arguments? 2) t :json-false))
@@ -1230,7 +1206,7 @@ current symbol."
                                     (list :moveKind "moveResource"
                                           :sourceUris move-uris
                                           :params nil)))
-                      (-lambda ((&java:Destination :display-name :path))
+                      (-lambda ((&java:Destination :display-name :lsp-path))
                         (format "%s - %s" display-name path)))]
     (when-let (move-uris (if-let (destination-folder (lsp--uri-to-path (lsp:location-uri destination)))
                              (-let [(duplicated-files to-move)
@@ -1440,11 +1416,11 @@ current symbol."
                                         :resolveAdditionalTextEditsSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
-                                                      lsp-session-server-id->folders
-                                                      (gethash 'jdtls)
-                                                      (-uniq)
-                                                      (-map #'lsp--path-to-uri)
-                                                      (apply #'vector))))
+                                                         lsp-session-server-id->folders
+                                                         (gethash 'jdtls)
+                                                         (-uniq)
+                                                         (-map #'lsp--path-to-uri)
+                                                         (apply #'vector))))
   :library-folders-fn (lambda (_workspace) (list lsp-java-workspace-cache-dir))
   :before-file-open-fn (lambda (_workspace)
                          (let ((metadata-file-name (lsp-java--get-metadata-location buffer-file-name)))
@@ -1526,6 +1502,523 @@ current symbol."
                       ('quit))))))))
 
 
+
+(lsp-defcustom lsp-java-import-maven-offline-enabled nil
+  "Enable/disable the Maven offline mode."
+  :type 'boolean
+  :lsp-path "java.import.maven.offline.enabled")
+
+(lsp-defcustom lsp-java-import-maven-disable-test-classpath-flag nil
+  "Enable/disable test classpath segregation. When enabled, this
+permits the usage of test resources within a Maven project as
+dependencies within the compile scope of other projects."
+  :type 'boolean
+  :lsp-path "java.import.maven.disableTestClasspathFlag")
+
+(lsp-defcustom lsp-java-import-gradle-annotation-processing-enabled t
+  "Enable/disable the annotation processing on Gradle projects and
+delegate Annotation Processing to JDT APT. Only works for Gradle
+5.2 or higher."
+  :type 'boolean
+  :lsp-path "java.import.gradle.annotationProcessing.enabled")
+
+(lsp-defcustom lsp-java-eclipse-download-sources nil
+  "Enable/disable download of Maven source artifacts for Eclipse
+projects."
+  :type 'boolean
+  :lsp-path "java.eclipse.downloadSources")
+
+(lsp-defcustom lsp-java-signature-help-description-enabled nil
+  "Enable/disable to show the description in signature help."
+  :type 'boolean
+  :lsp-path "java.signatureHelp.description.enabled")
+
+(lsp-defcustom lsp-java-configuration-maven-global-settings nil
+  "Path to Maven's global settings.xml"
+  :type 'string
+  :lsp-path "java.configuration.maven.globalSettings")
+
+(lsp-defcustom lsp-java-configuration-maven-not-covered-plugin-execution-severity "warning"
+  "Specifies severity if the plugin execution is not covered by Maven build lifecycle."
+  :type '(choice (const "ignore")
+                 (const "warning")
+                 (const "error"))
+  :lsp-path "java.configuration.maven.notCoveredPluginExecutionSeverity")
+
+(lsp-defcustom lsp-java-configuration-maven-default-mojo-execution-action "ignore"
+  "Specifies default mojo execution action when no associated metadata can be detected."
+  :type '(choice (:const "ignore") (:const "warn") (:const "error") (:const "execute"))
+  :lsp-path "java.configuration.maven.defaultMojoExecutionAction")
+
+(lsp-defcustom lsp-java-configuration-workspace-cache-limit 90
+  "The number of days (if enabled) to keep unused workspace cache
+data. Beyond this limit, cached workspace data may be removed."
+  :type '(repeat nil)
+  :lsp-path "java.configuration.workspaceCacheLimit")
+
+(lsp-defcustom lsp-java-import-generates-metadata-files-at-project-root nil
+  "Specify whether the project metadata files(.project, .classpath,
+.factorypath, .settings/) will be generated at the project root.
+Click [HERE](command:_java.metadataFilesGeneration) to learn how
+to change the setting to make it take effect."
+  :type 'boolean
+  :lsp-path "java.import.generatesMetadataFilesAtProjectRoot")
+
+(lsp-defcustom lsp-java-project-output-path ""
+  "A relative path to the workspace where stores the compiled
+output. `Only` effective in the `WORKSPACE` scope. The setting
+will `NOT` affect Maven or Gradle project."
+  :type '(repeat string)
+  :lsp-path "java.project.outputPath")
+
+(lsp-defcustom lsp-java-project-source-paths nil
+  "Relative paths to the workspace where stores the source files.
+`Only` effective in the `WORKSPACE` scope. The setting will `NOT`
+affect Maven or Gradle project."
+  :type 'lsp-string-vector
+  :lsp-path "java.project.sourcePaths")
+
+(lsp-defcustom lsp-java-recommendations-dependency-analytics-show t
+  "Show the recommended Dependency Analytics extension."
+  :type 'boolean
+  :lsp-path "java.recommendations.dependency.analytics.show")
+
+(lsp-defcustom lsp-java-completion-postfix-enabled t
+  "Enable/disable postfix completion support.
+`#editor.snippetSuggestions#` can be used to customize how
+postfix snippets are sorted."
+  :type 'boolean
+  :lsp-path "java.completion.postfix.enabled")
+
+(lsp-defcustom lsp-java-completion-match-case "auto"
+  "Specify whether to match case for code completion."
+  :type '(choice (:const "auto") (:const "firstLetter") (:const "off"))
+  :lsp-path "java.completion.matchCase")
+
+(lsp-defcustom lsp-java-completion-lazy-resolve-text-edit-enabled t
+  "[Experimental] Enable/disable lazily resolving text edits for
+code completion."
+  :type 'boolean
+  :lsp-path "java.completion.lazyResolveTextEdit.enabled")
+
+(lsp-defcustom lsp-java-code-generation-insertion-location "afterCursor"
+  "Specifies the insertion location of the code generated by source
+actions."
+  :type '(choice (:const "afterCursor") (:const "beforeCursor") (:const "lastMember"))
+  :lsp-path "java.codeGeneration.insertionLocation")
+
+(lsp-defcustom lsp-java-templates-file-header nil
+  "Specifies the file header comment for new Java file. Supports
+configuring multi-line comments with an array of strings, and
+using ${variable} to reference the [predefined
+variables](command:_java.templateVariables)."
+  :type 'lsp-string-vector
+  :lsp-path "java.templates.fileHeader")
+
+(lsp-defcustom lsp-java-templates-type-comment nil
+  "Specifies the type comment for new Java type. Supports
+configuring multi-line comments with an array of strings, and
+using ${variable} to reference the [predefined
+variables](command:_java.templateVariables)."
+  :type 'lsp-string-vector
+  :lsp-path "java.templates.typeComment")
+
+(lsp-defcustom lsp-java-references-include-accessors t
+  "Include getter, setter and builder/constructor when finding
+references."
+  :type 'boolean
+  :lsp-path "java.references.includeAccessors")
+
+(lsp-defcustom lsp-java-references-include-decompiled-sources t
+  "Include the decompiled sources when finding references."
+  :type 'boolean
+  :lsp-path "java.references.includeDecompiledSources")
+
+(lsp-defcustom lsp-java-type-hierarchy-lazy-load nil
+  "Enable/disable lazy loading the content in type hierarchy. Lazy
+loading could save a lot of loading time but every type should be
+expanded manually to load its content."
+  :type 'boolean
+  :lsp-path "java.typeHierarchy.lazyLoad")
+
+(lsp-defcustom lsp-java-settings-url nil
+  "Specifies the url or file path to the workspace Java settings.
+See [Setting Global
+Preferences](https://github.com/redhat-developer/vscode-java/wiki/Settings-Global-Preferences)"
+  :type 'string
+  :lsp-path "java.settings.url")
+
+(lsp-defcustom lsp-java-symbols-include-source-method-declarations nil
+  "Include method declarations from source files in symbol search."
+  :type 'boolean
+  :lsp-path "java.symbols.includeSourceMethodDeclarations")
+
+(lsp-defcustom lsp-java-quickfix-show-at "line"
+  "Show quickfixes at the problem or line level."
+  :type '(choice (:const "line") (:const "problem"))
+  :lsp-path "java.quickfix.showAt")
+
+(lsp-defcustom lsp-java-inlay-hints-parameter-names-enabled "literals"
+  "Enable/disable inlay hints for parameter names:
+```java
+
+Integer.valueOf(/* s: */ '123', /* radix: */ 10)
+
+```
+ `#java.inlayHints.parameterNames.exclusions#` can be used to disable the inlay hints for methods."
+  :type '(choice (:const "none") (:const "literals") (:const "all"))
+  :lsp-path "java.inlayHints.parameterNames.enabled")
+
+(lsp-defcustom lsp-java-inlay-hints-parameter-names-exclusions nil
+  "The patterns for the methods that will be disabled to show the
+inlay hints. Supported pattern examples:
+ - `java.lang.Math.*` - All the methods from java.lang.Math.
+ - `*.Arrays.asList` - Methods named as 'asList' in the types named as 'Arrays'.
+ - `*.println(*)` - Methods named as 'println'.
+ - `(from, to)` - Methods with two parameters named as 'from' and 'to'.
+ - `(arg*)` - Methods with one parameter whose name starts with 'arg'."
+  :type 'lsp-string-vector
+  :lsp-path "java.inlayHints.parameterNames.exclusions")
+
+(lsp-defcustom lsp-java-project-encoding "ignore"
+  "Project encoding settings"
+  :type '(choice (:const "ignore") (:const "warning") (:const "setDefault"))
+  :lsp-path "java.project.encoding")
+
+(lsp-defcustom lsp-java-jdt-ls-lombok-support-enabled t
+  "Whether to load lombok processors from project classpath"
+  :type 'boolean
+  :lsp-path "java.jdt.ls.lombokSupport.enabled")
+
+(lsp-defcustom lsp-java-jdt-ls-protobuf-support-enabled t
+  "Specify whether to automatically add Protobuf output source
+directories to the classpath.
+
+**Note:** Only works for Gradle `com.google.protobuf` plugin `0.8.4` or higher."
+  :type 'boolean
+  :lsp-path "java.jdt.ls.protobufSupport.enabled")
+
+(lsp-defcustom lsp-java-jdt-ls-android-support-enabled "auto"
+  "[Experimental] Specify whether to enable Android project
+importing. When set to `auto`, the Android support will be
+enabled in Visual Studio Code - Insiders.
+
+**Note:** Only works for Android Gradle Plugin `3.2.0` or higher."
+  :type '(choice (:const "auto") (:const "on") (:const "off"))
+  :lsp-path "java.jdt.ls.androidSupport.enabled")
+
+(lsp-defcustom lsp-java-code-action-sort-members-avoid-volatile-changes t
+  "Reordering of fields, enum constants, and initializers can result
+in semantic and runtime changes due to different initialization
+and persistence order. This setting prevents this from occurring."
+  :type 'boolean
+  :lsp-path "java.codeAction.sortMembers.avoidVolatileChanges")
+
+(lsp-defcustom lsp-java-compile-null-analysis-nonnull ["javax.annotation.Nonnull" "org.eclipse.jdt.annotation.NonNull" "org.springframework.lang.NonNull"]
+  "Specify the Nonnull annotation types to be used for null
+analysis. If more than one annotation is specified, then the
+topmost annotation will be used first if it exists in project
+dependencies. This setting will be ignored if
+`java.compile.nullAnalysis.mode` is set to `disabled`"
+  :type 'lsp-string-vector
+  :lsp-path "java.compile.nullAnalysis.nonnull")
+
+(lsp-defcustom lsp-java-compile-null-analysis-nullable ["javax.annotation.Nullable" "org.eclipse.jdt.annotation.Nullable" "org.springframework.lang.Nullable"]
+  "Specify the Nullable annotation types to be used for null
+analysis. If more than one annotation is specified, then the
+topmost annotation will be used first if it exists in project
+dependencies. This setting will be ignored if
+`java.compile.nullAnalysis.mode` is set to `disabled`"
+  :type 'lsp-string-vector
+  :lsp-path "java.compile.nullAnalysis.nullable")
+
+(lsp-defcustom lsp-java-compile-null-analysis-mode "interactive"
+  "Specify how to enable the annotation-based null analysis."
+  :type '(choice (:const "disabled") (:const "interactive") (:const "automatic"))
+  :lsp-path "java.compile.nullAnalysis.mode")
+
+(lsp-defcustom lsp-java-cleanup-actions-on-save nil
+  "The list of clean ups to be run on the current document when it's
+saved. Clean ups can automatically fix code style or programming
+mistakes. Click [HERE](command:_java.learnMoreAboutCleanUps) to
+learn more about what each clean up does."
+  :type 'lsp-string-vector
+  :lsp-path "java.cleanup.actionsOnSave")
+
+(lsp-defcustom lsp-java-shared-indexes-enabled "auto"
+  "[Experimental] Specify whether to share indexes between different
+workspaces. When set to `auto`, shared indexes will be enabled in
+Visual Studio Code - Insiders."
+  :type '(choice (:const "auto") (:const "on") (:const "off"))
+  :lsp-path "java.sharedIndexes.enabled")
+
+(lsp-defcustom lsp-java-shared-indexes-location ""
+  "Specifies a common index location for all workspaces."
+  :type 'string
+  :lsp-path "java.sharedIndexes.location")
+
+(lsp-defcustom lsp-java-refactoring-extract-interface-replace t
+  "Specify whether to replace all the occurrences of the subtype with the new extracted interface."
+  :type 'boolean
+  :lsp-path "java.refactoring.extract.interface.replace")
+
+(lsp-defcustom lsp-java-import-maven-offline-enabled nil
+  "Enable/disable the Maven offline mode."
+  :type 'boolean
+  :lsp-path "java.import.maven.offline.enabled")
+
+(lsp-defcustom lsp-java-import-maven-disable-test-classpath-flag nil
+  "Enable/disable test classpath segregation. When enabled, this
+permits the usage of test resources within a Maven project as
+dependencies within the compile scope of other projects."
+  :type 'boolean
+  :lsp-path "java.import.maven.disableTestClasspathFlag")
+
+(lsp-defcustom lsp-java-import-gradle-annotation-processing-enabled t
+  "Enable/disable the annotation processing on Gradle projects and
+delegate Annotation Processing to JDT APT. Only works for Gradle
+5.2 or higher."
+  :type 'boolean
+  :lsp-path "java.import.gradle.annotationProcessing.enabled")
+
+(lsp-defcustom lsp-java-eclipse-download-sources nil
+  "Enable/disable download of Maven source artifacts for Eclipse
+projects."
+  :type 'boolean
+  :lsp-path "java.eclipse.downloadSources")
+
+(lsp-defcustom lsp-java-signature-help-description-enabled nil
+  "Enable/disable to show the description in signature help."
+  :type 'boolean
+  :lsp-path "java.signatureHelp.description.enabled")
+
+(lsp-defcustom lsp-java-configuration-maven-global-settings nil
+  "Path to Maven's global settings.xml"
+  :type 'string
+  :lsp-path "java.configuration.maven.globalSettings")
+
+(lsp-defcustom lsp-java-configuration-maven-not-covered-plugin-execution-severity "warning"
+  "Specifies severity if the plugin execution is not covered by Maven build lifecycle."
+  :type '(choice (:const "ignore") (:const "warning") (:const "error"))
+  :lsp-path "java.configuration.maven.notCoveredPluginExecutionSeverity")
+
+(lsp-defcustom lsp-java-configuration-maven-default-mojo-execution-action "ignore"
+  "Specifies default mojo execution action when no associated metadata can be detected."
+  :type '(choice (:const "ignore") (:const "warn") (:const "error") (:const "execute"))
+  :lsp-path "java.configuration.maven.defaultMojoExecutionAction")
+
+(lsp-defcustom lsp-java-configuration-workspace-cache-limit 90
+  "The number of days (if enabled) to keep unused workspace cache
+data. Beyond this limit, cached workspace data may be removed."
+  :type '(repeat nil)
+  :lsp-path "java.configuration.workspaceCacheLimit")
+
+(lsp-defcustom lsp-java-import-generates-metadata-files-at-project-root nil
+  "Specify whether the project metadata files(.project, .classpath,
+.factorypath, .settings/) will be generated at the project root.
+Click [HERE](command:_java.metadataFilesGeneration) to learn how
+to change the setting to make it take effect."
+  :type 'boolean
+  :lsp-path "java.import.generatesMetadataFilesAtProjectRoot")
+
+(lsp-defcustom lsp-java-project-output-path ""
+  "A relative path to the workspace where stores the compiled
+output. `Only` effective in the `WORKSPACE` scope. The setting
+will `NOT` affect Maven or Gradle project."
+  :type '(repeat string)
+  :lsp-path "java.project.outputPath")
+
+(lsp-defcustom lsp-java-project-source-paths nil
+  "Relative paths to the workspace where stores the source files.
+`Only` effective in the `WORKSPACE` scope. The setting will `NOT`
+affect Maven or Gradle project."
+  :type 'lsp-string-vector
+  :lsp-path "java.project.sourcePaths")
+
+(lsp-defcustom lsp-java-recommendations-dependency-analytics-show t
+  "Show the recommended Dependency Analytics extension."
+  :type 'boolean
+  :lsp-path "java.recommendations.dependency.analytics.show")
+
+(lsp-defcustom lsp-java-completion-postfix-enabled t
+  "Enable/disable postfix completion support.
+`#editor.snippetSuggestions#` can be used to customize how
+postfix snippets are sorted."
+  :type 'boolean
+  :lsp-path "java.completion.postfix.enabled")
+
+(lsp-defcustom lsp-java-completion-match-case "auto"
+  "Specify whether to match case for code completion."
+  :type '(choice (:const "auto") (:const "firstLetter") (:const "off"))
+  :lsp-path "java.completion.matchCase")
+
+(lsp-defcustom lsp-java-completion-lazy-resolve-text-edit-enabled t
+  "[Experimental] Enable/disable lazily resolving text edits for
+code completion."
+  :type 'boolean
+  :lsp-path "java.completion.lazyResolveTextEdit.enabled")
+
+(lsp-defcustom lsp-java-code-generation-insertion-location "afterCursor"
+  "Specifies the insertion location of the code generated by source
+actions."
+  :type '(choice (:const "afterCursor") (:const "beforeCursor") (:const "lastMember"))
+  :lsp-path "java.codeGeneration.insertionLocation")
+
+(lsp-defcustom lsp-java-templates-file-header nil
+  "Specifies the file header comment for new Java file. Supports
+configuring multi-line comments with an array of strings, and
+using ${variable} to reference the [predefined
+variables](command:_java.templateVariables)."
+  :type 'lsp-string-vector
+  :lsp-path "java.templates.fileHeader")
+
+(lsp-defcustom lsp-java-templates-type-comment nil
+  "Specifies the type comment for new Java type. Supports
+configuring multi-line comments with an array of strings, and
+using ${variable} to reference the [predefined
+variables](command:_java.templateVariables)."
+  :type 'lsp-string-vector
+  :lsp-path "java.templates.typeComment")
+
+(lsp-defcustom lsp-java-references-include-accessors t
+  "Include getter, setter and builder/constructor when finding
+references."
+  :type 'boolean
+  :lsp-path "java.references.includeAccessors")
+
+(lsp-defcustom lsp-java-references-include-decompiled-sources t
+  "Include the decompiled sources when finding references."
+  :type 'boolean
+  :lsp-path "java.references.includeDecompiledSources")
+
+(lsp-defcustom lsp-java-type-hierarchy-lazy-load nil
+  "Enable/disable lazy loading the content in type hierarchy. Lazy
+loading could save a lot of loading time but every type should be
+expanded manually to load its content."
+  :type 'boolean
+  :lsp-path "java.typeHierarchy.lazyLoad")
+
+(lsp-defcustom lsp-java-settings-url nil
+  "Specifies the url or file path to the workspace Java settings.
+See [Setting Global
+Preferences](https://github.com/redhat-developer/vscode-java/wiki/Settings-Global-Preferences)"
+  :type 'string
+  :lsp-path "java.settings.url")
+
+(lsp-defcustom lsp-java-symbols-include-source-method-declarations nil
+  "Include method declarations from source files in symbol search."
+  :type 'boolean
+  :lsp-path "java.symbols.includeSourceMethodDeclarations")
+
+(lsp-defcustom lsp-java-quickfix-show-at "line"
+  "Show quickfixes at the problem or line level."
+  :type '(choice (:const "line") (:const "problem"))
+  :lsp-path "java.quickfix.showAt")
+
+(lsp-defcustom lsp-java-inlay-hints-parameter-names-enabled "literals"
+  "Enable/disable inlay hints for parameter names:
+```java
+
+Integer.valueOf(/* s: */ '123', /* radix: */ 10)
+
+```
+ `#java.inlayHints.parameterNames.exclusions#` can be used to disable the inlay hints for methods."
+  :type '(choice (:const "none") (:const "literals") (:const "all"))
+  :lsp-path "java.inlayHints.parameterNames.enabled")
+
+(lsp-defcustom lsp-java-inlay-hints-parameter-names-exclusions nil
+  "The patterns for the methods that will be disabled to show the
+inlay hints. Supported pattern examples:
+ - `java.lang.Math.*` - All the methods from java.lang.Math.
+ - `*.Arrays.asList` - Methods named as 'asList' in the types named as 'Arrays'.
+ - `*.println(*)` - Methods named as 'println'.
+ - `(from, to)` - Methods with two parameters named as 'from' and 'to'.
+ - `(arg*)` - Methods with one parameter whose name starts with 'arg'."
+  :type 'lsp-string-vector
+  :lsp-path "java.inlayHints.parameterNames.exclusions")
+
+(lsp-defcustom lsp-java-project-encoding "ignore"
+  "Project encoding settings"
+  :type '(choice (:const "warning") (:const "setDefault"))
+  :lsp-path "java.project.encoding")
+
+(lsp-defcustom lsp-java-jdt-ls-lombok-support-enabled t
+  "Whether to load lombok processors from project classpath"
+  :type 'boolean
+  :lsp-path "java.jdt.ls.lombokSupport.enabled")
+
+(lsp-defcustom lsp-java-jdt-ls-protobuf-support-enabled t
+  "Specify whether to automatically add Protobuf output source
+directories to the classpath.
+
+**Note:** Only works for Gradle `com.google.protobuf` plugin `0.8.4` or higher."
+  :type 'boolean
+  :lsp-path "java.jdt.ls.protobufSupport.enabled")
+
+(lsp-defcustom lsp-java-jdt-ls-android-support-enabled "auto"
+  "[Experimental] Specify whether to enable Android project
+importing. When set to `auto`, the Android support will be
+enabled in Visual Studio Code - Insiders.
+
+**Note:** Only works for Android Gradle Plugin `3.2.0` or higher."
+  :type '(choice (:const "on") (:const "off"))
+  :lsp-path "java.jdt.ls.androidSupport.enabled")
+
+(lsp-defcustom lsp-java-code-action-sort-members-avoid-volatile-changes t
+  "Reordering of fields, enum constants, and initializers can result
+in semantic and runtime changes due to different initialization
+and persistence order. This setting prevents this from occurring."
+  :type 'boolean
+  :lsp-path "java.codeAction.sortMembers.avoidVolatileChanges")
+
+(lsp-defcustom lsp-java-compile-null-analysis-nonnull ["javax.annotation.Nonnull" "org.eclipse.jdt.annotation.NonNull" "org.springframework.lang.NonNull"]
+  "Specify the Nonnull annotation types to be used for null
+analysis. If more than one annotation is specified, then the
+topmost annotation will be used first if it exists in project
+dependencies. This setting will be ignored if
+`java.compile.nullAnalysis.mode` is set to `disabled`"
+  :type 'lsp-string-vector
+  :lsp-path "java.compile.nullAnalysis.nonnull")
+
+(lsp-defcustom lsp-java-compile-null-analysis-nullable ["javax.annotation.Nullable" "org.eclipse.jdt.annotation.Nullable" "org.springframework.lang.Nullable"]
+  "Specify the Nullable annotation types to be used for null
+analysis. If more than one annotation is specified, then the
+topmost annotation will be used first if it exists in project
+dependencies. This setting will be ignored if
+`java.compile.nullAnalysis.mode` is set to `disabled`"
+  :type 'lsp-string-vector
+  :lsp-path "java.compile.nullAnalysis.nullable")
+
+(lsp-defcustom lsp-java-compile-null-analysis-mode "interactive"
+  "Specify how to enable the annotation-based null analysis."
+  :type '(choice (:const "interactive") (:const "automatic"))
+  :lsp-path "java.compile.nullAnalysis.mode")
+
+(lsp-defcustom lsp-java-cleanup-actions-on-save nil
+  "The list of clean ups to be run on the current document when it's
+saved. Clean ups can automatically fix code style or programming
+mistakes. Click [HERE](command:_java.learnMoreAboutCleanUps) to
+learn more about what each clean up does."
+  :type 'lsp-string-vector
+  :lsp-path "java.cleanup.actionsOnSave")
+
+(lsp-defcustom lsp-java-shared-indexes-enabled "auto"
+  "[Experimental] Specify whether to share indexes between different
+workspaces. When set to `auto`, shared indexes will be enabled in
+Visual Studio Code - Insiders."
+  :type '(choice (:const "on") (:const "off"))
+  :lsp-path "java.sharedIndexes.enabled")
+
+(lsp-defcustom lsp-java-shared-indexes-location ""
+  "Specifies a common index location for all workspaces."
+  :type 'string
+  :lsp-path "java.sharedIndexes.location")
+
+(lsp-defcustom lsp-java-refactoring-extract-interface-replace t
+  "Specify whether to replace all the occurrences of the subtype with the new extracted interface."
+  :type 'boolean
+  :lsp-path "java.refactoring.extract.interface.replace")
+
 ;; lsp-java run
 
 (defvar lsp-lens-backends)
@@ -1533,7 +2026,6 @@ current symbol."
 ;;;###autoload
 (define-minor-mode lsp-java-lens-mode
   "Toggle run/debug overlays."
-  :group 'lsp-java
   :global nil
   :init-value nil
   :lighter nil
@@ -1650,6 +2142,7 @@ With prefix 2 show both."
     (setq lsp--buffer-workspaces workspaces)))
 
 (provide 'lsp-java)
+
 ;;; lsp-java.el ends here
 
 ;; Local Variables:
