@@ -46,7 +46,7 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
-(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.22.0/jdt-language-server-1.22.0-202304131553.tar.gz"
+(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.23.0/jdt-language-server-1.23.0-202304271346.tar.gz"
   "JDT JS download url.
 Use https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz if you want to use older java version."
   :type 'string)
@@ -1574,7 +1574,7 @@ postfix snippets are sorted."
   :type '(choice (:const "auto") (:const "firstLetter") (:const "off"))
   :lsp-path "java.completion.matchCase")
 
-(lsp-defcustom lsp-java-completion-lazy-resolve-text-edit-enabled t
+(lsp-defcustom lsp-java-completion-lazy-resolve-text-edit-enabled nil
   "[Experimental] Enable/disable lazily resolving text edits for
 code completion."
   :type 'boolean
