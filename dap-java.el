@@ -342,10 +342,13 @@ attaching to the test."
 (cl-defmethod dap-handle-event ((_event (eql hotcodereplace)) session _params)
   "Handle DAP events for SESSION."
   (when (eq dap-java-hot-reload 'always)
-    (-let [(&hash "changedClasses" classes) (dap-request session "redefineClasses")]
-      (if classes
-          (lsp--info "Reloaded the following classes: %s." classes)
-        (lsp--warn "There are no classes to redefine.")))))
+    (dap--send-message
+     (dap--make-request "redefineClasses")
+     (-lambda ((&hash "changedClasses" classes))
+       (if classes
+           (lsp--info "Reloaded the following classes: %s." classes)
+         (lsp--warn "There are no classes to redefine.")))
+     session)))
 
 (dap-register-debug-provider "java" #'dap-java--populate-default-args)
 (dap-register-debug-template "Java Run Configuration"
