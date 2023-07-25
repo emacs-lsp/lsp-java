@@ -51,6 +51,16 @@ The slash is expected at the end."
 Use https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz if you want to use older java version."
   :type 'string)
 
+(defcustom lsp-java-server-config-dir nil
+  "Path to your platform's configuration directory.
+
+This path has to be writable. This configuration is specifically
+created for systems like NixOS where the default configuration
+directory inferred by lsp-java is not writable."
+  :group 'lsp-java
+  :risky t
+  :type 'directory)
+
 (defcustom lsp-java-java-path "java"
   "Path of the java executable."
   :type 'string)
@@ -641,7 +651,9 @@ FULL specify whether full or incremental build will be performed."
 (defun lsp-java--ls-command ()
   "LS startup command."
   (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
-        (server-config (lsp-file-local-name (lsp-java--locate-server-config)))
+        (server-config (if lsp-java-server-config-dir
+			   lsp-java-server-config-dir
+			 (lsp-file-local-name (lsp-java--locate-server-config))))
         (java-9-args (when (lsp-java--java-9-plus-p)
                        lsp-java-9-args)))
     (lsp-java--ensure-dir lsp-java-workspace-dir)
