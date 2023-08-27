@@ -50,6 +50,11 @@
   :group 'dap-java
   :type 'string)
 
+(defcustom dap-java-vm-args nil
+  "VmArgs which will be used for debug configuration."
+  :group 'dap-java
+  :type 'string)
+
 (defcustom  dap-java-compile-port 33000
   "The debug port which will be used for compile/attach configuration.
 If the port is taken, DAP will try the next port."
@@ -231,6 +236,7 @@ initiate `compile' and attach to the process."
 (defun dap-java--populate-default-args (conf)
   "Populate all of the fields that are not present in CONF."
   (setq conf (plist-put conf :type "java"))
+  (plist-put conf :vmArgs dap-java-vm-args)
 
   (setq conf (pcase (plist-get conf :request)
                ("launch" (dap-java--populate-launch-args conf))
