@@ -261,10 +261,11 @@ surrounding method.  Otherwise it will run the surrounding test."
           (to-run (if run-method?
                       (dap-java-test-method-at-point)
                     (dap-java-test-class)))
+          (project-name (dap-java--extract-project-name))
           (test-class-name (cl-first (s-split "#" to-run)))
           (class-path (->> (with-lsp-workspace (lsp-find-workspace 'jdtls)
                              (lsp-send-execute-command "vscode.java.resolveClasspath"
-                                                       (vector test-class-name nil)))
+                                                       (vector test-class-name project-name)))
                            cl-second
                            (s-join dap-java--classpath-separator)))
           (prog-list (if dap-java-use-testng
@@ -284,6 +285,17 @@ surrounding method.  Otherwise it will run the surrounding test."
           :environment-variables `(("JUNIT_CLASS_PATH" . ,class-path))
           :name to-run
           :cwd (lsp-java--get-root))))
+
+(defun dap-java--extract-project-name ()
+  "Extract the project name from the .project FILE."
+  (let ((project-file (concat (lsp-java--get-root) ".project"))
+        (project-name nil))
+    (with-temp-buffer
+      (insert-file-contents project-file)
+      (goto-char (point-min))
+      (when (re-search-forward "<name>\\(.+?\\)</name>" nil t)
+        (setq project-name (match-string 1))))
+    project-name))
 
 (defun dap-java-run-test-method ()
   "Run JUnit test.
