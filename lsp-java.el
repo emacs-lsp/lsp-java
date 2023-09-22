@@ -385,9 +385,11 @@ example 'java.awt.*' will hide all types from the awt packages."
   :type '(lsp-repeatable-vector string)
   :lsp-path "java.completion.filteredTypes")
 
-(lsp-defcustom lsp-java-format-tab-size 'c-basic-offset
+(lsp-defcustom lsp-java-format-tab-size (lambda () (if (equal major-mode 'java-ts-mode)
+                                                       java-ts-mode-indent-offset
+                                                     c-basic-offset))
   "The basic offset"
-  :type 'symbol
+  :type 'function
   :lsp-path "java.format.tabSize")
 
 (lsp-defcustom lsp-java-format-insert-spaces (lambda () (not indent-tabs-mode))
