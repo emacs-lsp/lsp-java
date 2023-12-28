@@ -46,6 +46,16 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
+(defcustom lsp-java-jdt-ls-prefer-native-command nil
+  "Use native jdtls command provided by jdtls installation instead of lsp's java -jar invocation."
+  :risky t
+  :type 'boolean)
+
+(defcustom lsp-java-jdt-ls-command "jdtls"
+  "Native jdtls command provided by jdtls installation."
+  :risky t
+  :type 'string)
+
 (defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.23.0/jdt-language-server-1.23.0-202304271346.tar.gz"
   "JDT JS download url.
 Use https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz if you want to use older java version."
@@ -551,6 +561,13 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
     (server-jar-filenames
      (error "Unable to find single point of entry %s" server-jar-filenames))))
 
+(defun lsp-java--locate-server-command ()
+  "Return the jdtls command location of the language server.
+
+The entry point of the language server is in `lsp-java-server-install-dir'/bin/jdtls[.bat]."
+  (let ((bin-path (expand-file-name "bin" lsp-java-server-install-dir)))
+    (locate-file lsp-java-jdt-ls-command `(,bin-path) exec-suffixes 1)))
+
 (defun lsp-java--locate-server-config ()
   "Return the server config based on OS."
   (let ((config (cond
@@ -652,27 +669,34 @@ FULL specify whether full or incremental build will be performed."
 
 (defun lsp-java--ls-command ()
   "LS startup command."
-  (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
-        (server-config (if lsp-java-server-config-dir
-			   lsp-java-server-config-dir
-			 (lsp-file-local-name (lsp-java--locate-server-config))))
-        (java-9-args (when (lsp-java--java-9-plus-p)
-                       lsp-java-9-args)))
-    (lsp-java--ensure-dir lsp-java-workspace-dir)
-    `(,lsp-java-java-path
-      "-Declipse.application=org.eclipse.jdt.ls.core.id1"
-      "-Dosgi.bundles.defaultStartLevel=4"
-      "-Declipse.product=org.eclipse.jdt.ls.core.product"
-      "-Dlog.protocol=true"
-      "-Dlog.level=ALL"
-      ,@lsp-java-vmargs
-      "-jar"
-      ,server-jar
-      "-configuration"
-      ,server-config
-      "-data"
-      ,(lsp-file-local-name lsp-java-workspace-dir)
-      ,@java-9-args)))
+  (let ((server-cmd (lsp-java--locate-server-command)))
+    (if (and lsp-java-jdt-ls-prefer-native-command
+             server-cmd)
+        `(,server-cmd
+          "-Dlog.protocol=true"
+          "-Dlog.level=ALL"
+          ,@lsp-java-vmargs)
+      (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
+            (server-config (if lsp-java-server-config-dir
+                               lsp-java-server-config-dir
+                             (lsp-file-local-name (lsp-java--locate-server-config))))
+            (java-9-args (when (lsp-java--java-9-plus-p)
+                           lsp-java-9-args)))
+        (lsp-java--ensure-dir lsp-java-workspace-dir)
+        `(,lsp-java-java-path
+          "-Declipse.application=org.eclipse.jdt.ls.core.id1"
+          "-Dosgi.bundles.defaultStartLevel=4"
+          "-Declipse.product=org.eclipse.jdt.ls.core.product"
+          "-Dlog.protocol=true"
+          "-Dlog.level=ALL"
+          ,@lsp-java-vmargs
+          "-jar"
+          ,server-jar
+          "-configuration"
+          ,server-config
+          "-data"
+          ,(lsp-file-local-name lsp-java-workspace-dir)
+          ,@java-9-args)))))
 
 (eval-and-compile
   (lsp-interface
