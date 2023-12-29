@@ -673,9 +673,9 @@ FULL specify whether full or incremental build will be performed."
     (if (and lsp-java-jdt-ls-prefer-native-command
              server-cmd)
         `(,server-cmd
-          "-Dlog.protocol=true"
-          "-Dlog.level=ALL"
-          ,@lsp-java-vmargs)
+          "--jvm-arg=-Dlog.protocol=true"
+          "--jvm-arg=-Dlog.level=ALL"
+          ,@(mapcar (lambda (str) (concat "--jvm-arg=" str)) lsp-java-vmargs))
       (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
             (server-config (if lsp-java-server-config-dir
                                lsp-java-server-config-dir
