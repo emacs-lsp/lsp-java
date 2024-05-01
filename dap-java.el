@@ -38,7 +38,7 @@
 
 (defvar dap-java--var-format (if (string= system-type "windows-nt")
                                  "%%%s%%"
-                               "$%s"))
+                               "\"$%s\""))
 
 ;; Set to non-nil to use TestNG instead of the default JUnit
 (defvar dap-java-use-testng nil)
