@@ -90,9 +90,9 @@ If the port is taken, DAP will try the next port."
 (defcustom dap-java-terminal 'internalConsole
   "Default java terminal."
   :group 'dap-java
-  :type '(choice (const 'integratedTerminal)
-                 (const 'externalTerminal)
-                 (const 'internalConsole)))
+  :type '(choice (const integratedTerminal)
+                 (const externalTerminal)
+                 (const internalConsole)))
 
 (defcustom dap-java-args ""
   "Default java args."
