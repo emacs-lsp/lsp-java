@@ -128,6 +128,12 @@ deduplication with the G1 Garbage collector"
   :risky t
   :type '(repeat string))
 
+(defcustom lsp-java-import-generates-metadata-files-at-project-root nil
+  "Specify whether the project metadata files(.project, .classpath,
+.factorypath, .settings/) will be generated at the project root."
+  :risky t
+  :type 'boolean)
+
 (lsp-defcustom lsp-java-errors-incomplete-classpath-severity "warning"
   "Specifies the severity of the message when the classpath is
 incomplete for a Java file"
@@ -688,7 +694,11 @@ FULL specify whether full or incremental build will be performed."
                                lsp-java-server-config-dir
                              (lsp-file-local-name (lsp-java--locate-server-config))))
             (java-9-args (when (lsp-java--java-9-plus-p)
-                           lsp-java-9-args)))
+                           lsp-java-9-args))
+            (generate-metadata-property (if lsp-java-import-generates-metadata-files-at-project-root
+                                            "-Djava.import.generatesMetadataFilesAtProjectRoot=true"
+                                          "-Djava.import.generatesMetadataFilesAtProjectRoot=false"
+                                          )))
         (lsp-java--ensure-dir lsp-java-workspace-dir)
         `(,lsp-java-java-path
           "-Declipse.application=org.eclipse.jdt.ls.core.id1"
@@ -697,6 +707,7 @@ FULL specify whether full or incremental build will be performed."
           "-Dlog.protocol=true"
           "-Dlog.level=ALL"
           ,@lsp-java-vmargs
+          ,generate-metadata-property
           "-jar"
           ,server-jar
           "-configuration"
@@ -1582,14 +1593,6 @@ data. Beyond this limit, cached workspace data may be removed."
   :type '(repeat nil)
   :lsp-path "java.configuration.workspaceCacheLimit")
 
-(lsp-defcustom lsp-java-import-generates-metadata-files-at-project-root nil
-  "Specify whether the project metadata files(.project, .classpath,
-.factorypath, .settings/) will be generated at the project root.
-Click [HERE](command:_java.metadataFilesGeneration) to learn how
-to change the setting to make it take effect."
-  :type 'boolean
-  :lsp-path "java.import.generatesMetadataFilesAtProjectRoot")
-
 (lsp-defcustom lsp-java-project-output-path ""
   "A relative path to the workspace where stores the compiled
 output. `Only` effective in the `WORKSPACE` scope. The setting
@@ -1840,14 +1843,6 @@ can be detected."
 Beyond this limit, cached workspace data may be removed."
   :type '(repeat nil)
   :lsp-path "java.configuration.workspaceCacheLimit")
-
-(lsp-defcustom lsp-java-import-generates-metadata-files-at-project-root nil
-  "Specify whether the project metadata files(.project, .classpath,
-.factorypath, .settings/) will be generated at the project root.
-Click [HERE](command:_java.metadataFilesGeneration) to learn how to change the
-setting to make it take effect."
-  :type 'boolean
-  :lsp-path "java.import.generatesMetadataFilesAtProjectRoot")
 
 (lsp-defcustom lsp-java-project-output-path ""
   "A relative path to the workspace where stores the compiled output.
