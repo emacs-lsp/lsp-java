@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: purcell/setup-emacs@master
         with:
-          version: 27.1
+          version: 28.1
 
       - uses: conao3/setup-cask@master
         with:
