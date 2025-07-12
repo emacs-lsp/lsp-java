@@ -61,7 +61,7 @@ lsp's java -jar invocation."
   :risky t
   :type 'string)
 
-(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.23.0/jdt-language-server-1.23.0-202304271346.tar.gz"
+(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.48.0/jdt-language-server-1.48.0-202506271502.tar.gz"
   "JDT JS download url.
 Use https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz if you want to use older java version."
   :type 'string)
