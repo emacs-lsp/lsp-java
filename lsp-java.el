@@ -1401,7 +1401,10 @@ current symbol."
 (lsp-register-client
  (make-lsp--client
   :new-connection (lsp-stdio-connection #'lsp-java--ls-command
-                                        #'lsp-java--locate-server-jar)
+                                        (lambda ()
+                                          (or (and lsp-java-jdt-ls-prefer-native-command
+                                                   (lsp-java--locate-server-command))
+                                              (lsp-java--locate-server-jar))))
   :major-modes '(java-mode java-ts-mode jdee-mode)
   :server-id 'jdtls
   :multi-root t
