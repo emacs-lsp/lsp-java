@@ -2182,6 +2182,58 @@ With prefix 2 show both."
       (user-error "No class under point."))
     (setq lsp--buffer-workspaces workspaces)))
 
+(defun lsp-java--load-vscode-workspace (file)
+  "Prepare workspace loaded from vscode workspace file
+if Java projects and settings were configured. This adds all the folders
+to the JDTLS session. Because of the way JDTLS works, dependent projects
+would not be *open* from the PoV of the JDTLS server otherwise and thus
+typechecking against them and building multi-project workspaces would
+not work properly.
+
+Additionally, this also takes a few configuration settings into account
+to setup Java runtimes and debug templates if possible."
+
+  (when-let* ((json (json-read-file file)))
+    (--> json
+         (alist-get 'settings it)
+         (alist-get 'java.configuration.runtimes it)
+         (-each it (-lambda ((&alist 'name 'path 'default))
+                     (setq lsp-java-configuration-runtimes
+                           (vconcat lsp-java-configuration-runtimes
+                                    `[(:name ,name :path ,path :default ,default)])))))
+    (--> json
+         (alist-get 'launch it)
+         (alist-get 'configurations it)
+         (-each it (-lambda ((&alist 'type 'name 'projectName 'request 'hostName 'port))
+                     (when (and name (string-equal type "java"))
+                       (eval-after-load 'dap-java
+                         (lambda ()
+                           (dap-register-debug-template name
+                                                        (list :type type
+                                                              :request request
+                                                              :projectName projectName
+                                                              :hostName hostName
+                                                              :port port)))))))))
+
+  (seq-do (lambda (folder)
+            (if-let* ((project-file (f-join folder ".project"))
+                      (xml (condition-case nil
+                               (with-temp-buffer
+                                 (insert-file-contents project-file)
+                                 (xml-parse-region (point-min) (point-max)))
+                             (error nil)))
+                      (project-description (xml-get-children (car xml) 'projectDescription))
+                      (natures (xml-get-children (xml-get-children (car project-description) 'natures) 'nature)))
+                (if (and (= 1 (seq-length natures))
+                         (member "org.eclipse.jdt.core.javanature" (xml-node-children (car natures))))
+                    (puthash 'jdtls
+                             (append (gethash 'jdtls (lsp-session-server-id->folders (lsp-session)))
+                                     (list folder))
+                             (lsp-session-server-id->folders (lsp-session))))))
+          (lsp-session-folders (lsp-session))))
+
+(advice-add #'lsp-load-vscode-workspace :after #'lsp-java--load-vscode-workspace)
+
 (provide 'lsp-java)
 
 ;;; lsp-java.el ends here
