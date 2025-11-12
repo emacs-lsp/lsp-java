@@ -38,7 +38,7 @@
 
 (defvar dap-java--var-format (if (string= system-type "windows-nt")
                                  "%%%s%%"
-                               "$%s"))
+                               "\"$%s\""))
 
 ;; Set to non-nil to use TestNG instead of the default JUnit
 (defvar dap-java-use-testng nil)
@@ -90,9 +90,9 @@ If the port is taken, DAP will try the next port."
 (defcustom dap-java-terminal 'internalConsole
   "Default java terminal."
   :group 'dap-java
-  :type '(choice (const 'integratedTerminal)
-                 (const 'externalTerminal)
-                 (const 'internalConsole)))
+  :type '(choice (const integratedTerminal)
+                 (const externalTerminal)
+                 (const internalConsole)))
 
 (defcustom dap-java-args ""
   "Default java args."

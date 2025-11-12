@@ -2,7 +2,7 @@
 
 ;; Version: 3.0
 
-;; Package-Requires: ((emacs "27.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0") (treemacs "2.5") (dap-mode "0.5"))
+;; Package-Requires: ((emacs "28.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0") (treemacs "2.5") (dap-mode "0.5"))
 ;; Keywords: languague, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -24,6 +24,7 @@
 ;; Java specific adapter for LSP mode
 
 ;;; Code:
+
 (require 'cc-mode)
 (require 'lsp-mode)
 (require 'markdown-mode)
@@ -33,6 +34,9 @@
 (require 'f)
 (require 'request)
 (require 'cl-lib)
+
+;; Compiler pacifier
+(defvar java-ts-mode-indent-offset)
 
 (defgroup lsp-java nil
   "JDT emacs frontend."
@@ -46,7 +50,18 @@ The slash is expected at the end."
   :risky t
   :type 'directory)
 
-(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.23.0/jdt-language-server-1.23.0-202304271346.tar.gz"
+(defcustom lsp-java-jdt-ls-prefer-native-command nil
+  "Use native jdtls command provided by jdtls installation instead of
+lsp's java -jar invocation."
+  :risky t
+  :type 'boolean)
+
+(defcustom lsp-java-jdt-ls-command "jdtls"
+  "Native jdtls command provided by jdtls installation."
+  :risky t
+  :type 'string)
+
+(defcustom lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.48.0/jdt-language-server-1.48.0-202506271502.tar.gz"
   "JDT JS download url.
 Use https://download.eclipse.org/jdtls/milestones/1.12.0/jdt-language-server-1.12.0-202206011637.tar.gz if you want to use older java version."
   :type 'string)
@@ -198,9 +213,21 @@ pass a list, only a vector."
   :lsp-path "java.signatureHelp.enabled")
 
 (lsp-defcustom lsp-java-implementations-code-lens-enabled nil
-  "Enable/disable the implementations code lens."
+  "Enable/disable the implementations code lens.
+For old version of jdtls."
   :type 'boolean
   :lsp-path "java.implementationsCodeLens.enabled")
+
+(lsp-defcustom lsp-java-implementation-code-lens "none"
+  "Configure the implementations code lens.
+
+\"none\" means disabled.
+ref: https://github.com/eclipse-jdtls/eclipse.jdt.ls/blob/master/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/handlers/CodeLensHandler.java#L234"
+  :type '(choice (const "none")
+                 (const "all")
+                 (const "types")
+                 (const "methods"))
+  :lsp-path "java.implementationCodeLens")
 
 (lsp-defcustom lsp-java-configuration-maven-user-settings nil
   "Path to Maven's settings.xml"
@@ -275,15 +302,15 @@ import is missing."
   :lsp-path "java.completion.favoriteStaticMembers")
 
 (lsp-defcustom lsp-java-completion-import-order ["java" "javax" "com" "org"]
-  "Defines the sorting order of import statements. A package or
-type name prefix (e.g. 'org.eclipse') is a valid entry. An import
-is always added to the most specific group."
+  "Defines the sorting order of import statements.
+A package or type name prefix (e.g. `org.eclipse') is a valid entry.
+An import is always added to the most specific group."
   :type '(lsp-repeatable-vector string)
   :lsp-path "java.completion.importOrder")
 
 (lsp-defcustom lsp-java-folding-range-enabled t
-  "Enable/disable smart folding range support. If disabled, it
-will use the default indentation-based folding range provided by
+  "Enable/disable smart folding range support.
+If disabled, it will use the default indentation-based folding range provided by
 VS Code."
   :type 'boolean
   :lsp-path "java.foldingRange.enabled")
@@ -295,8 +322,8 @@ processes on the server."
   :lsp-path "java.progressReports.enabled")
 
 (lsp-defcustom lsp-java-format-settings-url nil
-  "Specifies the url or file path to the [Eclipse formatter xml
-settings](https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings)."
+  "Specifies the url or file path to the [Eclipse formatter XML settings]
+(https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings)."
   :type '(choice (string)
                  (const nil))
   :lsp-path "java.format.settings.url")
@@ -332,13 +359,13 @@ and higher."
   :lsp-path "java.codeGeneration.hashCodeEquals.useJava7Objects")
 
 (lsp-defcustom lsp-java-code-generation-hash-code-equals-use-instanceof nil
-  "Use 'instanceof' to compare types when generating the hashCode
+  "Use `instanceof' to compare types when generating the hashCode
 and equals methods."
   :type 'boolean
   :lsp-path "java.codeGeneration.hashCodeEquals.useInstanceof")
 
 (lsp-defcustom lsp-java-code-generation-use-blocks nil
-  "Use blocks in 'if' statements when generating the methods."
+  "Use blocks in `if' statements when generating the methods."
   :type 'boolean
   :lsp-path "java.codeGeneration.useBlocks")
 
@@ -381,7 +408,7 @@ then list all."
   "Defines the type filters. All types whose fully qualified name
 matches the selected filter strings will be ignored in content
 assist or quick fix proposals and when organizing imports. For
-example 'java.awt.*' will hide all types from the awt packages."
+example `java.awt.*' will hide all types from the awt packages."
   :type '(lsp-repeatable-vector string)
   :lsp-path "java.completion.filteredTypes")
 
@@ -409,7 +436,7 @@ example 'java.awt.*' will hide all types from the awt packages."
 (lsp-defcustom lsp-java-import-gradle-home nil
   "Use Gradle from the specified local installation directory or
 GRADLE_HOME if the Gradle wrapper is missing or disabled and no
-'java.import.gradle.version' is specified."
+`java.import.gradle.version' is specified."
   :type '(choice (string)
                  (const nil))
   :lsp-path "java.import.gradle.home")
@@ -544,12 +571,21 @@ projects import is skipped on startup."
 (defun lsp-java--locate-server-jar ()
   "Return the jar file location of the language server.
 
-The entry point of the language server is in `lsp-java-server-install-dir'/plugins/org.eclipse.equinox.launcher_`version'.jar."
+The entry point of the language server is in the `lsp-java-server-install-dir'
++ /plugins/org.eclipse.equinox.launcher_`version'.jar."
   (pcase (f-glob "org.eclipse.equinox.launcher_*.jar" (expand-file-name "plugins" lsp-java-server-install-dir))
     (`(,single-entry) single-entry)
     (`nil nil)
     (server-jar-filenames
      (error "Unable to find single point of entry %s" server-jar-filenames))))
+
+(defun lsp-java--locate-server-command ()
+  "Return the jdtls command location of the language server.
+
+The entry point of the language server is in the
+`lsp-java-server-install-dir'/bin/jdtls[.bat]."
+  (let ((bin-path (expand-file-name "bin" lsp-java-server-install-dir)))
+    (locate-file lsp-java-jdt-ls-command `(,bin-path) exec-suffixes 1)))
 
 (defun lsp-java--locate-server-config ()
   "Return the server config based on OS."
@@ -652,27 +688,34 @@ FULL specify whether full or incremental build will be performed."
 
 (defun lsp-java--ls-command ()
   "LS startup command."
-  (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
-        (server-config (if lsp-java-server-config-dir
-			   lsp-java-server-config-dir
-			 (lsp-file-local-name (lsp-java--locate-server-config))))
-        (java-9-args (when (lsp-java--java-9-plus-p)
-                       lsp-java-9-args)))
-    (lsp-java--ensure-dir lsp-java-workspace-dir)
-    `(,lsp-java-java-path
-      "-Declipse.application=org.eclipse.jdt.ls.core.id1"
-      "-Dosgi.bundles.defaultStartLevel=4"
-      "-Declipse.product=org.eclipse.jdt.ls.core.product"
-      "-Dlog.protocol=true"
-      "-Dlog.level=ALL"
-      ,@lsp-java-vmargs
-      "-jar"
-      ,server-jar
-      "-configuration"
-      ,server-config
-      "-data"
-      ,(lsp-file-local-name lsp-java-workspace-dir)
-      ,@java-9-args)))
+  (let ((server-cmd (lsp-java--locate-server-command)))
+    (if (and lsp-java-jdt-ls-prefer-native-command
+             server-cmd)
+        `(,server-cmd
+          "--jvm-arg=-Dlog.protocol=true"
+          "--jvm-arg=-Dlog.level=ALL"
+          ,@(mapcar (lambda (str) (concat "--jvm-arg=" str)) lsp-java-vmargs))
+      (let ((server-jar (lsp-file-local-name (lsp-java--locate-server-jar)))
+            (server-config (if lsp-java-server-config-dir
+                               lsp-java-server-config-dir
+                             (lsp-file-local-name (lsp-java--locate-server-config))))
+            (java-9-args (when (lsp-java--java-9-plus-p)
+                           lsp-java-9-args)))
+        (lsp-java--ensure-dir lsp-java-workspace-dir)
+        `(,lsp-java-java-path
+          "-Declipse.application=org.eclipse.jdt.ls.core.id1"
+          "-Dosgi.bundles.defaultStartLevel=4"
+          "-Declipse.product=org.eclipse.jdt.ls.core.product"
+          "-Dlog.protocol=true"
+          "-Dlog.level=ALL"
+          ,@lsp-java-vmargs
+          "-jar"
+          ,server-jar
+          "-configuration"
+          ,server-config
+          "-data"
+          ,(lsp-file-local-name lsp-java-workspace-dir)
+          ,@java-9-args)))))
 
 (eval-and-compile
   (lsp-interface
@@ -1049,9 +1092,9 @@ current symbol."
       (progn
         (require 'helm-source)
         (helm :sources (helm-make-source
-                           message 'helm-source-sync :candidates items
-                           :action '(("Identity" lambda (_)
-                                      (setq lsp-java--helm-result (helm-marked-candidates)))))
+                        message 'helm-source-sync :candidates items
+                        :action '(("Identity" lambda (_)
+                                   (setq lsp-java--helm-result (helm-marked-candidates)))))
               :buffer "*lsp-java select*"
               :prompt message)
         lsp-java--helm-result)
@@ -1532,14 +1575,16 @@ projects."
   :lsp-path "java.configuration.maven.globalSettings")
 
 (lsp-defcustom lsp-java-configuration-maven-not-covered-plugin-execution-severity "warning"
-  "Specifies severity if the plugin execution is not covered by Maven build lifecycle."
+  "Specifies severity if the plugin execution is not covered by Maven
+build lifecycle."
   :type '(choice (const "ignore")
                  (const "warning")
                  (const "error"))
   :lsp-path "java.configuration.maven.notCoveredPluginExecutionSeverity")
 
 (lsp-defcustom lsp-java-configuration-maven-default-mojo-execution-action "ignore"
-  "Specifies default mojo execution action when no associated metadata can be detected."
+  "Specifies default mojo execution action when no associated metadata can
+be detected."
   :type '(choice (:const "ignore") (:const "warn") (:const "error") (:const "execute"))
   :lsp-path "java.configuration.maven.defaultMojoExecutionAction")
 
@@ -1601,24 +1646,23 @@ actions."
   :lsp-path "java.codeGeneration.insertionLocation")
 
 (lsp-defcustom lsp-java-templates-file-header nil
-  "Specifies the file header comment for new Java file. Supports
-configuring multi-line comments with an array of strings, and
-using ${variable} to reference the [predefined
-variables](command:_java.templateVariables)."
+  "Specifies the file header comment for new Java file.
+Supports configuring multi-line comments with an array of strings,
+and using ${variable} to reference
+the [predefined variables](command:_java.templateVariables)."
   :type 'lsp-string-vector
   :lsp-path "java.templates.fileHeader")
 
 (lsp-defcustom lsp-java-templates-type-comment nil
-  "Specifies the type comment for new Java type. Supports
-configuring multi-line comments with an array of strings, and
-using ${variable} to reference the [predefined
-variables](command:_java.templateVariables)."
+  "Specifies the type comment for new Java type.
+Supports configuring multi-line comments with an array of strings,
+and using ${variable} to reference
+the [predefined variables](command:_java.templateVariables)."
   :type 'lsp-string-vector
   :lsp-path "java.templates.typeComment")
 
 (lsp-defcustom lsp-java-references-include-accessors t
-  "Include getter, setter and builder/constructor when finding
-references."
+  "Include getter, setter and builder/constructor when finding references."
   :type 'boolean
   :lsp-path "java.references.includeAccessors")
 
@@ -1628,16 +1672,15 @@ references."
   :lsp-path "java.references.includeDecompiledSources")
 
 (lsp-defcustom lsp-java-type-hierarchy-lazy-load nil
-  "Enable/disable lazy loading the content in type hierarchy. Lazy
-loading could save a lot of loading time but every type should be
+  "Enable/disable lazy loading the content in type hierarchy.
+Lazy loading could save a lot of loading time but every type should be
 expanded manually to load its content."
   :type 'boolean
   :lsp-path "java.typeHierarchy.lazyLoad")
 
 (lsp-defcustom lsp-java-settings-url nil
   "Specifies the url or file path to the workspace Java settings.
-See [Setting Global
-Preferences](https://github.com/redhat-developer/vscode-java/wiki/Settings-Global-Preferences)"
+See [Setting Global Preferences](https://github.com/redhat-developer/vscode-java/wiki/Settings-Global-Preferences)"
   :type 'string
   :lsp-path "java.settings.url")
 
@@ -1658,7 +1701,8 @@ Preferences](https://github.com/redhat-developer/vscode-java/wiki/Settings-Globa
 Integer.valueOf(/* s: */ '123', /* radix: */ 10)
 
 ```
- `#java.inlayHints.parameterNames.exclusions#` can be used to disable the inlay hints for methods."
+ `#java.inlayHints.parameterNames.exclusions#` can be used to disable the inlay
+hints for methods."
   :type '(choice (:const "none") (:const "literals") (:const "all"))
   :lsp-path "java.inlayHints.parameterNames.enabled")
 
@@ -1666,10 +1710,10 @@ Integer.valueOf(/* s: */ '123', /* radix: */ 10)
   "The patterns for the methods that will be disabled to show the
 inlay hints. Supported pattern examples:
  - `java.lang.Math.*` - All the methods from java.lang.Math.
- - `*.Arrays.asList` - Methods named as 'asList' in the types named as 'Arrays'.
- - `*.println(*)` - Methods named as 'println'.
- - `(from, to)` - Methods with two parameters named as 'from' and 'to'.
- - `(arg*)` - Methods with one parameter whose name starts with 'arg'."
+ - `*.Arrays.asList` - Methods named as `asList' in the types named as `Arrays'.
+ - `*.println(*)` - Methods named as `println'.
+ - `(from, to)` - Methods with two parameters named as `from' and `to'.
+ - `(arg*)` - Methods with one parameter whose name starts with `arg'."
   :type 'lsp-string-vector
   :lsp-path "java.inlayHints.parameterNames.exclusions")
 
@@ -1751,7 +1795,8 @@ Visual Studio Code - Insiders."
   :lsp-path "java.sharedIndexes.location")
 
 (lsp-defcustom lsp-java-refactoring-extract-interface-replace t
-  "Specify whether to replace all the occurrences of the subtype with the new extracted interface."
+  "Specify whether to replace all the occurrences of the subtype with the new
+extracted interface."
   :type 'boolean
   :lsp-path "java.refactoring.extract.interface.replace")
 
