@@ -284,6 +284,8 @@ Use http://download.eclipse.org/che/che-ls-jdt/snapshots/che-jdt-language-server
 * `lsp-java-code-generation-to-string-list-array-contents` - List contents of arrays instead of using native toString().
 * `lsp-java-code-generation-to-string-limit-elements` - Limit number of items in arrays/collections/maps to list, if 0 then list all.
 * `lsp-java-inhibit-message` - If non-nil, inhibit java messages echo via `inhibit-message'.
+* `lsp-java-sources-organize-imports-star-threshold` - Specifies the number of imports added before a star-import declaration is used.
+* `lsp-java-sources-organize-imports-static-star-threshold` - Specifies the number of static imports added before a star-import declaration is used.
 
 ## Additional packages
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) : Flycheck, documentation and code actions support.
