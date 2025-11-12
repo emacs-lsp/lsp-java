@@ -709,8 +709,7 @@ FULL specify whether full or incremental build will be performed."
                            lsp-java-9-args))
             (generate-metadata-property (if lsp-java-import-generates-metadata-files-at-project-root
                                             "-Djava.import.generatesMetadataFilesAtProjectRoot=true"
-                                          "-Djava.import.generatesMetadataFilesAtProjectRoot=false"
-                                          )))
+                                          "-Djava.import.generatesMetadataFilesAtProjectRoot=false")))
         (lsp-java--ensure-dir lsp-java-workspace-dir)
         `(,lsp-java-java-path
           "-Declipse.application=org.eclipse.jdt.ls.core.id1"
