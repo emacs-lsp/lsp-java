@@ -213,7 +213,8 @@ pass a list, only a vector."
   :lsp-path "java.signatureHelp.enabled")
 
 (lsp-defcustom lsp-java-implementations-code-lens-enabled nil
-  "Enable/disable the implementations code lens. For old version of jdtls."
+  "Enable/disable the implementations code lens.
+For old version of jdtls."
   :type 'boolean
   :lsp-path "java.implementationsCodeLens.enabled")
 
