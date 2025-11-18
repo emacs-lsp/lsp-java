@@ -325,3 +325,8 @@ LSP slowness could be caused by slow JDT server, especially on large JAVA projec
 ;; current VSCode defaults
 (setq lsp-java-vmargs '("-XX:+UseParallelGC" "-XX:GCTimeRatio=4" "-XX:AdaptiveSizePolicyWeight=90" "-Dsun.zip.disableMemoryMapping=true" "-Xmx2G" "-Xms100m"))
 ```
+
+* I have configured everything in VSCode and saved the code workspace there, can import it?
+
+Yes, the command `lsp-java-load-vscode-workspace` allows you to load a code-workspace file created in VScode.
+It will also import the Java runtime and Debug launch configurations from the VSCode settings.

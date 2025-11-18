@@ -2182,25 +2182,49 @@ With prefix 2 show both."
       (user-error "No class under point."))
     (setq lsp--buffer-workspaces workspaces)))
 
-(defun lsp-java--load-vscode-workspace (file)
-  "Prepare workspace loaded from vscode workspace file
-if Java projects and settings were configured. This adds all the folders
-to the JDTLS session. Because of the way JDTLS works, dependent projects
-would not be *open* from the PoV of the JDTLS server otherwise and thus
-typechecking against them and building multi-project workspaces would
-not work properly.
+;;;###autoload
+(defun lsp-java-load-vscode-workspace (file &optional prefix)
+  "Load a Java workspace from a VSCode workspace file.
+
+With prefix, delete the JDTLS workspace and cache dirs first.
+
+Any Java projects are added directly into the to the JDTLS session.
+Because of the way JDTLS works, dependent projects would not be *open*
+from the PoV of the JDTLS server otherwise and thus typechecking against
+them and building multi-project workspaces would not work properly.
 
 Additionally, this also takes a few configuration settings into account
 to setup Java runtimes and debug templates if possible."
+  (interactive "fSelect file to import: \nP")
+
+  (lsp-load-vscode-workspace file)
+
+  (when prefix
+    (f-delete lsp-java-workspace-cache-dir t)
+    (f-delete lsp-java-workspace-dir t))
+
+  ;; lsp-load-vscode-workspace cleared the workspace folders, also clear the
+  ;; jdtls session folders
+  (puthash 'jdtls '() (lsp-session-server-id->folders (lsp-session)))
 
   (when-let* ((json (json-read-file file)))
     (--> json
          (alist-get 'settings it)
          (alist-get 'java.configuration.runtimes it)
+         (if it (progn (setq lsp-java-configuration-runtimes (vector)) it) it)
          (-each it (-lambda ((&alist 'name 'path 'default))
                      (setq lsp-java-configuration-runtimes
                            (vconcat lsp-java-configuration-runtimes
                                     `[(:name ,name :path ,path :default ,default)])))))
+
+    (--> json
+         (alist-get 'settings it)
+         (alist-get 'java.completion.filteredTypes it)
+         (if it (progn (setq lsp-java-completion-filtered-types (vector)) it) it)
+         (-each it (lambda (str)
+                     (setq lsp-java-completion-filtered-types
+                           (vconcat lsp-java-completion-filtered-types
+                                    `[,str])))))
     (--> json
          (alist-get 'launch it)
          (alist-get 'configurations it)
@@ -2222,8 +2246,7 @@ to setup Java runtimes and debug templates if possible."
                                  (insert-file-contents project-file)
                                  (xml-parse-region (point-min) (point-max)))
                              (error nil)))
-                      (project-description (xml-get-children (car xml) 'projectDescription))
-                      (natures (xml-get-children (xml-get-children (car project-description) 'natures) 'nature)))
+                      (natures (xml-get-children (car (xml-get-children (car xml) 'natures)) 'nature)))
                 (if (and (= 1 (seq-length natures))
                          (member "org.eclipse.jdt.core.javanature" (xml-node-children (car natures))))
                     (puthash 'jdtls
@@ -2231,8 +2254,6 @@ to setup Java runtimes and debug templates if possible."
                                      (list folder))
                              (lsp-session-server-id->folders (lsp-session))))))
           (lsp-session-folders (lsp-session))))
-
-(advice-add #'lsp-load-vscode-workspace :after #'lsp-java--load-vscode-workspace)
 
 (provide 'lsp-java)
 
