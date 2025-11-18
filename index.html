@@ -1290,13 +1290,18 @@ LSP slowness could be caused by slow JDT server, especially on large JAVA projec
 <div class="highlight"><pre><span></span><code><span class="c1">;; current VSCode defaults</span>
 <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-java-vmargs</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;-XX:+UseParallelGC&quot;</span> <span class="s">&quot;-XX:GCTimeRatio=4&quot;</span> <span class="s">&quot;-XX:AdaptiveSizePolicyWeight=90&quot;</span> <span class="s">&quot;-Dsun.zip.disableMemoryMapping=true&quot;</span> <span class="s">&quot;-Xmx2G&quot;</span> <span class="s">&quot;-Xms100m&quot;</span><span class="p">))</span>
 </code></pre></div>
+<ul>
+<li>I have configured everything in VSCode and saved the code workspace there, can import it?</li>
+</ul>
+<p>Yes, the command <code>lsp-java-load-vscode-workspace</code> allows you to load a code-workspace file created in VScode.
+It will also import the Java runtime and Debug launch configurations from the VSCode settings.</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 12, 2025</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 18, 2025</span>
       
     
   </small>
