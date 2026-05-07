@@ -18,7 +18,7 @@
 (source 'gnu)
 (source 'melpa)
 
-(depends-on "emacs" "28.1")
+(depends-on "emacs" "29.1")
 (depends-on "lsp-mode")
 (depends-on "markdown-mode")
 (depends-on "dash")
