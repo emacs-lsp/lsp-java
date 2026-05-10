@@ -1,9 +1,12 @@
 ;;; lsp-jt.el --- Java test support -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Ivan Yonchovski
-;; Copyright (C) 2020-2026 emacs-lsp maintainers
 
-;; This file is not part of GNU Emacs.
+;; Version: 2.0
+;; Author: Ivan Yonchovski <yyoncho@gmail.com>
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0"))
+;; Keywords: language, tools
+;; URL: https://github.com/emacs-lsp/lsp-java
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
