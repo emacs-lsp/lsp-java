@@ -1,7 +1,7 @@
 ;; -*- mode: eask; lexical-binding: t -*-
 
 (package "lsp-java"
-         "3.0"
+         "4.0"
          "Java support for lsp-mode")
 
 (website-url "https://github.com/emacs-lsp/lsp-java")

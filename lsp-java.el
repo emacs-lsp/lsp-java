@@ -1,10 +1,14 @@
 ;;; lsp-java.el --- Java support for lsp-mode  -*- lexical-binding: t; -*-
 
-;; Version: 3.0
+;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2020-2026 emacs-lsp maintainers
 
-;; Package-Requires: ((emacs "29.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0") (treemacs "2.5") (dap-mode "0.5"))
+;; Package-Requires: ((emacs "29.1") (lsp-mode "10.0.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0") (treemacs "2.5") (dap-mode "0.5"))
+;; Version: 4.0
 ;; Keywords: languague, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
+
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

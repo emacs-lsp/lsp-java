@@ -1,9 +1,9 @@
 ;;; lsp-java-boot.el --- Spring boot support for lsp-java -*- lexical-binding: t; -*-
 
-;; Version: 2.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0"))
-;; Keywords: languague, tools
-;; URL: https://github.com/emacs-lsp/lsp-java
+;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2020-2026 emacs-lsp maintainers
+
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
