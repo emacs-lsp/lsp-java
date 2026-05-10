@@ -1,6 +1,6 @@
 ;;; dap-java.el --- Debug Adapter Protocol mode for Java      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2018  Ivan Yonchovski
 ;; Copyright (C) 2020-2026 emacs-lsp maintainers
 
 ;; This file is not part of GNU Emacs.
