@@ -1,9 +1,9 @@
 ;;; dap-java.el --- Debug Adapter Protocol mode for Java      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Ivan Yonchovski
+;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2020-2026 emacs-lsp maintainers
 
-;; Author: Ivan Yonchovski <yyoncho@gmail.com>
-;; Keywords: languages
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -17,11 +17,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-;; URL: https://github.com/yyoncho/dap-mode
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1") (lsp-mode "4.0") (lsp-java "0.1"))
-;; Version: 0.2
-;; DAP Adapter for java
 
 ;;; Commentary:
 
